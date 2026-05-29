@@ -2,27 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { getSesion } from "@/lib/auth/cookies";
 import { puede, type Permiso } from "@/lib/auth/roles";
+import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseCategoriaForm } from "@/lib/validation/categoria";
 import {
   crearCategoria,
   actualizarCategoria,
   cambiarEstadoCategoria,
 } from "@/lib/services/categorias";
-import type { Contexto } from "@/lib/services/bodegas";
 
 export interface CategoriaState {
   error?: string;
-}
-
-async function contexto(): Promise<{ ctx: Contexto; rol: string | null } | null> {
-  const sesion = await getSesion();
-  if (!sesion || sesion.empresaId == null) return null;
-  const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
-  return { rol: sesion.rol, ctx: { empresaId: sesion.empresaId, usuarioId: sesion.uid, ip } };
 }
 
 export async function guardarCategoriaAction(

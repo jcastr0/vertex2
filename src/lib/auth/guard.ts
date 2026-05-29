@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { getSesion } from "./cookies";
 import { puede, type Permiso } from "./roles";
+import { empresaActivaId } from "./empresa";
 import type { SessionPayload } from "./session";
 
 /** Exige sesión válida; redirige a /login si no hay. Para Server Components. */
@@ -24,8 +25,9 @@ export async function requirePermiso(permiso: Permiso): Promise<SessionPayload> 
  */
 export async function requireEmpresa(): Promise<{ sesion: SessionPayload; empresaId: number }> {
   const sesion = await requireSesion();
-  if (sesion.empresaId == null) {
+  const empresaId = await empresaActivaId(sesion);
+  if (empresaId == null) {
     redirect("/dashboard");
   }
-  return { sesion, empresaId: sesion.empresaId };
+  return { sesion, empresaId };
 }

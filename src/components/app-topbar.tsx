@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmpresaSwitcher } from "@/components/empresa-switcher";
 import { Building2, LogOut, ChevronDown } from "lucide-react";
 
 interface Props {
@@ -20,6 +21,8 @@ interface Props {
   email: string;
   rol: string | null;
   empresa: string | null;
+  empresas: { id: number; nombre: string }[];
+  empresaActivaId: number | null;
 }
 
 function tituloDeRuta(pathname: string): string {
@@ -42,8 +45,9 @@ function iniciales(nombre: string) {
     .toUpperCase();
 }
 
-export function AppTopbar({ nombre, email, rol, empresa }: Props) {
+export function AppTopbar({ nombre, email, rol, empresa, empresas, empresaActivaId }: Props) {
   const titulo = tituloDeRuta(usePathname());
+  const esSuperadmin = empresas.length > 0;
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">
       <div className="flex items-center gap-2 sm:gap-3">
@@ -57,11 +61,15 @@ export function AppTopbar({ nombre, email, rol, empresa }: Props) {
       </div>
 
       <div className="flex items-center gap-4">
-        {empresa && (
-          <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
-            <Building2 className="size-4" />
-            {empresa}
-          </div>
+        {esSuperadmin ? (
+          <EmpresaSwitcher empresas={empresas} activaId={empresaActivaId} />
+        ) : (
+          empresa && (
+            <div className="hidden items-center gap-2 text-sm text-muted-foreground sm:flex">
+              <Building2 className="size-4" />
+              {empresa}
+            </div>
+          )
         )}
 
         <DropdownMenu>
