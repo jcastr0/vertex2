@@ -69,8 +69,8 @@ export const NAV: GrupoNav[] = [
     titulo: "Ventas",
     items: [
       { modulo: "facturas", label: "Facturas", href: "/facturas", icon: Receipt, listo: true },
-      { modulo: "devoluciones", label: "Devoluciones", href: "/devoluciones", icon: Undo2, listo: false },
-      { modulo: "notas_credito", label: "Notas crédito", href: "/notas-credito", icon: FileMinus, listo: false },
+      { modulo: "devoluciones", label: "Devoluciones", href: "/devoluciones", icon: Undo2, listo: true },
+      { modulo: "notas_credito", label: "Notas crédito", href: "/notas-credito", icon: FileMinus, listo: true },
     ],
   },
   {

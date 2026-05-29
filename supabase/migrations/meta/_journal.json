@@ -15,6 +15,13 @@
       "when": 1780076189662,
       "tag": "0001_swift_shinko_yamashiro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780080591757,
+      "tag": "0002_conscious_pet_avengers",
+      "breakpoints": true
     }
   ]
 }

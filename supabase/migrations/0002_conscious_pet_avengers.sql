@@ -1,0 +1,2 @@
+ALTER TABLE "vx23_devoluciones" ADD COLUMN "cliente_id" bigint;--> statement-breakpoint
+ALTER TABLE "vx23_devoluciones" ADD CONSTRAINT "vx23_devoluciones_cliente_id_vx07_terceros_id_fk" FOREIGN KEY ("cliente_id") REFERENCES "public"."vx07_terceros"("id") ON DELETE no action ON UPDATE no action;

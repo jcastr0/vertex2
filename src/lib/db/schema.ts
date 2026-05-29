@@ -661,6 +661,7 @@ export const devoluciones = pgTable(
       .notNull()
       .references(() => bodegas.id),
     tipo: varchar("tipo", { length: 20 }).notNull(), // cliente | proveedor
+    clienteId: bigint("cliente_id", { mode: "number" }).references(() => terceros.id),
     facturaId: bigint("factura_id", { mode: "number" }).references(() => facturas.id),
     pedidoId: bigint("pedido_id", { mode: "number" }).references(() => pedidos.id),
     numero: varchar("numero", { length: 20 }).notNull(),
