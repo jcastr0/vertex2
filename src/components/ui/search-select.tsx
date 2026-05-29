@@ -74,6 +74,8 @@ export function SearchSelect({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           disabled={disabled}
+          role="combobox"
+          aria-expanded={open}
           className={cn(
             "flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
             !seleccionada && "text-muted-foreground",
@@ -99,7 +101,7 @@ export function SearchSelect({
               />
             </div>
           )}
-          <div className="max-h-64 overflow-y-auto p-1">
+          <div role="listbox" className="max-h-64 overflow-y-auto p-1">
             {filtradas.length === 0 ? (
               <p className="px-2 py-6 text-center text-sm text-muted-foreground">Sin resultados</p>
             ) : (
@@ -107,6 +109,8 @@ export function SearchSelect({
                 <button
                   key={o.value}
                   type="button"
+                  role="option"
+                  aria-selected={o.value === actual}
                   onClick={() => elegir(o.value)}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground",
