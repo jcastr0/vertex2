@@ -34,6 +34,26 @@ export function SidebarNav({ rol, onNavigate }: { rol: string | null; onNavigate
               {grupo.items.map((item) => {
                 const Icon = item.icon;
                 const activo = pathname === item.href || pathname.startsWith(item.href + "/");
+
+                // Módulos aún no implementados: no son enlaces (evita 404 al navegar/prefetch).
+                if (!item.listo) {
+                  return (
+                    <li key={item.href}>
+                      <div
+                        aria-disabled
+                        title="Disponible próximamente"
+                        className="flex cursor-not-allowed items-center gap-3 rounded-md px-2.5 py-2 text-sm text-sidebar-foreground/40"
+                      >
+                        <Icon className="size-4 shrink-0 text-sidebar-foreground/30" />
+                        <span className="flex-1 truncate">{item.label}</span>
+                        <span className="rounded bg-sidebar-foreground/10 px-1.5 py-0.5 text-[0.6rem] font-medium text-sidebar-foreground/50">
+                          pronto
+                        </span>
+                      </div>
+                    </li>
+                  );
+                }
+
                 return (
                   <li key={item.href}>
                     <Link
@@ -53,11 +73,6 @@ export function SidebarNav({ rol, onNavigate }: { rol: string | null; onNavigate
                         )}
                       />
                       <span className="flex-1 truncate">{item.label}</span>
-                      {!item.listo && (
-                        <span className="rounded bg-sidebar-foreground/10 px-1.5 py-0.5 text-[0.6rem] font-medium text-sidebar-foreground/50">
-                          pronto
-                        </span>
-                      )}
                     </Link>
                   </li>
                 );
