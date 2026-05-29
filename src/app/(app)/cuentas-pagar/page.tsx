@@ -1,0 +1,95 @@
+import type { Metadata } from "next";
+import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { puede } from "@/lib/auth/roles";
+import { listarCuentasPorPagar } from "@/lib/services/cartera";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
+import { estadoCartera } from "@/lib/domain/cartera";
+import { PageHeader } from "@/components/page-header";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
+import { Badge } from "@/components/ui/badge";
+import { AbonoButton } from "@/components/abono-button";
+import { registrarPagoAction } from "./actions";
+import { Wallet } from "lucide-react";
+
+export const metadata: Metadata = { title: "Cuentas por pagar — Vertex" };
+const PAGE_SIZE = 10;
+
+type Fila = Awaited<ReturnType<typeof listarCuentasPorPagar>>[number];
+const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
+const VARIANTE = { pagada: "default", vencida: "destructive", pendiente: "secondary" } as const;
+
+export default async function CuentasPagarPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const sesion = await requirePermiso("cuentas_pagar.ver");
+  const { empresaId } = await requireEmpresa();
+  const { q = "", page: pageRaw } = await searchParams;
+  const todos = await listarCuentasPorPagar(empresaId);
+  const hoy = new Date().toISOString().slice(0, 10);
+  const puedePagar = puede(sesion.rol, "pagos_proveedor.crear");
+
+  const { items, total, page } = filtrarPaginar(todos, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (f) => `${f.proveedor} ${f.cuenta.numeroFactura}`,
+  });
+
+  const columnas: Columna<Fila>[] = [
+    { header: "Proveedor", primary: true, cell: (f) => f.proveedor },
+    { header: "Factura", cell: (f) => <span className="tabular">{f.cuenta.numeroFactura}</span> },
+    {
+      header: "Vencimiento",
+      cell: (f) => {
+        const est = estadoCartera(Number(f.cuenta.saldoPendiente), f.cuenta.fechaVencimiento, hoy);
+        return (
+          <div className="flex items-center gap-2">
+            <span className="tabular">{f.cuenta.fechaVencimiento}</span>
+            <Badge variant={VARIANTE[est]} className="font-normal capitalize">{est}</Badge>
+          </div>
+        );
+      },
+    },
+    { header: "Saldo", className: "text-right", cell: (f) => <span className="tabular font-medium">{money(f.cuenta.saldoPendiente)}</span> },
+  ];
+
+  return (
+    <div className="mx-auto max-w-5xl">
+      <PageHeader title="Cuentas por pagar" description="Saldos pendientes con proveedores." />
+      <ListaFiltrable
+        base="/cuentas-pagar"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(f) => f.cuenta.id}
+        columns={columnas}
+        searchPlaceholder="Buscar por proveedor o factura…"
+        hayDatos={todos.length > 0}
+        vacio={{ icon: Wallet, titulo: "Sin cuentas por pagar", texto: "Se generan al recibir pedidos a proveedores." }}
+        actions={
+          puedePagar
+            ? (f) =>
+                Number(f.cuenta.saldoPendiente) > 0 ? (
+                  <AbonoButton
+                    cuentaId={f.cuenta.id}
+                    saldo={Number(f.cuenta.saldoPendiente)}
+                    hoy={hoy}
+                    triggerLabel="Pagar"
+                    modalTitulo={`Pago a ${f.proveedor}`}
+                    confirmarLabel="Registrar pago"
+                    action={registrarPagoAction}
+                  />
+                ) : (
+                  <Badge variant="default" className="font-normal">Pagada</Badge>
+                )
+            : undefined
+        }
+      />
+    </div>
+  );
+}

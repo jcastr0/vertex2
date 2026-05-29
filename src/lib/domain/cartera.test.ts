@@ -1,5 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { aplicarAbono } from "./cartera";
+import { aplicarAbono, estadoCartera } from "./cartera";
+
+describe("estadoCartera", () => {
+  const hoy = "2026-05-29";
+  it("saldo 0 => pagada (aunque esté vencida)", () => {
+    expect(estadoCartera(0, "2026-01-01", hoy)).toBe("pagada");
+  });
+  it("con saldo y vencimiento pasado => vencida", () => {
+    expect(estadoCartera(1000, "2026-05-01", hoy)).toBe("vencida");
+  });
+  it("con saldo y vencimiento futuro => pendiente", () => {
+    expect(estadoCartera(1000, "2026-06-10", hoy)).toBe("pendiente");
+  });
+  it("vence hoy => pendiente (aún no vencida)", () => {
+    expect(estadoCartera(1000, hoy, hoy)).toBe("pendiente");
+  });
+});
 
 describe("aplicarAbono", () => {
   it("abono parcial reduce el saldo", () => {

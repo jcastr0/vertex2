@@ -76,10 +76,10 @@ export const NAV: GrupoNav[] = [
   {
     titulo: "Cartera",
     items: [
-      { modulo: "cuentas_cobrar", label: "Cuentas por cobrar", href: "/cuentas-cobrar", icon: HandCoins, listo: false },
-      { modulo: "recaudos", label: "Recaudos", href: "/recaudos", icon: HandCoins, listo: false },
-      { modulo: "cuentas_pagar", label: "Cuentas por pagar", href: "/cuentas-pagar", icon: Wallet, listo: false },
-      { modulo: "pagos_proveedor", label: "Pagos a proveedor", href: "/pagos-proveedor", icon: Wallet, listo: false },
+      { modulo: "cuentas_cobrar", label: "Cuentas por cobrar", href: "/cuentas-cobrar", icon: HandCoins, listo: true },
+      { modulo: "recaudos", label: "Recaudos", href: "/recaudos", icon: HandCoins, listo: true },
+      { modulo: "cuentas_pagar", label: "Cuentas por pagar", href: "/cuentas-pagar", icon: Wallet, listo: true },
+      { modulo: "pagos_proveedor", label: "Pagos a proveedor", href: "/pagos-proveedor", icon: Wallet, listo: true },
     ],
   },
   {

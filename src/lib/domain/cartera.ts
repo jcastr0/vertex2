@@ -19,3 +19,23 @@ export function aplicarAbono(saldoPendiente: number, monto: number): ResultadoAb
     excedente: monto - aplicado,
   };
 }
+
+export type EstadoCartera = "pagada" | "vencida" | "pendiente";
+
+/** Estado de una cuenta según saldo y vencimiento (comparación de fechas ISO yyyy-mm-dd). */
+export function estadoCartera(
+  saldoPendiente: number,
+  fechaVencimientoISO: string,
+  hoyISO: string,
+): EstadoCartera {
+  if (saldoPendiente <= 0) return "pagada";
+  return fechaVencimientoISO < hoyISO ? "vencida" : "pendiente";
+}
+
+export const METODOS_PAGO = [
+  { value: "efectivo", label: "Efectivo" },
+  { value: "transferencia", label: "Transferencia" },
+  { value: "cheque", label: "Cheque" },
+  { value: "tarjeta_debito", label: "Tarjeta débito" },
+  { value: "tarjeta_credito", label: "Tarjeta crédito" },
+] as const;

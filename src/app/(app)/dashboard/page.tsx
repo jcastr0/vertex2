@@ -27,7 +27,7 @@ const FASES = [
   { n: 3, t: "Productos y unidades", done: true },
   { n: 4, t: "Compras e inventario", done: true },
   { n: 5, t: "Ventas y facturación", done: true },
-  { n: 6, t: "Cartera (pagos y recaudos)", done: false },
+  { n: 6, t: "Cartera (pagos y recaudos)", done: true },
   { n: 7, t: "Reportes y dashboard", done: false },
   { n: 8, t: "Manuales", done: false },
 ];
