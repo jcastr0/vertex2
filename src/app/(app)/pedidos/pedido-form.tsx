@@ -8,13 +8,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/ui/search-select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react";
 
 interface Opt { id: number; nombre: string }
@@ -93,25 +88,23 @@ export function PedidoForm({
       <div className="grid gap-5 sm:grid-cols-3">
         <div className="space-y-2">
           <Label>Proveedor</Label>
-          <Select name="proveedorId">
-            <SelectTrigger><SelectValue placeholder="Selecciona…" /></SelectTrigger>
-            <SelectContent>
-              {proveedores.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.nombre}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <SearchSelect
+            name="proveedorId"
+            placeholder="Selecciona…"
+            options={proveedores.map((p) => ({ value: String(p.id), label: p.nombre }))}
+          />
         </div>
         <div className="space-y-2">
           <Label>Bodega destino</Label>
-          <Select name="bodegaId">
-            <SelectTrigger><SelectValue placeholder="Selecciona…" /></SelectTrigger>
-            <SelectContent>
-              {bodegas.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.nombre}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <SearchSelect
+            name="bodegaId"
+            placeholder="Selecciona…"
+            options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))}
+          />
         </div>
         <div className="space-y-2">
           <Label>Fecha</Label>
-          <Input type="date" name="fecha" defaultValue={hoy} required />
+          <DatePicker name="fecha" defaultValue={hoy} />
         </div>
       </div>
 
@@ -124,23 +117,22 @@ export function PedidoForm({
             <div key={i} className="grid gap-3 rounded-lg border border-border bg-card p-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto] sm:items-end">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Producto</Label>
-                <Select value={l.productoId} onValueChange={(v) => setLinea(i, { productoId: v ?? "" })}>
-                  <SelectTrigger><SelectValue placeholder="Producto…" /></SelectTrigger>
-                  <SelectContent>
-                    {productos.map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>{p.nombre} <span className="text-muted-foreground">({p.sku})</span></SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  value={l.productoId}
+                  onValueChange={(v) => setLinea(i, { productoId: v })}
+                  placeholder="Producto…"
+                  searchPlaceholder="Nombre o SKU…"
+                  options={productos.map((p) => ({ value: String(p.id), label: p.nombre, hint: `(${p.sku})` }))}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Unidad</Label>
-                <Select value={l.unidadId} onValueChange={(v) => setLinea(i, { unidadId: v ?? "" })}>
-                  <SelectTrigger><SelectValue placeholder="Unidad…" /></SelectTrigger>
-                  <SelectContent>
-                    {unidades.map((u) => <SelectItem key={u.id} value={String(u.id)}>{u.abreviatura}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <SearchSelect
+                  value={l.unidadId}
+                  onValueChange={(v) => setLinea(i, { unidadId: v })}
+                  placeholder="Unidad…"
+                  options={unidades.map((u) => ({ value: String(u.id), label: u.abreviatura }))}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Cantidad</Label>

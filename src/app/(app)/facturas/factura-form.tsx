@@ -7,13 +7,7 @@ import { crearFacturaAction, type FacturaState } from "./actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchSelect } from "@/components/ui/search-select";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Loader2, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
@@ -97,12 +91,12 @@ export function FacturaForm({
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">
         <div className="space-y-2">
           <Label className="text-base">¿A quién le vendes?</Label>
-          <Select name="clienteId">
-            <SelectTrigger className="h-12"><SelectValue placeholder="Elegir cliente…" /></SelectTrigger>
-            <SelectContent>
-              {clientes.map((c) => <SelectItem key={c.id} value={String(c.id)}>{c.nombre}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <SearchSelect
+            name="clienteId"
+            placeholder="Elegir cliente…"
+            triggerClassName="h-12"
+            options={clientes.map((c) => ({ value: String(c.id), label: c.nombre }))}
+          />
         </div>
 
         <div className="space-y-2">
@@ -128,12 +122,12 @@ export function FacturaForm({
 
         <div className="space-y-2">
           <Label className="text-sm text-muted-foreground">Bodega</Label>
-          <Select name="bodegaId" defaultValue={bodegas[0] ? String(bodegas[0].id) : undefined}>
-            <SelectTrigger><SelectValue placeholder="Bodega…" /></SelectTrigger>
-            <SelectContent>
-              {bodegas.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.nombre}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <SearchSelect
+            name="bodegaId"
+            placeholder="Bodega…"
+            defaultValue={bodegas[0] ? String(bodegas[0].id) : undefined}
+            options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))}
+          />
         </div>
       </div>
 
@@ -145,14 +139,14 @@ export function FacturaForm({
           const sub = (Number(l.cantidad) || 0) * (Number(l.precioUnitario) || 0);
           return (
             <div key={i} className="space-y-3 rounded-xl border border-border bg-card p-4">
-              <Select value={l.productoId} onValueChange={(v) => elegirProducto(i, v ?? "")}>
-                <SelectTrigger className="h-12"><SelectValue placeholder="Buscar producto…" /></SelectTrigger>
-                <SelectContent>
-                  {productos.map((pr) => (
-                    <SelectItem key={pr.id} value={String(pr.id)}>{pr.nombre} <span className="text-muted-foreground">({pr.sku})</span></SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchSelect
+                value={l.productoId}
+                onValueChange={(v) => elegirProducto(i, v)}
+                placeholder="Buscar producto…"
+                searchPlaceholder="Nombre o SKU…"
+                triggerClassName="h-12"
+                options={productos.map((pr) => ({ value: String(pr.id), label: pr.nombre, hint: `(${pr.sku})` }))}
+              />
               <div className="flex items-end gap-3">
                 <div className="flex-1 space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Cantidad {p ? `(${p.unidadAbrev})` : ""}</Label>
