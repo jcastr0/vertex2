@@ -18,10 +18,14 @@ export const SESSION_COOKIE = "vx_session";
 const DURACION = "8h";
 
 function getSecret(): Uint8Array {
-  const secret = process.env.SESSION_SECRET;
+  // Preferimos un SESSION_SECRET dedicado. Como fallback de arranque usamos el
+  // secreto JWT que el integration de Supabase ya inyecta en Vercel, de modo que
+  // el deploy funcione sin configuración manual. Define SESSION_SECRET propio
+  // para producción (si rotas las llaves de Supabase, el fallback invalida sesiones).
+  const secret = process.env.SESSION_SECRET || process.env.STORAGE_VERTEX_SUPABASE_JWT_SECRET;
   if (!secret || secret.length < 32) {
     throw new Error(
-      "SESSION_SECRET no está definida o es muy corta (mínimo 32 caracteres).",
+      "No hay secreto de sesión. Define SESSION_SECRET (mínimo 32 caracteres).",
     );
   }
   return new TextEncoder().encode(secret);
