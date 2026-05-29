@@ -85,7 +85,7 @@ export const NAV: GrupoNav[] = [
   {
     titulo: "Análisis",
     items: [
-      { modulo: "reportes", label: "Reportes", href: "/reportes", icon: BarChart3, listo: false },
+      { modulo: "reportes", label: "Reportes", href: "/reportes", icon: BarChart3, listo: true },
     ],
   },
   {
