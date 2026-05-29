@@ -23,7 +23,7 @@ const KPIS = [
 const FASES = [
   { n: 0, t: "Cimientos (Next.js, Supabase, Drizzle, UI)", done: true },
   { n: 1, t: "Núcleo (auth, multiempresa, esquema, auditoría)", done: true },
-  { n: 2, t: "Maestros (bodegas, terceros)", done: false },
+  { n: 2, t: "Maestros (bodegas, terceros)", done: true },
   { n: 3, t: "Productos y unidades", done: false },
   { n: 4, t: "Compras e inventario", done: false },
   { n: 5, t: "Ventas y facturación", done: false },

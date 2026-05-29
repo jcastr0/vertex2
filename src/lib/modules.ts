@@ -50,8 +50,8 @@ export const NAV: GrupoNav[] = [
   {
     titulo: "Maestros",
     items: [
-      { modulo: "bodegas", label: "Bodegas", href: "/bodegas", icon: Warehouse, listo: false },
-      { modulo: "terceros", label: "Terceros", href: "/terceros", icon: Contact, listo: false },
+      { modulo: "bodegas", label: "Bodegas", href: "/bodegas", icon: Warehouse, listo: true },
+      { modulo: "terceros", label: "Terceros", href: "/terceros", icon: Contact, listo: true },
       { modulo: "categorias", label: "Categorías", href: "/categorias", icon: Tags, listo: false },
       { modulo: "productos", label: "Productos", href: "/productos", icon: Package, listo: false },
     ],
