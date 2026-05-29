@@ -2,18 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { listarCategorias } from "@/lib/services/categorias";
+import { listarCategorias, type Categoria } from "@/lib/services/categorias";
 import { PageHeader } from "@/components/page-header";
+import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { CategoriaRowActions } from "./categoria-row-actions";
 import { Plus, Tags } from "lucide-react";
 
@@ -28,6 +21,22 @@ export default async function CategoriasPage() {
   const puedeCrear = puede(sesion.rol, "categorias.crear");
   const puedeEditar = puede(sesion.rol, "categorias.editar");
   const puedeEliminar = puede(sesion.rol, "categorias.eliminar");
+
+  const columnas: Columna<Categoria>[] = [
+    { header: "Nombre", primary: true, cell: (c) => c.nombre },
+    {
+      header: "Categoría padre",
+      cell: (c) => (c.padreId ? (nombrePorId.get(c.padreId) ?? "—") : "—"),
+    },
+    {
+      header: "Estado",
+      cell: (c) => (
+        <Badge variant={c.activo ? "default" : "outline"} className="font-normal">
+          {c.activo ? "Activa" : "Inactiva"}
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -48,44 +57,25 @@ export default async function CategoriasPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Categoría padre</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categorias.map((c) => (
-                <TableRow key={c.id} className={c.activo ? "" : "opacity-60"}>
-                  <TableCell className="font-medium">{c.nombre}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {c.padreId ? (nombrePorId.get(c.padreId) ?? "—") : "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={c.activo ? "default" : "outline"} className="font-normal">
-                      {c.activo ? "Activa" : "Inactiva"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {(puedeEditar || puedeEliminar) && (
-                      <CategoriaRowActions
-                        id={c.id}
-                        nombre={c.nombre}
-                        activo={c.activo}
-                        puedeEditar={puedeEditar}
-                        puedeEliminar={puedeEliminar}
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ResponsiveTable
+          items={categorias}
+          getKey={(c) => c.id}
+          rowClassName={(c) => (c.activo ? "" : "opacity-60")}
+          columns={columnas}
+          actions={
+            puedeEditar || puedeEliminar
+              ? (c) => (
+                  <CategoriaRowActions
+                    id={c.id}
+                    nombre={c.nombre}
+                    activo={c.activo}
+                    puedeEditar={puedeEditar}
+                    puedeEliminar={puedeEliminar}
+                  />
+                )
+              : undefined
+          }
+        />
       )}
     </div>
   );

@@ -2,18 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { listarTerceros } from "@/lib/services/terceros";
+import { listarTerceros, type Tercero } from "@/lib/services/terceros";
 import { PageHeader } from "@/components/page-header";
+import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { TerceroRowActions } from "./tercero-row-actions";
 import { Plus, Contact } from "lucide-react";
 
@@ -34,6 +27,47 @@ export default async function TercerosPage() {
   const puedeEditar = puede(sesion.rol, "terceros.editar");
   const puedeEliminar = puede(sesion.rol, "terceros.eliminar");
 
+  const columnas: Columna<Tercero>[] = [
+    {
+      header: "Razón social",
+      primary: true,
+      cell: (t) => (
+        <div>
+          <div>{t.razonSocial}</div>
+          {t.nombreComercial && (
+            <div className="text-xs font-normal text-muted-foreground">{t.nombreComercial}</div>
+          )}
+        </div>
+      ),
+    },
+    { header: "Código", className: "w-24", cell: (t) => <span className="tabular">{t.codigo}</span> },
+    {
+      header: "Identificación",
+      cell: (t) => (
+        <span className="tabular">
+          {t.identificacion}
+          {t.digitoVerificacion ? `-${t.digitoVerificacion}` : ""}
+        </span>
+      ),
+    },
+    {
+      header: "Tipo",
+      cell: (t) => (
+        <Badge variant="secondary" className="font-normal">
+          {ETIQUETA_TIPO[t.tipo] ?? t.tipo}
+        </Badge>
+      ),
+    },
+    {
+      header: "Estado",
+      cell: (t) => (
+        <Badge variant={t.activo ? "default" : "outline"} className="font-normal">
+          {t.activo ? "Activo" : "Inactivo"}
+        </Badge>
+      ),
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Terceros" description="Proveedores y clientes de la empresa.">
@@ -53,58 +87,25 @@ export default async function TercerosPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-24">Código</TableHead>
-                <TableHead>Razón social</TableHead>
-                <TableHead>Identificación</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {terceros.map((t) => (
-                <TableRow key={t.id} className={t.activo ? "" : "opacity-60"}>
-                  <TableCell className="tabular font-medium">{t.codigo}</TableCell>
-                  <TableCell>
-                    <div>{t.razonSocial}</div>
-                    {t.nombreComercial && (
-                      <div className="text-xs text-muted-foreground">{t.nombreComercial}</div>
-                    )}
-                  </TableCell>
-                  <TableCell className="tabular text-muted-foreground">
-                    {t.identificacion}
-                    {t.digitoVerificacion ? `-${t.digitoVerificacion}` : ""}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-normal">
-                      {ETIQUETA_TIPO[t.tipo] ?? t.tipo}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={t.activo ? "default" : "outline"} className="font-normal">
-                      {t.activo ? "Activo" : "Inactivo"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {(puedeEditar || puedeEliminar) && (
-                      <TerceroRowActions
-                        id={t.id}
-                        nombre={t.razonSocial}
-                        activo={t.activo}
-                        puedeEditar={puedeEditar}
-                        puedeEliminar={puedeEliminar}
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ResponsiveTable
+          items={terceros}
+          getKey={(t) => t.id}
+          rowClassName={(t) => (t.activo ? "" : "opacity-60")}
+          columns={columnas}
+          actions={
+            puedeEditar || puedeEliminar
+              ? (t) => (
+                  <TerceroRowActions
+                    id={t.id}
+                    nombre={t.razonSocial}
+                    activo={t.activo}
+                    puedeEditar={puedeEditar}
+                    puedeEliminar={puedeEliminar}
+                  />
+                )
+              : undefined
+          }
+        />
       )}
     </div>
   );

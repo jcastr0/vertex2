@@ -33,8 +33,7 @@ export function getDb(): PostgresJsDatabase<typeof schema> {
   if (!_db) {
     _client = postgres(getConnectionString(), {
       prepare: false, // compatible con el pooler de Supabase (Supavisor) en modo transaction
-      max: 3, // pequeño pool: evita deadlocks si una operación anida consultas fuera del tx
-      idle_timeout: 20, // libera conexiones ociosas (entorno serverless)
+      max: 5, // pool pequeño: evita deadlocks si una operación anida consultas fuera del tx
     });
     _db = drizzle(_client, { schema });
   }

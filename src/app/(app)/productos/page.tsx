@@ -2,19 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { listarProductos, listarUnidadesMedida } from "@/lib/services/productos";
+import { listarProductos, listarUnidadesMedida, type Producto } from "@/lib/services/productos";
 import { listarCategorias } from "@/lib/services/categorias";
 import { PageHeader } from "@/components/page-header";
+import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ProductoRowActions } from "./producto-row-actions";
 import { Plus, Package } from "lucide-react";
 
@@ -35,6 +28,29 @@ export default async function ProductosPage() {
   const puedeEditar = puede(sesion.rol, "productos.editar");
   const puedeEliminar = puede(sesion.rol, "productos.eliminar");
 
+  const columnas: Columna<Producto>[] = [
+    {
+      header: "Producto",
+      primary: true,
+      cell: (p) => (
+        <div>
+          <div>{p.nombre}</div>
+          <div className="text-xs font-normal text-muted-foreground tabular">{p.sku}</div>
+        </div>
+      ),
+    },
+    { header: "Categoría", cell: (p) => (p.categoriaId ? (catPorId.get(p.categoriaId) ?? "—") : "—") },
+    { header: "Unidad base", cell: (p) => undPorId.get(p.unidadBaseId) ?? "—" },
+    {
+      header: "Estado",
+      cell: (p) => (
+        <Badge variant={p.activo ? "default" : "outline"} className="font-normal">
+          {p.activo ? "Activo" : "Inactivo"}
+        </Badge>
+      ),
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Productos" description="Catálogo de productos de la empresa.">
@@ -54,50 +70,25 @@ export default async function ProductosPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-28">SKU</TableHead>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Unidad base</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {productos.map((p) => (
-                <TableRow key={p.id} className={p.activo ? "" : "opacity-60"}>
-                  <TableCell className="tabular font-medium">{p.sku}</TableCell>
-                  <TableCell>{p.nombre}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {p.categoriaId ? (catPorId.get(p.categoriaId) ?? "—") : "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {undPorId.get(p.unidadBaseId) ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={p.activo ? "default" : "outline"} className="font-normal">
-                      {p.activo ? "Activo" : "Inactivo"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {(puedeEditar || puedeEliminar) && (
-                      <ProductoRowActions
-                        id={p.id}
-                        nombre={p.nombre}
-                        activo={p.activo}
-                        puedeEditar={puedeEditar}
-                        puedeEliminar={puedeEliminar}
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ResponsiveTable
+          items={productos}
+          getKey={(p) => p.id}
+          rowClassName={(p) => (p.activo ? "" : "opacity-60")}
+          columns={columnas}
+          actions={
+            puedeEditar || puedeEliminar
+              ? (p) => (
+                  <ProductoRowActions
+                    id={p.id}
+                    nombre={p.nombre}
+                    activo={p.activo}
+                    puedeEditar={puedeEditar}
+                    puedeEliminar={puedeEliminar}
+                  />
+                )
+              : undefined
+          }
+        />
       )}
     </div>
   );

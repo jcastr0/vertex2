@@ -59,8 +59,8 @@ export const NAV: GrupoNav[] = [
   {
     titulo: "Compras e inventario",
     items: [
-      { modulo: "pedidos", label: "Pedidos", href: "/pedidos", icon: ShoppingCart, listo: false },
-      { modulo: "inventario", label: "Inventario", href: "/inventario", icon: Boxes, listo: false },
+      { modulo: "pedidos", label: "Pedidos", href: "/pedidos", icon: ShoppingCart, listo: true },
+      { modulo: "inventario", label: "Inventario", href: "/inventario", icon: Boxes, listo: true },
       { modulo: "traslados", label: "Traslados", href: "/traslados", icon: ArrowLeftRight, listo: false },
       { modulo: "notas_inventario", label: "Notas de inventario", href: "/notas-inventario", icon: ClipboardList, listo: false },
     ],
@@ -68,7 +68,7 @@ export const NAV: GrupoNav[] = [
   {
     titulo: "Ventas",
     items: [
-      { modulo: "facturas", label: "Facturas", href: "/facturas", icon: Receipt, listo: false },
+      { modulo: "facturas", label: "Facturas", href: "/facturas", icon: Receipt, listo: true },
       { modulo: "devoluciones", label: "Devoluciones", href: "/devoluciones", icon: Undo2, listo: false },
       { modulo: "notas_credito", label: "Notas crédito", href: "/notas-credito", icon: FileMinus, listo: false },
     ],

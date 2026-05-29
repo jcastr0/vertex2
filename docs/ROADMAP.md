@@ -22,8 +22,8 @@ módulos funcionales con su capa de servicio, server actions, UI y **pruebas de 
 | **1 — Núcleo** | Esquema completo (30 tablas vxNN), auth custom, sesión multiempresa, middleware, roles/permisos, auditoría, seed, layout + dashboard | ✅ |
 | **2 — Maestros** | Bodegas, Terceros (proveedores/clientes) | ✅ |
 | **3 — Productos** | Categorías, Productos, Unidades + servicio de conversión | ✅ |
-| **4 — Compras e inventario** | Pedidos, recepción, costo promedio ponderado, kardex, movimientos, traslados, notas de inventario | ⏳ |
-| **5 — Ventas** | Facturas, validación precio<costo, devoluciones, notas crédito, CxC | ⏳ |
+| **4 — Compras e inventario** | Pedidos, recepción, costo promedio ponderado, kardex, movimientos (traslados y notas de inventario pendientes) | ✅* |
+| **5 — Ventas** | Facturas (venta simple), validación precio<costo, descuento de inventario, CxC (devoluciones y notas crédito pendientes) | ✅* |
 | **6 — Cartera** | Pagos a proveedor, recaudos de cliente, CxP | ⏳ |
 | **7 — Reportes** | Dashboard con KPIs, reportes de ventas/compras/inventario/cartera | ⏳ |
 | **8 — Manuales** | Manuales por rol (render Markdown) | ⏳ |

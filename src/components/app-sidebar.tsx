@@ -7,7 +7,8 @@ import { puede, type Permiso } from "@/lib/auth/roles";
 import { VertexWordmark } from "@/components/vertex-mark";
 import { cn } from "@/lib/utils";
 
-export function AppSidebar({ rol }: { rol: string | null }) {
+/** Contenido del nav, reutilizable en el aside (desktop) y el drawer (móvil). */
+export function SidebarNav({ rol, onNavigate }: { rol: string | null; onNavigate?: () => void }) {
   const pathname = usePathname();
 
   const grupos = NAV.map((g) => ({
@@ -16,9 +17,9 @@ export function AppSidebar({ rol }: { rol: string | null }) {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <aside className="flex h-svh w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-      <div className="flex h-16 items-center border-b border-sidebar-border px-5">
-        <Link href="/dashboard">
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+      <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-5">
+        <Link href="/dashboard" onClick={onNavigate}>
           <VertexWordmark />
         </Link>
       </div>
@@ -32,12 +33,12 @@ export function AppSidebar({ rol }: { rol: string | null }) {
             <ul className="space-y-0.5">
               {grupo.items.map((item) => {
                 const Icon = item.icon;
-                const activo =
-                  pathname === item.href || pathname.startsWith(item.href + "/");
+                const activo = pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={onNavigate}
                       className={cn(
                         "group flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors",
                         activo
@@ -69,6 +70,15 @@ export function AppSidebar({ rol }: { rol: string | null }) {
       <div className="border-t border-sidebar-border px-5 py-3 text-[0.68rem] text-sidebar-foreground/40">
         Vertex ERP · v0.1
       </div>
+    </div>
+  );
+}
+
+/** Sidebar fijo en escritorio (oculto en móvil). */
+export function AppSidebar({ rol }: { rol: string | null }) {
+  return (
+    <aside className="hidden w-64 shrink-0 border-r border-sidebar-border md:block">
+      <SidebarNav rol={rol} />
     </aside>
   );
 }

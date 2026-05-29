@@ -23,6 +23,47 @@ export async function listarUnidadesMedida(): Promise<UnidadMedida[]> {
   return db.select().from(unidadesMedida).orderBy(unidadesMedida.nombre);
 }
 
+export interface ProductoVenta {
+  id: number;
+  nombre: string;
+  sku: string;
+  unidadBaseId: number;
+  unidadAbrev: string;
+  precio: number;
+}
+
+/** Productos activos con su unidad base y precio de venta base (para vender). */
+export async function listarProductosVenta(empresaId: number): Promise<ProductoVenta[]> {
+  const rows = await db
+    .select({
+      id: productos.id,
+      nombre: productos.nombre,
+      sku: productos.sku,
+      unidadBaseId: productos.unidadBaseId,
+      unidadAbrev: unidadesMedida.abreviatura,
+      precioVenta: productoUnidades.precioVenta,
+    })
+    .from(productos)
+    .innerJoin(unidadesMedida, eq(productos.unidadBaseId, unidadesMedida.id))
+    .leftJoin(
+      productoUnidades,
+      and(
+        eq(productoUnidades.productoId, productos.id),
+        eq(productoUnidades.unidadId, productos.unidadBaseId),
+      ),
+    )
+    .where(and(eq(productos.empresaId, empresaId), eq(productos.activo, true)))
+    .orderBy(productos.nombre);
+  return rows.map((r) => ({
+    id: r.id,
+    nombre: r.nombre,
+    sku: r.sku,
+    unidadBaseId: r.unidadBaseId,
+    unidadAbrev: r.unidadAbrev,
+    precio: r.precioVenta ? Number(r.precioVenta) : 0,
+  }));
+}
+
 // ── Productos (vx10) ─────────────────────────────────────────────────────────
 function aColumnas(data: ProductoInput) {
   return {

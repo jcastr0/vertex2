@@ -9,7 +9,11 @@ export default defineConfig({
   out: "./supabase/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "postgresql://localhost:5432/placeholder",
+    // Migraciones/DDL: preferir el pooler de sesión (5432); cae a DATABASE_URL.
+    url:
+      process.env.DATABASE_URL_SESSION ??
+      process.env.DATABASE_URL ??
+      "postgresql://localhost:5432/placeholder",
   },
   casing: "snake_case",
   verbose: true,

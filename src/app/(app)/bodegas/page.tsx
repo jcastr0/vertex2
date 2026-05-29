@@ -2,18 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { listarBodegas } from "@/lib/services/bodegas";
+import { listarBodegas, type Bodega } from "@/lib/services/bodegas";
 import { PageHeader } from "@/components/page-header";
+import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { BodegaRowActions } from "./bodega-row-actions";
 import { Plus, Warehouse } from "lucide-react";
 
@@ -27,6 +20,37 @@ export default async function BodegasPage() {
   const puedeCrear = puede(sesion.rol, "bodegas.crear");
   const puedeEditar = puede(sesion.rol, "bodegas.editar");
   const puedeEliminar = puede(sesion.rol, "bodegas.eliminar");
+
+  const columnas: Columna<Bodega>[] = [
+    {
+      header: "Código",
+      primary: true,
+      className: "w-28",
+      cell: (b) => <span className="tabular font-medium">{b.codigo}</span>,
+    },
+    {
+      header: "Nombre",
+      cell: (b) => (
+        <div className="flex items-center gap-2">
+          {b.nombre}
+          {b.esPrincipal && (
+            <Badge variant="secondary" className="font-normal">
+              Principal
+            </Badge>
+          )}
+        </div>
+      ),
+    },
+    { header: "Responsable", cell: (b) => b.responsable ?? "—" },
+    {
+      header: "Estado",
+      cell: (b) => (
+        <Badge variant={b.activo ? "default" : "outline"} className="font-normal">
+          {b.activo ? "Activa" : "Inactiva"}
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -47,55 +71,25 @@ export default async function BodegasPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-28">Código</TableHead>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Responsable</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bodegas.map((b) => (
-                <TableRow key={b.id} className={b.activo ? "" : "opacity-60"}>
-                  <TableCell className="tabular font-medium">{b.codigo}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {b.nombre}
-                      {b.esPrincipal && (
-                        <Badge variant="secondary" className="font-normal">
-                          Principal
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {b.responsable ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={b.activo ? "default" : "outline"} className="font-normal">
-                      {b.activo ? "Activa" : "Inactiva"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {(puedeEditar || puedeEliminar) && (
-                      <BodegaRowActions
-                        id={b.id}
-                        nombre={b.nombre}
-                        activo={b.activo}
-                        puedeEditar={puedeEditar}
-                        puedeEliminar={puedeEliminar}
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ResponsiveTable
+          items={bodegas}
+          getKey={(b) => b.id}
+          rowClassName={(b) => (b.activo ? "" : "opacity-60")}
+          columns={columnas}
+          actions={
+            puedeEditar || puedeEliminar
+              ? (b) => (
+                  <BodegaRowActions
+                    id={b.id}
+                    nombre={b.nombre}
+                    activo={b.activo}
+                    puedeEditar={puedeEditar}
+                    puedeEliminar={puedeEliminar}
+                  />
+                )
+              : undefined
+          }
+        />
       )}
     </div>
   );

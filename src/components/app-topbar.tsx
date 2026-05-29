@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/lib/auth/actions";
 import { NAV } from "@/lib/modules";
+import { MobileNav } from "@/components/mobile-nav";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -45,10 +46,11 @@ export function AppTopbar({ nombre, email, rol, empresa }: Props) {
   const titulo = tituloDeRuta(usePathname());
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <MobileNav rol={rol} />
         <h1 className="text-lg font-semibold tracking-tight">{titulo}</h1>
         {rol && (
-          <Badge variant="secondary" className="font-normal">
+          <Badge variant="secondary" className="hidden font-normal sm:inline-flex">
             {rol}
           </Badge>
         )}

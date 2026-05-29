@@ -368,6 +368,9 @@ export const pedidos = pgTable(
     proveedorId: bigint("proveedor_id", { mode: "number" })
       .notNull()
       .references(() => terceros.id),
+    bodegaId: bigint("bodega_id", { mode: "number" })
+      .notNull()
+      .references(() => bodegas.id),
     numero: varchar("numero", { length: 20 }).notNull(),
     fecha: date("fecha").notNull(),
     estado: varchar("estado", { length: 20 }).notNull().default("borrador"),

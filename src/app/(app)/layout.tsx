@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           rol={sesion.rol}
           empresa={empresaNombre}
         />
-        <main className="flex-1 overflow-y-auto bg-muted/30 p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-muted/30 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );
