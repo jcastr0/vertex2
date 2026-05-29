@@ -21,7 +21,7 @@ módulos funcionales con su capa de servicio, server actions, UI y **pruebas de 
 | **0 — Cimientos** | Next.js 15.5.18, Tailwind+shadcn, Drizzle+Supabase, Vitest, diseño base | ✅ |
 | **1 — Núcleo** | Esquema completo (30 tablas vxNN), auth custom, sesión multiempresa, middleware, roles/permisos, auditoría, seed, layout + dashboard | ✅ |
 | **2 — Maestros** | Bodegas, Terceros (proveedores/clientes) | ✅ |
-| **3 — Productos** | Categorías, Productos, Unidades + servicio de conversión | ⏳ |
+| **3 — Productos** | Categorías, Productos, Unidades + servicio de conversión | ✅ |
 | **4 — Compras e inventario** | Pedidos, recepción, costo promedio ponderado, kardex, movimientos, traslados, notas de inventario | ⏳ |
 | **5 — Ventas** | Facturas, validación precio<costo, devoluciones, notas crédito, CxC | ⏳ |
 | **6 — Cartera** | Pagos a proveedor, recaudos de cliente, CxP | ⏳ |
