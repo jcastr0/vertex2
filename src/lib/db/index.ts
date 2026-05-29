@@ -15,10 +15,15 @@ let _client: ReturnType<typeof postgres> | null = null;
 let _db: PostgresJsDatabase<typeof schema> | null = null;
 
 function getConnectionString(): string {
-  const url = process.env.DATABASE_URL;
+  // Preferimos DATABASE_URL; si no, usamos las variables que el integration de
+  // Supabase en Vercel inyecta automáticamente (pooler transaccional 6543).
+  const url =
+    process.env.DATABASE_URL ||
+    process.env.STORAGE_VERTEX_POSTGRES_PRISMA_URL ||
+    process.env.STORAGE_VERTEX_POSTGRES_URL;
   if (!url) {
     throw new Error(
-      "DATABASE_URL no está definida. Configúrala con la cadena de conexión (pooler) de Supabase.",
+      "No hay cadena de conexión. Define DATABASE_URL (pooler de Supabase) o usa el integration de Supabase en Vercel.",
     );
   }
   return url;
