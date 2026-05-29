@@ -3,22 +3,37 @@ import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarFacturas } from "@/lib/services/facturas";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Receipt } from "lucide-react";
 
 export const metadata: Metadata = { title: "Facturas — Vertex" };
+const PAGE_SIZE = 10;
 
 type Fila = Awaited<ReturnType<typeof listarFacturas>>[number];
 const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
 
-export default async function FacturasPage() {
+export default async function FacturasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   const sesion = await requirePermiso("facturas.ver");
   const { empresaId } = await requireEmpresa();
-  const filas = await listarFacturas(empresaId);
+  const { q = "", page: pageRaw } = await searchParams;
+  const todos = await listarFacturas(empresaId);
   const puedeCrear = puede(sesion.rol, "facturas.crear");
+
+  const { items, total, page } = filtrarPaginar(todos, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (f) => `${f.factura.numero} ${f.cliente} ${f.factura.tipoVenta}`,
+  });
 
   const columnas: Columna<Fila>[] = [
     {
@@ -53,15 +68,19 @@ export default async function FacturasPage() {
         )}
       </PageHeader>
 
-      {filas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
-          <Receipt className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="font-medium">Aún no hay ventas</p>
-          <p className="text-sm text-muted-foreground">Toca “Vender” para registrar la primera.</p>
-        </div>
-      ) : (
-        <ResponsiveTable items={filas} getKey={(f) => f.factura.id} columns={columnas} />
-      )}
+      <ListaFiltrable
+        base="/facturas"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(f) => f.factura.id}
+        columns={columnas}
+        searchPlaceholder="Buscar por número o cliente…"
+        hayDatos={todos.length > 0}
+        vacio={{ icon: Receipt, titulo: "Aún no hay ventas", texto: "Toca “Vender” para registrar la primera." }}
+      />
     </div>
   );
 }

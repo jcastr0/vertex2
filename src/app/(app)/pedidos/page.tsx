@@ -3,16 +3,18 @@ import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarPedidos } from "@/lib/services/pedidos";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ShoppingCart } from "lucide-react";
 
 export const metadata: Metadata = { title: "Pedidos — Vertex" };
+const PAGE_SIZE = 10;
 
 type Fila = Awaited<ReturnType<typeof listarPedidos>>[number];
-
 const VARIANTE: Record<string, "default" | "secondary" | "outline"> = {
   borrador: "outline",
   confirmado: "secondary",
@@ -22,11 +24,23 @@ const VARIANTE: Record<string, "default" | "secondary" | "outline"> = {
 };
 const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
 
-export default async function PedidosPage() {
+export default async function PedidosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   const sesion = await requirePermiso("pedidos.ver");
   const { empresaId } = await requireEmpresa();
-  const filas = await listarPedidos(empresaId);
+  const { q = "", page: pageRaw } = await searchParams;
+  const todos = await listarPedidos(empresaId);
   const puedeCrear = puede(sesion.rol, "pedidos.crear");
+
+  const { items, total, page } = filtrarPaginar(todos, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (f) => `${f.pedido.numero} ${f.proveedor} ${f.pedido.estado}`,
+  });
 
   const columnas: Columna<Fila>[] = [
     {
@@ -61,15 +75,19 @@ export default async function PedidosPage() {
         )}
       </PageHeader>
 
-      {filas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
-          <ShoppingCart className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="font-medium">Aún no hay pedidos</p>
-          <p className="text-sm text-muted-foreground">Crea un pedido para comprar a un proveedor.</p>
-        </div>
-      ) : (
-        <ResponsiveTable items={filas} getKey={(f) => f.pedido.id} columns={columnas} />
-      )}
+      <ListaFiltrable
+        base="/pedidos"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(f) => f.pedido.id}
+        columns={columnas}
+        searchPlaceholder="Buscar por número o proveedor…"
+        hayDatos={todos.length > 0}
+        vacio={{ icon: ShoppingCart, titulo: "Aún no hay pedidos", texto: "Crea un pedido para comprar a un proveedor." }}
+      />
     </div>
   );
 }

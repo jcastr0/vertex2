@@ -3,14 +3,17 @@ import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarTerceros, type Tercero } from "@/lib/services/terceros";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TerceroRowActions } from "./tercero-row-actions";
 import { Plus, Contact } from "lucide-react";
 
 export const metadata: Metadata = { title: "Terceros — Vertex" };
+const PAGE_SIZE = 10;
 
 const ETIQUETA_TIPO: Record<string, string> = {
   proveedor: "Proveedor",
@@ -18,10 +21,22 @@ const ETIQUETA_TIPO: Record<string, string> = {
   ambos: "Ambos",
 };
 
-export default async function TercerosPage() {
+export default async function TercerosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   const sesion = await requirePermiso("terceros.ver");
   const { empresaId } = await requireEmpresa();
-  const terceros = await listarTerceros(empresaId);
+  const { q = "", page: pageRaw } = await searchParams;
+  const todos = await listarTerceros(empresaId);
+
+  const { items, total, page } = filtrarPaginar(todos, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (t) => `${t.codigo} ${t.razonSocial} ${t.nombreComercial ?? ""} ${t.identificacion}`,
+  });
 
   const puedeCrear = puede(sesion.rol, "terceros.crear");
   const puedeEditar = puede(sesion.rol, "terceros.editar");
@@ -34,9 +49,7 @@ export default async function TercerosPage() {
       cell: (t) => (
         <div>
           <div>{t.razonSocial}</div>
-          {t.nombreComercial && (
-            <div className="text-xs font-normal text-muted-foreground">{t.nombreComercial}</div>
-          )}
+          {t.nombreComercial && <div className="text-xs font-normal text-muted-foreground">{t.nombreComercial}</div>}
         </div>
       ),
     },
@@ -52,11 +65,7 @@ export default async function TercerosPage() {
     },
     {
       header: "Tipo",
-      cell: (t) => (
-        <Badge variant="secondary" className="font-normal">
-          {ETIQUETA_TIPO[t.tipo] ?? t.tipo}
-        </Badge>
-      ),
+      cell: (t) => <Badge variant="secondary" className="font-normal">{ETIQUETA_TIPO[t.tipo] ?? t.tipo}</Badge>,
     },
     {
       header: "Estado",
@@ -78,35 +87,27 @@ export default async function TercerosPage() {
         )}
       </PageHeader>
 
-      {terceros.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
-          <Contact className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="font-medium">Aún no hay terceros</p>
-          <p className="text-sm text-muted-foreground">
-            Registra proveedores y clientes para usarlos en compras y ventas.
-          </p>
-        </div>
-      ) : (
-        <ResponsiveTable
-          items={terceros}
-          getKey={(t) => t.id}
-          rowClassName={(t) => (t.activo ? "" : "opacity-60")}
-          columns={columnas}
-          actions={
-            puedeEditar || puedeEliminar
-              ? (t) => (
-                  <TerceroRowActions
-                    id={t.id}
-                    nombre={t.razonSocial}
-                    activo={t.activo}
-                    puedeEditar={puedeEditar}
-                    puedeEliminar={puedeEliminar}
-                  />
-                )
-              : undefined
-          }
-        />
-      )}
+      <ListaFiltrable
+        base="/terceros"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(t) => t.id}
+        rowClassName={(t) => (t.activo ? "" : "opacity-60")}
+        columns={columnas}
+        searchPlaceholder="Buscar por nombre, código o identificación…"
+        hayDatos={todos.length > 0}
+        vacio={{ icon: Contact, titulo: "Aún no hay terceros", texto: "Registra proveedores y clientes para usarlos en compras y ventas." }}
+        actions={
+          puedeEditar || puedeEliminar
+            ? (t) => (
+                <TerceroRowActions id={t.id} nombre={t.razonSocial} activo={t.activo} puedeEditar={puedeEditar} puedeEliminar={puedeEliminar} />
+              )
+            : undefined
+        }
+      />
     </div>
   );
 }

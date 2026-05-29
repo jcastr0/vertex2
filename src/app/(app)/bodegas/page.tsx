@@ -3,19 +3,34 @@ import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarBodegas, type Bodega } from "@/lib/services/bodegas";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BodegaRowActions } from "./bodega-row-actions";
 import { Plus, Warehouse } from "lucide-react";
 
 export const metadata: Metadata = { title: "Bodegas — Vertex" };
+const PAGE_SIZE = 10;
 
-export default async function BodegasPage() {
+export default async function BodegasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   const sesion = await requirePermiso("bodegas.ver");
   const { empresaId } = await requireEmpresa();
-  const bodegas = await listarBodegas(empresaId);
+  const { q = "", page: pageRaw } = await searchParams;
+  const todas = await listarBodegas(empresaId);
+
+  const { items, total, page } = filtrarPaginar(todas, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (b) => `${b.codigo} ${b.nombre} ${b.responsable ?? ""}`,
+  });
 
   const puedeCrear = puede(sesion.rol, "bodegas.crear");
   const puedeEditar = puede(sesion.rol, "bodegas.editar");
@@ -33,11 +48,7 @@ export default async function BodegasPage() {
       cell: (b) => (
         <div className="flex items-center gap-2">
           {b.nombre}
-          {b.esPrincipal && (
-            <Badge variant="secondary" className="font-normal">
-              Principal
-            </Badge>
-          )}
+          {b.esPrincipal && <Badge variant="secondary" className="font-normal">Principal</Badge>}
         </div>
       ),
     },
@@ -62,35 +73,27 @@ export default async function BodegasPage() {
         )}
       </PageHeader>
 
-      {bodegas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
-          <Warehouse className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="font-medium">Aún no hay bodegas</p>
-          <p className="text-sm text-muted-foreground">
-            Crea la primera bodega para empezar a gestionar inventario.
-          </p>
-        </div>
-      ) : (
-        <ResponsiveTable
-          items={bodegas}
-          getKey={(b) => b.id}
-          rowClassName={(b) => (b.activo ? "" : "opacity-60")}
-          columns={columnas}
-          actions={
-            puedeEditar || puedeEliminar
-              ? (b) => (
-                  <BodegaRowActions
-                    id={b.id}
-                    nombre={b.nombre}
-                    activo={b.activo}
-                    puedeEditar={puedeEditar}
-                    puedeEliminar={puedeEliminar}
-                  />
-                )
-              : undefined
-          }
-        />
-      )}
+      <ListaFiltrable
+        base="/bodegas"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(b) => b.id}
+        rowClassName={(b) => (b.activo ? "" : "opacity-60")}
+        columns={columnas}
+        searchPlaceholder="Buscar por código, nombre o responsable…"
+        hayDatos={todas.length > 0}
+        vacio={{ icon: Warehouse, titulo: "Aún no hay bodegas", texto: "Crea la primera bodega para empezar a gestionar inventario." }}
+        actions={
+          puedeEditar || puedeEliminar
+            ? (b) => (
+                <BodegaRowActions id={b.id} nombre={b.nombre} activo={b.activo} puedeEditar={puedeEditar} puedeEliminar={puedeEliminar} />
+              )
+            : undefined
+        }
+      />
     </div>
   );
 }

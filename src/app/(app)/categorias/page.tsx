@@ -3,20 +3,35 @@ import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarCategorias, type Categoria } from "@/lib/services/categorias";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CategoriaRowActions } from "./categoria-row-actions";
 import { Plus, Tags } from "lucide-react";
 
 export const metadata: Metadata = { title: "Categorías — Vertex" };
+const PAGE_SIZE = 10;
 
-export default async function CategoriasPage() {
+export default async function CategoriasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   const sesion = await requirePermiso("categorias.ver");
   const { empresaId } = await requireEmpresa();
-  const categorias = await listarCategorias(empresaId);
-  const nombrePorId = new Map(categorias.map((c) => [c.id, c.nombre]));
+  const { q = "", page: pageRaw } = await searchParams;
+  const todas = await listarCategorias(empresaId);
+  const nombrePorId = new Map(todas.map((c) => [c.id, c.nombre]));
+
+  const { items, total, page } = filtrarPaginar(todas, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (c) => c.nombre,
+  });
 
   const puedeCrear = puede(sesion.rol, "categorias.crear");
   const puedeEditar = puede(sesion.rol, "categorias.editar");
@@ -24,10 +39,7 @@ export default async function CategoriasPage() {
 
   const columnas: Columna<Categoria>[] = [
     { header: "Nombre", primary: true, cell: (c) => c.nombre },
-    {
-      header: "Categoría padre",
-      cell: (c) => (c.padreId ? (nombrePorId.get(c.padreId) ?? "—") : "—"),
-    },
+    { header: "Categoría padre", cell: (c) => (c.padreId ? (nombrePorId.get(c.padreId) ?? "—") : "—") },
     {
       header: "Estado",
       cell: (c) => (
@@ -48,35 +60,27 @@ export default async function CategoriasPage() {
         )}
       </PageHeader>
 
-      {categorias.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
-          <Tags className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="font-medium">Aún no hay categorías</p>
-          <p className="text-sm text-muted-foreground">
-            Crea categorías para organizar tu catálogo de productos.
-          </p>
-        </div>
-      ) : (
-        <ResponsiveTable
-          items={categorias}
-          getKey={(c) => c.id}
-          rowClassName={(c) => (c.activo ? "" : "opacity-60")}
-          columns={columnas}
-          actions={
-            puedeEditar || puedeEliminar
-              ? (c) => (
-                  <CategoriaRowActions
-                    id={c.id}
-                    nombre={c.nombre}
-                    activo={c.activo}
-                    puedeEditar={puedeEditar}
-                    puedeEliminar={puedeEliminar}
-                  />
-                )
-              : undefined
-          }
-        />
-      )}
+      <ListaFiltrable
+        base="/categorias"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(c) => c.id}
+        rowClassName={(c) => (c.activo ? "" : "opacity-60")}
+        columns={columnas}
+        searchPlaceholder="Buscar categoría…"
+        hayDatos={todas.length > 0}
+        vacio={{ icon: Tags, titulo: "Aún no hay categorías", texto: "Crea categorías para organizar tu catálogo de productos." }}
+        actions={
+          puedeEditar || puedeEliminar
+            ? (c) => (
+                <CategoriaRowActions id={c.id} nombre={c.nombre} activo={c.activo} puedeEditar={puedeEditar} puedeEliminar={puedeEliminar} />
+              )
+            : undefined
+        }
+      />
     </div>
   );
 }

@@ -4,13 +4,16 @@ import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarTraslados } from "@/lib/services/traslados";
 import { listarBodegas } from "@/lib/services/bodegas";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowLeftRight } from "lucide-react";
 
 export const metadata: Metadata = { title: "Traslados — Vertex" };
+const PAGE_SIZE = 10;
 
 type Fila = Awaited<ReturnType<typeof listarTraslados>>[number];
 const VARIANTE: Record<string, "default" | "secondary" | "outline"> = {
@@ -20,12 +23,24 @@ const VARIANTE: Record<string, "default" | "secondary" | "outline"> = {
   cancelado: "outline",
 };
 
-export default async function TrasladosPage() {
+export default async function TrasladosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   const sesion = await requirePermiso("traslados.ver");
   const { empresaId } = await requireEmpresa();
-  const [filas, bodegas] = await Promise.all([listarTraslados(empresaId), listarBodegas(empresaId)]);
+  const { q = "", page: pageRaw } = await searchParams;
+  const [todos, bodegas] = await Promise.all([listarTraslados(empresaId), listarBodegas(empresaId)]);
   const bodPorId = new Map(bodegas.map((b) => [b.id, b.nombre]));
   const puedeCrear = puede(sesion.rol, "traslados.crear");
+
+  const { items, total, page } = filtrarPaginar(todos, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (f) => `${f.traslado.numero} ${f.origen} ${bodPorId.get(f.traslado.bodegaDestinoId) ?? ""}`,
+  });
 
   const columnas: Columna<Fila>[] = [
     {
@@ -59,15 +74,19 @@ export default async function TrasladosPage() {
         )}
       </PageHeader>
 
-      {filas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
-          <ArrowLeftRight className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="font-medium">Aún no hay traslados</p>
-          <p className="text-sm text-muted-foreground">Crea un traslado para mover stock entre bodegas.</p>
-        </div>
-      ) : (
-        <ResponsiveTable items={filas} getKey={(f) => f.traslado.id} columns={columnas} />
-      )}
+      <ListaFiltrable
+        base="/traslados"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(f) => f.traslado.id}
+        columns={columnas}
+        searchPlaceholder="Buscar por número o bodega…"
+        hayDatos={todos.length > 0}
+        vacio={{ icon: ArrowLeftRight, titulo: "Aún no hay traslados", texto: "Crea un traslado para mover stock entre bodegas." }}
+      />
     </div>
   );
 }

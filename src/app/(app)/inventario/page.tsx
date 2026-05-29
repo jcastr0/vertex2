@@ -2,19 +2,34 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { listarInventario, type FilaInventario } from "@/lib/services/inventario";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { Boxes } from "lucide-react";
 
 export const metadata: Metadata = { title: "Inventario — Vertex" };
+const PAGE_SIZE = 10;
 
 const money = (s: string) => "$" + Number(s).toLocaleString("es-CO", { maximumFractionDigits: 2 });
 const num = (s: string) => Number(s).toLocaleString("es-CO", { maximumFractionDigits: 4 });
 
-export default async function InventarioPage() {
+export default async function InventarioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   await requirePermiso("inventario.ver");
   const { empresaId } = await requireEmpresa();
-  const filas = await listarInventario(empresaId);
+  const { q = "", page: pageRaw } = await searchParams;
+  const todos = await listarInventario(empresaId);
+
+  const { items, total, page } = filtrarPaginar(todos, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (f) => `${f.productoSku} ${f.productoNombre} ${f.bodegaNombre}`,
+  });
 
   const columnas: Columna<FilaInventario>[] = [
     {
@@ -27,37 +42,27 @@ export default async function InventarioPage() {
       ),
     },
     { header: "Bodega", cell: (f) => f.bodegaNombre },
-    {
-      header: "Existencia",
-      className: "text-right",
-      cell: (f) => <span className="tabular">{num(f.cantidadActual)} {f.unidad}</span>,
-    },
-    {
-      header: "Costo prom.",
-      className: "text-right",
-      cell: (f) => <span className="tabular">{money(f.costoPromedio)}</span>,
-    },
-    {
-      header: "Valor",
-      className: "text-right",
-      cell: (f) => <span className="tabular font-medium">{money(f.valorTotal)}</span>,
-    },
+    { header: "Existencia", className: "text-right", cell: (f) => <span className="tabular">{num(f.cantidadActual)} {f.unidad}</span> },
+    { header: "Costo prom.", className: "text-right", cell: (f) => <span className="tabular">{money(f.costoPromedio)}</span> },
+    { header: "Valor", className: "text-right", cell: (f) => <span className="tabular font-medium">{money(f.valorTotal)}</span> },
   ];
 
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Inventario" description="Existencias por bodega, valorizadas a costo promedio." />
-      {filas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
-          <Boxes className="mb-3 size-8 text-muted-foreground/50" />
-          <p className="font-medium">Sin existencias todavía</p>
-          <p className="text-sm text-muted-foreground">
-            Recibe un pedido para que el inventario se actualice.
-          </p>
-        </div>
-      ) : (
-        <ResponsiveTable items={filas} getKey={(f) => f.id} columns={columnas} />
-      )}
+      <ListaFiltrable
+        base="/inventario"
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        getKey={(f) => f.id}
+        columns={columnas}
+        searchPlaceholder="Buscar por producto, SKU o bodega…"
+        hayDatos={todos.length > 0}
+        vacio={{ icon: Boxes, titulo: "Sin existencias todavía", texto: "Recibe un pedido para que el inventario se actualice." }}
+      />
     </div>
   );
 }
