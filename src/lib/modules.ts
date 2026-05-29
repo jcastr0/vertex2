@@ -62,7 +62,7 @@ export const NAV: GrupoNav[] = [
       { modulo: "pedidos", label: "Pedidos", href: "/pedidos", icon: ShoppingCart, listo: true },
       { modulo: "inventario", label: "Inventario", href: "/inventario", icon: Boxes, listo: true },
       { modulo: "traslados", label: "Traslados", href: "/traslados", icon: ArrowLeftRight, listo: false },
-      { modulo: "notas_inventario", label: "Notas de inventario", href: "/notas-inventario", icon: ClipboardList, listo: false },
+      { modulo: "notas_inventario", label: "Notas de inventario", href: "/notas-inventario", icon: ClipboardList, listo: true },
     ],
   },
   {
