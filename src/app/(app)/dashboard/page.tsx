@@ -31,7 +31,7 @@ const FASES = [
   { n: 5, t: "Ventas y facturación", done: true },
   { n: 6, t: "Cartera (pagos y recaudos)", done: true },
   { n: 7, t: "Reportes y dashboard", done: true },
-  { n: 8, t: "Manuales", done: false },
+  { n: 8, t: "Manuales", done: true },
 ];
 
 export default async function DashboardPage() {

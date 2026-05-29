@@ -94,7 +94,7 @@ export const NAV: GrupoNav[] = [
       { modulo: "empresas", label: "Empresas", href: "/empresas", icon: Building2, listo: false },
       { modulo: "usuarios", label: "Usuarios", href: "/usuarios", icon: Users, listo: false },
       { modulo: "auditoria", label: "Auditoría", href: "/auditoria", icon: ShieldCheck, listo: false },
-      { modulo: "manuales", label: "Manuales", href: "/manuales", icon: BookOpen, listo: false },
+      { modulo: "manuales", label: "Manuales", href: "/manuales", icon: BookOpen, listo: true },
     ],
   },
 ];
