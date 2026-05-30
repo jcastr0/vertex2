@@ -326,3 +326,127 @@ export async function registrarRecaudo(
     return recaudo.id;
   });
 }
+
+// ── Acreedores / Pago a proveedor FIFO (vx26 / vx27) ────────────────────────
+
+/** Proveedores con saldo por pagar, agrupados; más antiguo primero. */
+export async function acreedoresPorProveedor(empresaId: number) {
+  const rows = await db
+    .select({
+      proveedorId: cuentasPorPagar.proveedorId,
+      proveedor: terceros.razonSocial,
+      facturaElectronica: terceros.requiereFacturaElectronica,
+      total: sql<string>`sum(${cuentasPorPagar.saldoPendiente})`,
+      venceMin: sql<string>`min(${cuentasPorPagar.fechaVencimiento})`,
+      docs: count(),
+    })
+    .from(cuentasPorPagar)
+    .innerJoin(terceros, eq(cuentasPorPagar.proveedorId, terceros.id))
+    .where(and(eq(cuentasPorPagar.empresaId, empresaId), gt(cuentasPorPagar.saldoPendiente, "0")))
+    .groupBy(cuentasPorPagar.proveedorId, terceros.razonSocial, terceros.requiereFacturaElectronica)
+    .orderBy(asc(sql`min(${cuentasPorPagar.fechaVencimiento})`));
+  return rows.map((r) => ({
+    proveedorId: r.proveedorId,
+    proveedor: r.proveedor,
+    facturaElectronica: r.facturaElectronica,
+    total: Number(r.total),
+    venceMin: r.venceMin,
+    docs: Number(r.docs),
+  }));
+}
+
+/** Paga a un proveedor un monto total: reparte FIFO a sus CxP, retención (solo FE) sobre el total, una salida de tesorería por el neto. */
+export async function pagarAProveedor(
+  proveedorId: number,
+  datos: { monto: number; metodoPago: string; fecha: string; cuentaOrigenId?: number; beneficiario?: BeneficiarioSnapshot | null; referencia?: string },
+  ctx: Contexto,
+): Promise<number> {
+  if (datos.monto <= 0) throw new AbonoInvalido("El valor debe ser mayor a 0.");
+
+  const [prov] = await db
+    .select({ fe: terceros.requiereFacturaElectronica })
+    .from(terceros)
+    .where(eq(terceros.id, proveedorId))
+    .limit(1);
+  const config = await retencionesActivas(ctx.empresaId);
+  const ret = calcularRetenciones(datos.monto, config, prov?.fe ?? false);
+
+  const abiertas = await db
+    .select({ id: cuentasPorPagar.id, saldo: cuentasPorPagar.saldoPendiente })
+    .from(cuentasPorPagar)
+    .where(and(eq(cuentasPorPagar.empresaId, ctx.empresaId), eq(cuentasPorPagar.proveedorId, proveedorId), gt(cuentasPorPagar.saldoPendiente, "0")))
+    .orderBy(asc(cuentasPorPagar.fechaVencimiento), asc(cuentasPorPagar.id));
+  const aplic = distribuirFIFO(abiertas.map((a) => ({ id: a.id, saldo: Number(a.saldo) })), datos.monto);
+  if (aplic.length === 0) throw new AbonoInvalido("Este proveedor no tiene deudas pendientes.");
+
+  const [{ c }] = await db.select({ c: count() }).from(pagosProveedor).where(eq(pagosProveedor.empresaId, ctx.empresaId));
+
+  let aplicado = 0;
+  await db.transaction(async (tx) => {
+    for (let i = 0; i < aplic.length; i++) {
+      const a = aplic[i];
+      const numero = formatearNumero("PAG", Number(c) + 1 + i);
+      const esPrimero = i === 0;
+      const [pago] = await tx
+        .insert(pagosProveedor)
+        .values({
+          empresaId: ctx.empresaId,
+          proveedorId,
+          cuentaPorPagarId: a.id,
+          numero,
+          fecha: datos.fecha,
+          valor: String(a.abono),
+          retencionTotal: esPrimero ? String(ret.total) : "0",
+          cuentaOrigenId: datos.cuentaOrigenId ?? null,
+          beneficiarioCuentaId: datos.beneficiario?.beneficiarioCuentaId ?? null,
+          beneficiarioBanco: datos.beneficiario?.banco ?? null,
+          beneficiarioCuenta: datos.beneficiario?.numeroCuenta ?? null,
+          beneficiarioNit: datos.beneficiario?.nit ?? null,
+          beneficiarioNombre: datos.beneficiario?.nombre ?? null,
+          metodoPago: datos.metodoPago,
+          referencia: datos.referencia || null,
+          estado: "activo",
+          usuarioId: ctx.usuarioId,
+        })
+        .returning();
+
+      if (esPrimero && ret.detalle.length) {
+        await tx.insert(pagoRetenciones).values(
+          ret.detalle.map((d) => ({
+            empresaId: ctx.empresaId,
+            pagoId: pago.id,
+            retencionId: d.retencionId,
+            base: String(d.base),
+            porcentaje: String(d.porcentaje),
+            valor: String(d.valor),
+          })),
+        );
+      }
+
+      const [cxp] = await tx.select().from(cuentasPorPagar).where(eq(cuentasPorPagar.id, a.id)).limit(1);
+      const nuevo = aplicarAbono(Number(cxp.saldoPendiente), a.abono);
+      await tx.update(cuentasPorPagar).set({ saldoPendiente: String(nuevo.nuevoSaldo), updatedAt: new Date() }).where(eq(cuentasPorPagar.id, a.id));
+      aplicado += a.abono;
+    }
+
+    if (datos.cuentaOrigenId) {
+      const mov = movimientoDesdePago({ valor: datos.monto, retencionTotal: ret.total });
+      await tx.insert(movimientosTesoreria).values({
+        empresaId: ctx.empresaId,
+        cuentaPropiaId: datos.cuentaOrigenId,
+        fecha: datos.fecha,
+        tipo: mov.tipo,
+        origen: "pago_proveedor",
+        valor: String(mov.valor),
+        descripcion: "Pago a proveedor",
+        usuarioId: ctx.usuarioId,
+      });
+    }
+
+    await registrarAuditoria(
+      { empresaId: ctx.empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx27", modelId: proveedorId, accion: "CREAR", registroNuevo: { proveedorId, monto: datos.monto, retencion: ret.total }, ipOrigen: ctx.ip },
+      tx,
+    );
+  });
+  return aplicado;
+}
