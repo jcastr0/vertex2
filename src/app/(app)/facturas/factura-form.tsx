@@ -3,9 +3,9 @@
 import { useMemo, useState, useTransition } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { crearFacturaAction, preciosClienteAction, type FacturaState } from "./actions";
+import { crearFacturaAction, datosClienteAction, type FacturaState } from "./actions";
 import { Autocomplete, type OpcionAuto } from "@/components/ui/autocomplete";
-import { buscarProductos, agregarOIncrementar, precioSugerido, type LineaCarrito } from "@/lib/domain/venta";
+import { buscarProductos, agregarOIncrementar, precioSugerido, sugerirUnidadVenta, type LineaCarrito } from "@/lib/domain/venta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,8 @@ import { AlertCircle, Loader2, ShoppingBag, Trash2, ScanLine, Minus, Plus, Check
 
 interface Cliente { id: number; nombre: string }
 interface Bodega { id: number; nombre: string }
-interface Prod { id: number; nombre: string; sku: string; unidadBaseId: number; unidadAbrev: string; precio: number }
+interface ProdUnidad { unidadId: number; abrev: string; factor: number; precio: number | null }
+interface Prod { id: number; nombre: string; sku: string; unidadBaseId: number; unidadAbrev: string; precio: number; unidades: ProdUnidad[] }
 
 const money = (n: number) => "$" + n.toLocaleString("es-CO", { maximumFractionDigits: 2 });
 
@@ -44,11 +45,19 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
   const [cuentaDestinoId, setCuentaDestinoId] = useState(cuentasDestino[0] ? String(cuentasDestino[0].id) : "");
   const [carrito, setCarrito] = useState<LineaCarrito[]>([]);
   const [preciosCliente, setPreciosCliente] = useState<Record<number, number>>({});
+  /** Última unidad vendida por producto al cliente seleccionado: productoId → { unidadId, precio } */
+  const [unidadesCliente, setUnidadesCliente] = useState<Record<number, { unidadId: number; precio: number }>>({});
   const [, startTransition] = useTransition();
 
   const prodPorId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const base = useMemo(() => Object.fromEntries(productos.map((p) => [p.id, p.precio])), [productos]);
   const clienteNombre = useMemo(() => clientes.find((c) => String(c.id) === clienteId)?.nombre ?? "", [clientes, clienteId]);
+
+  /** Map productoId → unidadId a partir de la última venta al cliente */
+  const unidadUltimaPorProducto = useMemo<Record<number, number>>(
+    () => Object.fromEntries(Object.entries(unidadesCliente).map(([pid, v]) => [Number(pid), v.unidadId])),
+    [unidadesCliente],
+  );
 
   const opcionesCliente = useMemo<OpcionAuto[]>(() => clientes.map((c) => ({ value: String(c.id), label: c.nombre })), [clientes]);
   const opcionesProducto = useMemo<OpcionAuto[]>(
@@ -58,15 +67,46 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
 
   function elegirCliente(value: string) {
     setClienteId(value);
-    startTransition(async () => setPreciosCliente(await preciosClienteAction(Number(value))));
+    startTransition(async () => {
+      const datos = await datosClienteAction(Number(value));
+      setPreciosCliente(datos.precios);
+      setUnidadesCliente(datos.unidades);
+    });
   }
+
+  /** Resuelve precio para una unidad concreta: usa el último precio del cliente si la unidad coincide, luego el precio de la presentación, luego el base. */
+  function precioParaUnidad(prod: Prod, unidadId: number): number {
+    const clienteInfo = unidadesCliente[prod.id];
+    if (clienteInfo && clienteInfo.unidadId === unidadId) return clienteInfo.precio;
+    const pu = prod.unidades.find((u) => u.unidadId === unidadId);
+    if (pu && pu.precio !== null) return pu.precio;
+    return precioSugerido(prod.id, { porCliente: preciosCliente, base });
+  }
+
   function agregarProducto(value: string) {
     const id = Number(value);
-    setCarrito((c) => agregarOIncrementar(c, id, precioSugerido(id, { porCliente: preciosCliente, base })));
+    const prod = prodPorId.get(id);
+    if (!prod) return;
+    const unidadId = sugerirUnidadVenta(id, unidadUltimaPorProducto, prod.unidadBaseId);
+    const precio = precioParaUnidad(prod, unidadId);
+    setCarrito((c) => {
+      const nuevo = agregarOIncrementar(c, id, precio);
+      // Si el producto es nuevo (unidadId=0 en la última línea), establecer la unidad correcta
+      return nuevo.map((l) => (l.productoId === id && l.unidadId === 0 ? { ...l, unidadId, precioUnitario: precio } : l));
+    });
   }
+
   function setLinea(id: number, patch: Partial<LineaCarrito>) {
     setCarrito((c) => c.map((l) => (l.productoId === id ? { ...l, ...patch } : l)));
   }
+
+  function cambiarUnidad(productoId: number, nuevaUnidadId: number) {
+    const prod = prodPorId.get(productoId);
+    if (!prod) return;
+    const precio = precioParaUnidad(prod, nuevaUnidadId);
+    setCarrito((c) => c.map((l) => (l.productoId === productoId ? { ...l, unidadId: nuevaUnidadId, precioUnitario: precio } : l)));
+  }
+
   function sumar(id: number, delta: number) {
     setCarrito((c) => c.map((l) => (l.productoId === id ? { ...l, cantidad: Math.max(0, +(l.cantidad + delta).toFixed(3)) } : l)));
   }
@@ -80,8 +120,10 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
     carrito
       .filter((l) => l.cantidad > 0)
       .map((l) => {
-        const p = prodPorId.get(l.productoId)!;
-        return { productoId: l.productoId, unidadId: p.unidadBaseId, cantidad: l.cantidad, precioUnitario: l.precioUnitario };
+        const prod = prodPorId.get(l.productoId)!;
+        // Usar la unidad del carrito; si aún es 0 (no debería), caer a la base.
+        const unidadId = l.unidadId || prod.unidadBaseId;
+        return { productoId: l.productoId, unidadId, cantidad: l.cantidad, precioUnitario: l.precioUnitario };
       }),
   );
 
@@ -110,7 +152,7 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
               {clienteNombre ? (
                 <button
                   type="button"
-                  onClick={() => { setClienteId(""); setPreciosCliente({}); }}
+                  onClick={() => { setClienteId(""); setPreciosCliente({}); setUnidadesCliente({}); }}
                   className="flex w-full items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-primary/10"
                 >
                   <Check className="size-4 shrink-0 text-primary" />
@@ -185,11 +227,29 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
               {carrito.map((l) => {
                 const p = prodPorId.get(l.productoId)!;
                 const sub = l.cantidad * l.precioUnitario;
+                const opcionesUnidad = p.unidades.map((u) => ({ value: String(u.unidadId), label: u.abrev }));
+                const tieneVariasUnidades = p.unidades.length > 1;
                 return (
                   <li key={l.productoId} className="flex flex-col gap-2.5 px-4 py-3 transition-colors hover:bg-muted/30 sm:flex-row sm:items-center sm:gap-4">
                     <div className="min-w-0 sm:flex-1">
                       <p className="truncate text-sm font-medium">{p.nombre}</p>
-                      <p className="text-xs text-muted-foreground">{p.sku} · {p.unidadAbrev}</p>
+                      <div className="mt-0.5 flex items-center gap-1.5">
+                        <p className="text-xs text-muted-foreground">{p.sku}</p>
+                        {/* Badge / selector de unidad */}
+                        {tieneVariasUnidades ? (
+                          <SearchSelect
+                            value={String(l.unidadId)}
+                            onValueChange={(v) => cambiarUnidad(l.productoId, Number(v))}
+                            options={opcionesUnidad}
+                            searchThreshold={999}
+                            triggerClassName="h-6 min-w-[3.5rem] max-w-[6rem] rounded-full border-primary/40 bg-primary/10 px-2 text-xs font-semibold text-primary hover:bg-primary/20 [&>svg]:size-3"
+                          />
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                            {p.unidades[0]?.abrev ?? p.unidadAbrev}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
                       {/* stepper de cantidad */}

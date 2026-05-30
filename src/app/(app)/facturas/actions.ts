@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseFacturaForm } from "@/lib/validation/factura";
-import { crearFactura, ultimoPrecioPorCliente, VentaInvalida } from "@/lib/services/facturas";
+import { crearFactura, ultimoPrecioPorCliente, ultimaUnidadVentaPorCliente, VentaInvalida } from "@/lib/services/facturas";
 
 export interface FacturaState {
   error?: string;
@@ -65,5 +65,24 @@ export async function preciosClienteAction(clienteId: number): Promise<Record<nu
     // No bloquear la selección del cliente si fallara la consulta de precios.
     console.error("[facturas] error al cargar precios por cliente:", e);
     return {};
+  }
+}
+
+/** Datos combinados del cliente: último precio y última unidad vendida por producto. */
+export async function datosClienteAction(clienteId: number): Promise<{
+  precios: Record<number, number>;
+  unidades: Record<number, { unidadId: number; precio: number }>;
+}> {
+  const c = await contexto();
+  if (!c || !clienteId) return { precios: {}, unidades: {} };
+  try {
+    const [precios, unidades] = await Promise.all([
+      ultimoPrecioPorCliente(c.ctx.empresaId, clienteId),
+      ultimaUnidadVentaPorCliente(c.ctx.empresaId, clienteId),
+    ]);
+    return { precios, unidades };
+  } catch (e) {
+    console.error("[facturas] error al cargar datos del cliente:", e);
+    return { precios: {}, unidades: {} };
   }
 }

@@ -24,16 +24,22 @@ export function buscarProductos<T extends ProductoBuscable>(items: T[], q: strin
 
 export interface LineaCarrito {
   productoId: number;
+  unidadId: number;
   cantidad: number;
   precioUnitario: number;
 }
 
+/**
+ * Agrega un producto al carrito o incrementa su cantidad si ya existe.
+ * `unidadId` debe ser establecido por el llamador inmediatamente después de agregar
+ * (el form lo sobreescribe con la unidad sugerida antes de renderizar).
+ */
 export function agregarOIncrementar(carrito: LineaCarrito[], productoId: number, precioSugerido: number): LineaCarrito[] {
   const existe = carrito.some((l) => l.productoId === productoId);
   if (existe) {
     return carrito.map((l) => (l.productoId === productoId ? { ...l, cantidad: l.cantidad + 1 } : l));
   }
-  return [...carrito, { productoId, cantidad: 1, precioUnitario: precioSugerido }];
+  return [...carrito, { productoId, unidadId: 0, cantidad: 1, precioUnitario: precioSugerido }];
 }
 
 export function precioSugerido(

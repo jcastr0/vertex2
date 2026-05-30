@@ -27,15 +27,15 @@ describe("buscarProductos", () => {
 });
 
 describe("agregarOIncrementar", () => {
-  it("agrega una línea nueva con cantidad 1 y el precio sugerido", () => {
-    expect(agregarOIncrementar([], 5, 1200)).toEqual([{ productoId: 5, cantidad: 1, precioUnitario: 1200 }] satisfies LineaCarrito[]);
+  it("agrega una línea nueva con cantidad 1 y el precio sugerido (unidadId=0 pendiente de asignar)", () => {
+    expect(agregarOIncrementar([], 5, 1200)).toEqual([{ productoId: 5, unidadId: 0, cantidad: 1, precioUnitario: 1200 }] satisfies LineaCarrito[]);
   });
   it("si el producto ya está, suma 1 a la cantidad (no duplica ni cambia el precio)", () => {
-    const carrito: LineaCarrito[] = [{ productoId: 5, cantidad: 2, precioUnitario: 1200 }];
-    expect(agregarOIncrementar(carrito, 5, 9999)).toEqual([{ productoId: 5, cantidad: 3, precioUnitario: 1200 }]);
+    const carrito: LineaCarrito[] = [{ productoId: 5, unidadId: 1, cantidad: 2, precioUnitario: 1200 }];
+    expect(agregarOIncrementar(carrito, 5, 9999)).toEqual([{ productoId: 5, unidadId: 1, cantidad: 3, precioUnitario: 1200 }]);
   });
   it("no muta el carrito original", () => {
-    const carrito: LineaCarrito[] = [{ productoId: 5, cantidad: 1, precioUnitario: 100 }];
+    const carrito: LineaCarrito[] = [{ productoId: 5, unidadId: 1, cantidad: 1, precioUnitario: 100 }];
     agregarOIncrementar(carrito, 5, 100);
     expect(carrito[0].cantidad).toBe(1);
   });
