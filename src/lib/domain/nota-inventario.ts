@@ -23,3 +23,9 @@ export function signoNota(tipo: string): number {
 export function esEntrada(tipo: string): boolean {
   return signoNota(tipo) === 1;
 }
+
+/** Novedades atribuibles a la calidad del proveedor (para alertas/reporte). */
+const NOVEDAD_PROVEEDOR = new Set(["diferencia_negativa", "merma", "dano"]);
+export function esNovedadProveedor(tipo: string): boolean {
+  return NOVEDAD_PROVEEDOR.has(tipo);
+}
