@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, gte, lte, lt, ne, sql, type AnyColumn } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, lt, ne, sql, type AnyColumn } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   facturas,
@@ -11,6 +11,7 @@ import {
   productos,
   bodegas,
   terceros,
+  notasInventario,
 } from "@/lib/db/schema";
 
 const SUM0 = (col: AnyColumn) => sql<string>`coalesce(sum(${col}), 0)`;
@@ -123,4 +124,28 @@ export async function cxcVencidas(empresaId: number, hoy: string): Promise<FilaV
       ),
     )
     .orderBy(cuentasPorCobrar.fechaVencimiento);
+}
+
+/** Novedades (faltante/merma/daño) por proveedor: cuántas y cuánta cantidad. */
+export async function novedadesPorProveedor(empresaId: number) {
+  const rows = await db
+    .select({
+      proveedorId: notasInventario.proveedorId,
+      proveedor: terceros.razonSocial,
+      tipo: notasInventario.tipo,
+      novedades: sql<string>`count(*)`,
+      cantidad: sql<string>`sum(${notasInventario.cantidad})`,
+    })
+    .from(notasInventario)
+    .innerJoin(terceros, eq(notasInventario.proveedorId, terceros.id))
+    .where(and(eq(notasInventario.empresaId, empresaId), inArray(notasInventario.tipo, ["diferencia_negativa", "merma", "dano"])))
+    .groupBy(notasInventario.proveedorId, terceros.razonSocial, notasInventario.tipo)
+    .orderBy(desc(sql`count(*)`));
+  return rows.map((r) => ({
+    proveedorId: r.proveedorId,
+    proveedor: r.proveedor,
+    tipo: r.tipo,
+    novedades: Number(r.novedades),
+    cantidad: Number(r.cantidad),
+  }));
 }
