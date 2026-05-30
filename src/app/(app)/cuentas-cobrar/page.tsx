@@ -23,11 +23,11 @@ const VARIANTE = { pagada: "default", vencida: "destructive", pendiente: "second
 export default async function CuentasCobrarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; estado?: string; desde?: string; hasta?: string }>;
 }) {
   const sesion = await requirePermiso("cuentas_cobrar.ver");
   const { empresaId } = await requireEmpresa();
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, estado, desde, hasta } = await searchParams;
   const [todos, cuentasDestino] = await Promise.all([
     listarCuentasPorCobrar(empresaId),
     cuentasPropiasActivas(empresaId),
@@ -35,11 +35,26 @@ export default async function CuentasCobrarPage({
   const hoy = new Date().toISOString().slice(0, 10);
   const puedeRecaudar = puede(sesion.rol, "recaudos.crear");
 
+  const filtros = [
+    { key: "estado", label: "Estado", tipo: "select" as const, opciones: [{ value: "pendiente", label: "Pendiente" }, { value: "vencida", label: "Vencida" }, { value: "pagada", label: "Pagada" }] },
+    { key: "desde", label: "Vence desde", tipo: "fecha" as const },
+    { key: "hasta", label: "Vence hasta", tipo: "fecha" as const },
+  ];
+
+  const filtro = (f: Fila) => {
+    const est = estadoCartera(Number(f.cuenta.saldoPendiente), f.cuenta.fechaVencimiento, hoy);
+    if (estado && est !== estado) return false;
+    if (desde && f.cuenta.fechaVencimiento < desde) return false;
+    if (hasta && f.cuenta.fechaVencimiento > hasta) return false;
+    return true;
+  };
+
   const { items, total, page } = filtrarPaginar(todos, {
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (f) => f.cliente,
+    filtro,
   });
 
   const columnas: Columna<Fila>[] = [
@@ -73,6 +88,7 @@ export default async function CuentasCobrarPage({
         getKey={(f) => f.cuenta.id}
         columns={columnas}
         searchPlaceholder="Buscar por cliente…"
+        filtros={filtros}
         hayDatos={todos.length > 0}
         vacio={{ icon: HandCoins, titulo: "Sin cuentas por cobrar", texto: "Se generan al facturar ventas a crédito." }}
         actions={

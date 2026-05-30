@@ -25,21 +25,36 @@ const VARIANTE = { pagada: "default", vencida: "destructive", pendiente: "second
 export default async function CuentasPagarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; estado?: string; desde?: string; hasta?: string }>;
 }) {
   const sesion = await requirePermiso("cuentas_pagar.ver");
   const { empresaId } = await requireEmpresa();
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, estado, desde, hasta } = await searchParams;
   const todos = await listarCuentasPorPagar(empresaId);
   const retenciones = await retencionesActivas(empresaId);
   const hoy = new Date().toISOString().slice(0, 10);
   const puedePagar = puede(sesion.rol, "pagos_proveedor.crear");
+
+  const filtros = [
+    { key: "estado", label: "Estado", tipo: "select" as const, opciones: [{ value: "pendiente", label: "Pendiente" }, { value: "vencida", label: "Vencida" }, { value: "pagada", label: "Pagada" }] },
+    { key: "desde", label: "Vence desde", tipo: "fecha" as const },
+    { key: "hasta", label: "Vence hasta", tipo: "fecha" as const },
+  ];
+
+  const filtro = (f: Fila) => {
+    const est = estadoCartera(Number(f.cuenta.saldoPendiente), f.cuenta.fechaVencimiento, hoy);
+    if (estado && est !== estado) return false;
+    if (desde && f.cuenta.fechaVencimiento < desde) return false;
+    if (hasta && f.cuenta.fechaVencimiento > hasta) return false;
+    return true;
+  };
 
   const { items, total, page } = filtrarPaginar(todos, {
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (f) => `${f.proveedor} ${f.cuenta.numeroFactura}`,
+    filtro,
   });
 
   const cuentasOrigen = await cuentasPropiasActivas(empresaId);
@@ -79,6 +94,7 @@ export default async function CuentasPagarPage({
         getKey={(f) => f.cuenta.id}
         columns={columnas}
         searchPlaceholder="Buscar por proveedor o factura…"
+        filtros={filtros}
         hayDatos={todos.length > 0}
         vacio={{ icon: Wallet, titulo: "Sin cuentas por pagar", texto: "Se generan al recibir pedidos a proveedores." }}
         actions={
