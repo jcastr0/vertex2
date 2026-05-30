@@ -21,3 +21,17 @@ export function buscarProductos<T extends ProductoBuscable>(items: T[], q: strin
     .sort((a, b) => a.rango - b.rango);
   return conRango.slice(0, limite).map((x) => x.p);
 }
+
+export interface LineaCarrito {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+export function agregarOIncrementar(carrito: LineaCarrito[], productoId: number, precioSugerido: number): LineaCarrito[] {
+  const existe = carrito.some((l) => l.productoId === productoId);
+  if (existe) {
+    return carrito.map((l) => (l.productoId === productoId ? { ...l, cantidad: l.cantidad + 1 } : l));
+  }
+  return [...carrito, { productoId, cantidad: 1, precioUnitario: precioSugerido }];
+}
