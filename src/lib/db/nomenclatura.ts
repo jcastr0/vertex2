@@ -3,7 +3,7 @@
  *
  * REGLA: toda tabla del sistema usa nomenclatura `vxNN_descripcion` y DEBE estar
  * registrada aquí. Al crear una tabla nueva, agrega su entrada a este catálogo
- * (la numeración continúa: la siguiente es vx33).
+ * (la numeración continúa: la siguiente es vx36).
  */
 export interface EntradaNomenclatura {
   codigo: string;
@@ -47,4 +47,7 @@ export const CATALOGO: EntradaNomenclatura[] = [
   { codigo: "vx30", nombreModelo: "VisitaRecaudo", descripcion: "Visitas de ruta de recaudo", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
   { codigo: "vx31", nombreModelo: "Retencion", descripcion: "Retenciones (configuración)", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: true },
   { codigo: "vx32", nombreModelo: "PagoRetencion", descripcion: "Retenciones aplicadas en pagos", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
+  { codigo: "vx33", nombreModelo: "CuentaPropia", descripcion: "Cuentas propias (tesorería)", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: true },
+  { codigo: "vx34", nombreModelo: "CuentaBeneficiario", descripcion: "Cuentas de beneficiario por proveedor", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: true },
+  { codigo: "vx35", nombreModelo: "MovimientoTesoreria", descripcion: "Movimientos de tesorería", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
 ];
