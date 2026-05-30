@@ -20,19 +20,51 @@ const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
 export default async function FacturasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; tipoVenta?: string; estado?: string; desde?: string; hasta?: string }>;
 }) {
   const sesion = await requirePermiso("facturas.ver");
   const { empresaId } = await requireEmpresa();
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, tipoVenta, estado, desde, hasta } = await searchParams;
   const todos = await listarFacturas(empresaId);
   const puedeCrear = puede(sesion.rol, "facturas.crear");
+
+  const filtros = [
+    {
+      key: "tipoVenta",
+      label: "Tipo",
+      tipo: "select" as const,
+      opciones: [
+        { value: "contado", label: "Contado" },
+        { value: "credito", label: "Crédito" },
+      ],
+    },
+    {
+      key: "estado",
+      label: "Estado",
+      tipo: "select" as const,
+      opciones: [
+        { value: "emitida", label: "Emitida" },
+        { value: "anulada", label: "Anulada" },
+      ],
+    },
+    { key: "desde", label: "Desde", tipo: "fecha" as const },
+    { key: "hasta", label: "Hasta", tipo: "fecha" as const },
+  ];
+
+  const filtro = (f: Fila) => {
+    if (tipoVenta && f.factura.tipoVenta !== tipoVenta) return false;
+    if (estado && f.factura.estado !== estado) return false;
+    if (desde && f.factura.fecha < desde) return false;
+    if (hasta && f.factura.fecha > hasta) return false;
+    return true;
+  };
 
   const { items, total, page } = filtrarPaginar(todos, {
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (f) => `${f.factura.numero} ${f.cliente} ${f.factura.tipoVenta}`,
+    filtro,
   });
 
   const columnas: Columna<Fila>[] = [
@@ -78,6 +110,7 @@ export default async function FacturasPage({
         getKey={(f) => f.factura.id}
         columns={columnas}
         searchPlaceholder="Buscar por número o cliente…"
+        filtros={filtros}
         hayDatos={todos.length > 0}
         vacio={{ icon: Receipt, titulo: "Aún no hay ventas", texto: "Toca “Vender” para registrar la primera." }}
       />
