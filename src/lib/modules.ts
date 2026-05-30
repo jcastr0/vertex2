@@ -61,7 +61,7 @@ export const NAV: GrupoNav[] = [
     slug: "general",
     icon: Home,
     items: [
-      { modulo: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, listo: true, desc: "Resumen de la operación del día." },
+      { modulo: "dashboard", label: "Inicio", href: "/dashboard", icon: LayoutDashboard, listo: true, desc: "Resumen de la operación del día." },
     ],
   },
   {
