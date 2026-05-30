@@ -8,7 +8,10 @@ import {
   cuentasPorCobrar,
   recaudosClientes,
   terceros,
+  movimientosTesoreria,
+  cuentasBeneficiario,
 } from "@/lib/db/schema";
+import { movimientoDesdePago, type BeneficiarioSnapshot } from "@/lib/domain/tesoreria";
 import { registrarAuditoria } from "@/lib/audit";
 import { formatearNumero } from "@/lib/domain/numeracion";
 import { aplicarAbono } from "@/lib/domain/cartera";
@@ -23,6 +26,10 @@ export interface DatosAbono {
   metodoPago: string;
   referencia?: string;
   fecha: string;
+  cuentaOrigenId?: number;       // pagos
+  cuentaDestinoId?: number;      // recaudos
+  beneficiario?: BeneficiarioSnapshot | null; // resuelto en la action
+  guardarBeneficiario?: boolean;  // si el ad-hoc se guarda en catálogo
 }
 
 // ── Cuentas por pagar (vx26) / Pagos a proveedor (vx27) ──────────────────────
@@ -93,6 +100,12 @@ export async function registrarPago(
         fecha: datos.fecha,
         valor: String(datos.valor),
         retencionTotal: String(ret.total),
+        cuentaOrigenId: datos.cuentaOrigenId ?? null,
+        beneficiarioCuentaId: datos.beneficiario?.beneficiarioCuentaId ?? null,
+        beneficiarioBanco: datos.beneficiario?.banco ?? null,
+        beneficiarioCuenta: datos.beneficiario?.numeroCuenta ?? null,
+        beneficiarioNit: datos.beneficiario?.nit ?? null,
+        beneficiarioNombre: datos.beneficiario?.nombre ?? null,
         metodoPago: datos.metodoPago,
         referencia: datos.referencia || null,
         estado: "activo",
@@ -111,6 +124,34 @@ export async function registrarPago(
           valor: String(d.valor),
         })),
       );
+    }
+
+    if (datos.cuentaOrigenId) {
+      const movPago = movimientoDesdePago({ valor: datos.valor, retencionTotal: ret.total });
+      await tx.insert(movimientosTesoreria).values({
+        empresaId: ctx.empresaId,
+        cuentaPropiaId: datos.cuentaOrigenId,
+        fecha: datos.fecha,
+        tipo: movPago.tipo,
+        origen: "pago_proveedor",
+        valor: String(movPago.valor),
+        descripcion: `Pago ${numero} a ${datos.beneficiario?.nombre ?? "proveedor"}`,
+        pagoId: pago.id,
+        usuarioId: ctx.usuarioId,
+      });
+    }
+
+    if (datos.guardarBeneficiario && datos.beneficiario && datos.beneficiario.beneficiarioCuentaId === null) {
+      await tx.insert(cuentasBeneficiario).values({
+        empresaId: ctx.empresaId,
+        terceroId: cxp.proveedorId,
+        banco: datos.beneficiario.banco,
+        tipo: "ahorros",
+        numeroCuenta: datos.beneficiario.numeroCuenta,
+        titularNit: datos.beneficiario.nit,
+        titularNombre: datos.beneficiario.nombre,
+        activa: true,
+      });
     }
 
     await tx
@@ -186,12 +227,27 @@ export async function registrarRecaudo(
         numero,
         fecha: datos.fecha,
         valor: String(datos.valor),
+        cuentaDestinoId: datos.cuentaDestinoId ?? null,
         metodoPago: datos.metodoPago,
         referencia: datos.referencia || null,
         estado: "activo",
         usuarioId: ctx.usuarioId,
       })
       .returning();
+
+    if (datos.cuentaDestinoId) {
+      await tx.insert(movimientosTesoreria).values({
+        empresaId: ctx.empresaId,
+        cuentaPropiaId: datos.cuentaDestinoId,
+        fecha: datos.fecha,
+        tipo: "entrada",
+        origen: "recaudo_cliente",
+        valor: String(datos.valor),
+        descripcion: `Recaudo ${numero}`,
+        recaudoId: recaudo.id,
+        usuarioId: ctx.usuarioId,
+      });
+    }
 
     await tx
       .update(cuentasPorCobrar)
