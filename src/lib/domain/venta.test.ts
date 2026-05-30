@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buscarProductos, type ProductoBuscable } from "./venta";
 import { agregarOIncrementar, type LineaCarrito } from "./venta";
 import { precioSugerido } from "./venta";
+import { sugerirUnidadVenta } from "./venta";
 
 const P = (id: number, nombre: string, sku: string): ProductoBuscable => ({ id, nombre, sku });
 const lista = [P(1, "Tomate chonto", "VEG-01"), P(2, "Tomate larga vida", "VEG-02"), P(3, "Cebolla cabezona", "VEG-03"), P(4, "Papa criolla", "VEG-04")];
@@ -50,5 +51,14 @@ describe("precioSugerido", () => {
   });
   it("devuelve 0 si no hay ni cliente ni base", () => {
     expect(precioSugerido(9, { porCliente: {}, base })).toBe(0);
+  });
+});
+
+describe("sugerirUnidadVenta", () => {
+  it("usa la última unidad vendida si existe", () => {
+    expect(sugerirUnidadVenta(7, { 7: 3 }, 1)).toBe(3);
+  });
+  it("cae a la unidad base si no hay última", () => {
+    expect(sugerirUnidadVenta(7, {}, 1)).toBe(1);
   });
 });

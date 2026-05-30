@@ -42,3 +42,12 @@ export function precioSugerido(
 ): number {
   return fuentes.porCliente[productoId] ?? fuentes.base[productoId] ?? 0;
 }
+
+/** Unidad sugerida al vender: la última usada para ese producto, o la base. */
+export function sugerirUnidadVenta(
+  productoId: number,
+  ultimaUnidadPorProducto: Record<number, number>,
+  unidadBaseId: number,
+): number {
+  return ultimaUnidadPorProducto[productoId] ?? unidadBaseId;
+}
