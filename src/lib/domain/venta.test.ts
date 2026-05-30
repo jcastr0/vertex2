@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buscarProductos, type ProductoBuscable } from "./venta";
 import { agregarOIncrementar, type LineaCarrito } from "./venta";
+import { precioSugerido } from "./venta";
 
 const P = (id: number, nombre: string, sku: string): ProductoBuscable => ({ id, nombre, sku });
 const lista = [P(1, "Tomate chonto", "VEG-01"), P(2, "Tomate larga vida", "VEG-02"), P(3, "Cebolla cabezona", "VEG-03"), P(4, "Papa criolla", "VEG-04")];
@@ -36,5 +37,18 @@ describe("agregarOIncrementar", () => {
     const carrito: LineaCarrito[] = [{ productoId: 5, cantidad: 1, precioUnitario: 100 }];
     agregarOIncrementar(carrito, 5, 100);
     expect(carrito[0].cantidad).toBe(1);
+  });
+});
+
+describe("precioSugerido", () => {
+  const base = { 1: 1000, 2: 2000 };
+  it("usa el precio del cliente cuando existe", () => {
+    expect(precioSugerido(1, { porCliente: { 1: 850 }, base })).toBe(850);
+  });
+  it("cae al base cuando el cliente no tiene precio para ese producto", () => {
+    expect(precioSugerido(2, { porCliente: { 1: 850 }, base })).toBe(2000);
+  });
+  it("devuelve 0 si no hay ni cliente ni base", () => {
+    expect(precioSugerido(9, { porCliente: {}, base })).toBe(0);
   });
 });

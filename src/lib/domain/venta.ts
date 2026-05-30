@@ -35,3 +35,10 @@ export function agregarOIncrementar(carrito: LineaCarrito[], productoId: number,
   }
   return [...carrito, { productoId, cantidad: 1, precioUnitario: precioSugerido }];
 }
+
+export function precioSugerido(
+  productoId: number,
+  fuentes: { porCliente: Record<number, number>; base: Record<number, number> },
+): number {
+  return fuentes.porCliente[productoId] ?? fuentes.base[productoId] ?? 0;
+}
