@@ -24,3 +24,7 @@ export function saldoCorrido<T extends MovimientoSaldo>(
     return { ...m, saldo };
   });
 }
+
+export function movimientoDesdePago(pago: { valor: number; retencionTotal: number }): MovimientoSaldo {
+  return { tipo: "salida", valor: pago.valor - pago.retencionTotal };
+}

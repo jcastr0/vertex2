@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcularSaldo, saldoCorrido, type MovimientoSaldo } from "./tesoreria";
+import { calcularSaldo, saldoCorrido, movimientoDesdePago, type MovimientoSaldo } from "./tesoreria";
 
 const mov = (tipo: "entrada" | "salida", valor: number): MovimientoSaldo => ({ tipo, valor });
 
@@ -28,5 +28,20 @@ describe("saldoCorrido", () => {
   it("arranca desde el saldo inicial", () => {
     const r = saldoCorrido(500, [{ tipo: "salida" as const, valor: 200 }]);
     expect(r[0].saldo).toBe(300);
+  });
+});
+
+describe("movimientoDesdePago", () => {
+  it("genera una salida por el neto (valor − retención)", () => {
+    expect(movimientoDesdePago({ valor: 1_000_000, retencionTotal: 25_000 })).toEqual({
+      tipo: "salida",
+      valor: 975_000,
+    });
+  });
+  it("sin retención la salida es el valor completo", () => {
+    expect(movimientoDesdePago({ valor: 500_000, retencionTotal: 0 })).toEqual({
+      tipo: "salida",
+      valor: 500_000,
+    });
   });
 });
