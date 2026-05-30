@@ -6,6 +6,7 @@ import { puede } from "@/lib/auth/roles";
 import { obtenerTercero } from "@/lib/services/terceros";
 import { listarRecaudadores } from "@/lib/services/usuarios";
 import { listarBeneficiarios } from "@/lib/services/beneficiarios";
+import { BeneficiariosPanel } from "../beneficiarios-panel";
 import { PageHeader } from "@/components/page-header";
 import { FormSection } from "@/components/ui/form-section";
 import { Badge } from "@/components/ui/badge";
@@ -105,20 +106,24 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
         )}
 
         {esProveedor && (
-          <FormSection title="Cuentas de pago" description="Cuentas a las que se le paga a este proveedor.">
-            {beneficiarios.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin cuentas registradas.</p>
-            ) : (
-              <ul className="divide-y divide-border text-sm">
-                {beneficiarios.map((b) => (
-                  <li key={b.id} className="py-2 first:pt-0 last:pb-0">
-                    <span className="font-medium">{b.titularNombre}</span>
-                    <span className="text-muted-foreground"> · {b.banco} {b.numeroCuenta} · NIT {b.titularNit}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </FormSection>
+          puedeEditar ? (
+            <BeneficiariosPanel terceroId={t.id} cuentas={beneficiarios} />
+          ) : (
+            <FormSection title="Cuentas de pago" description="Cuentas a las que se le paga a este proveedor.">
+              {beneficiarios.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sin cuentas registradas.</p>
+              ) : (
+                <ul className="divide-y divide-border text-sm">
+                  {beneficiarios.map((b) => (
+                    <li key={b.id} className="py-2 first:pt-0 last:pb-0">
+                      <span className="font-medium">{b.titularNombre}</span>
+                      <span className="text-muted-foreground"> · {b.banco} {b.numeroCuenta} · NIT {b.titularNit}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </FormSection>
+          )
         )}
 
         {t.observaciones && (

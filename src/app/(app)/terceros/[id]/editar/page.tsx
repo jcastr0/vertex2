@@ -5,8 +5,6 @@ import { obtenerTercero } from "@/lib/services/terceros";
 import { listarRecaudadores } from "@/lib/services/usuarios";
 import { PageHeader } from "@/components/page-header";
 import { TerceroForm } from "../../tercero-form";
-import { listarBeneficiarios } from "@/lib/services/beneficiarios";
-import { BeneficiariosPanel } from "../../beneficiarios-panel";
 
 export const metadata: Metadata = { title: "Editar tercero — Vertex" };
 
@@ -21,9 +19,6 @@ export default async function EditarTerceroPage({
   const t = await obtenerTercero(empresaId, Number(id));
   if (!t) notFound();
   const recaudadores = await listarRecaudadores(empresaId);
-  const beneficiarios = (t.tipo === "proveedor" || t.tipo === "ambos")
-    ? await listarBeneficiarios(empresaId, t.id)
-    : [];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -55,11 +50,6 @@ export default async function EditarTerceroPage({
           diaCobro: t.diaCobro,
         }}
       />
-      {(t.tipo === "proveedor" || t.tipo === "ambos") && (
-        <div className="mt-8 max-w-2xl">
-          <BeneficiariosPanel terceroId={t.id} cuentas={beneficiarios.filter((b) => b.activa)} />
-        </div>
-      )}
     </div>
   );
 }

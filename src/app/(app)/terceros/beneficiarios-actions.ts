@@ -20,6 +20,7 @@ export async function agregarBeneficiarioAction(terceroId: number, _prev: Benefi
     console.error("[beneficiarios] error:", e);
     return { error: "No se pudo guardar la cuenta." };
   }
+  revalidatePath(`/terceros/${terceroId}`);
   revalidatePath(`/terceros/${terceroId}/editar`);
   return { ok: true };
 }
@@ -29,5 +30,6 @@ export async function quitarBeneficiarioAction(terceroId: number, id: number): P
   if (!c) return;
   if (!puede(c.rol, "terceros.editar")) return;
   await cambiarEstadoBeneficiario(id, false, c.ctx);
+  revalidatePath(`/terceros/${terceroId}`);
   revalidatePath(`/terceros/${terceroId}/editar`);
 }
