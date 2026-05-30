@@ -19,11 +19,11 @@ const PAGE_SIZE = 10;
 export default async function ProductosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; categoria?: string; estado?: string }>;
 }) {
   const sesion = await requirePermiso("productos.ver");
   const { empresaId } = await requireEmpresa();
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, categoria, estado } = await searchParams;
 
   const [todos, categorias, unidades] = await Promise.all([
     listarProductos(empresaId),
@@ -33,11 +33,24 @@ export default async function ProductosPage({
   const catPorId = new Map(categorias.map((c) => [c.id, c.nombre]));
   const undPorId = new Map(unidades.map((u) => [u.id, u.abreviatura]));
 
+  const filtros = [
+    { key: "categoria", label: "Categoría", tipo: "select" as const, opciones: categorias.map((c) => ({ value: String(c.id), label: c.nombre })) },
+    { key: "estado", label: "Estado", tipo: "select" as const, opciones: [{ value: "activo", label: "Activos" }, { value: "inactivo", label: "Inactivos" }] },
+  ];
+
+  const filtro = (p: Producto) => {
+    if (categoria && String(p.categoriaId ?? "") !== categoria) return false;
+    if (estado === "activo" && !p.activo) return false;
+    if (estado === "inactivo" && p.activo) return false;
+    return true;
+  };
+
   const { items, total, page } = filtrarPaginar(todos, {
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (p) => `${p.sku} ${p.nombre}`,
+    filtro,
   });
 
   const puedeCrear = puede(sesion.rol, "productos.crear");
@@ -83,6 +96,7 @@ export default async function ProductosPage({
         page={page}
         total={total}
         pageSize={PAGE_SIZE}
+        filtros={filtros}
         items={items}
         getKey={(p) => p.id}
         rowClassName={(p) => (p.activo ? "" : "opacity-60")}
