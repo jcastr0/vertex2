@@ -1,116 +1,93 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { listarCuentasPorCobrar } from "@/lib/services/cartera";
-import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
-import { estadoCartera } from "@/lib/domain/cartera";
-import { PageHeader } from "@/components/page-header";
-import { ListaFiltrable } from "@/components/lista-filtrable";
-import { type Columna } from "@/components/responsive-table";
-import { Badge } from "@/components/ui/badge";
-import { AbonoButton } from "@/components/abono-button";
-import { registrarRecaudoAction } from "./actions";
+import { deudoresPorCliente } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
-import { HandCoins } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
+import { FiltroBar } from "@/components/ui/filtro-bar";
+import { CobrarCliente } from "./cobrar-cliente";
+import { HandCoins, PartyPopper } from "lucide-react";
 
-export const metadata: Metadata = { title: "Cuentas por cobrar — Vertex" };
-const PAGE_SIZE = 10;
+export const metadata: Metadata = { title: "Cobrar — Vertex" };
+const money = (n: number) => "$" + n.toLocaleString("es-CO");
 
-type Fila = Awaited<ReturnType<typeof listarCuentasPorCobrar>>[number];
-const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
-const VARIANTE = { pagada: "default", vencida: "destructive", pendiente: "secondary" } as const;
-
-export default async function CuentasCobrarPage({
+export default async function CobrarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; estado?: string; desde?: string; hasta?: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const sesion = await requirePermiso("cuentas_cobrar.ver");
   const { empresaId } = await requireEmpresa();
-  const { q = "", page: pageRaw, estado, desde, hasta } = await searchParams;
-  const [todos, cuentasDestino] = await Promise.all([
-    listarCuentasPorCobrar(empresaId),
+  const { q = "" } = await searchParams;
+  const [deudores, cuentasDestino] = await Promise.all([
+    deudoresPorCliente(empresaId),
     cuentasPropiasActivas(empresaId),
   ]);
   const hoy = new Date().toISOString().slice(0, 10);
-  const puedeRecaudar = puede(sesion.rol, "recaudos.crear");
+  const puedeCobrar = puede(sesion.rol, "recaudos.crear");
 
-  const filtros = [
-    { key: "estado", label: "Estado", tipo: "select" as const, opciones: [{ value: "pendiente", label: "Pendiente" }, { value: "vencida", label: "Vencida" }, { value: "pagada", label: "Pagada" }] },
-    { key: "desde", label: "Vence desde", tipo: "fecha" as const },
-    { key: "hasta", label: "Vence hasta", tipo: "fecha" as const },
-  ];
-
-  const filtro = (f: Fila) => {
-    const est = estadoCartera(Number(f.cuenta.saldoPendiente), f.cuenta.fechaVencimiento, hoy);
-    if (estado && est !== estado) return false;
-    if (desde && f.cuenta.fechaVencimiento < desde) return false;
-    if (hasta && f.cuenta.fechaVencimiento > hasta) return false;
-    return true;
-  };
-
-  const { items, total, page } = filtrarPaginar(todos, {
-    q,
-    page: parsePage(pageRaw),
-    pageSize: PAGE_SIZE,
-    texto: (f) => f.cliente,
-    filtro,
-  });
-
-  const columnas: Columna<Fila>[] = [
-    { header: "Cliente", primary: true, cell: (f) => f.cliente },
-    {
-      header: "Vencimiento",
-      cell: (f) => {
-        const est = estadoCartera(Number(f.cuenta.saldoPendiente), f.cuenta.fechaVencimiento, hoy);
-        return (
-          <div className="flex items-center gap-2">
-            <span className="tabular">{f.cuenta.fechaVencimiento}</span>
-            <Badge variant={VARIANTE[est]} className="font-normal capitalize">{est}</Badge>
-          </div>
-        );
-      },
-    },
-    { header: "Valor", className: "text-right", cell: (f) => <span className="tabular">{money(f.cuenta.valorTotal)}</span> },
-    { header: "Saldo", className: "text-right", cell: (f) => <span className="tabular font-medium">{money(f.cuenta.saldoPendiente)}</span> },
-  ];
+  const t = q.trim().toLowerCase();
+  const lista = t ? deudores.filter((d) => d.cliente.toLowerCase().includes(t)) : deudores;
+  const totalGeneral = deudores.reduce((a, d) => a + d.total, 0);
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <PageHeader title="Cuentas por cobrar" description="Saldos pendientes de clientes." />
-      <ListaFiltrable
-        base="/cuentas-cobrar"
-        q={q}
-        page={page}
-        total={total}
-        pageSize={PAGE_SIZE}
-        items={items}
-        getKey={(f) => f.cuenta.id}
-        columns={columnas}
-        searchPlaceholder="Buscar por cliente…"
-        filtros={filtros}
-        hayDatos={todos.length > 0}
-        vacio={{ icon: HandCoins, titulo: "Sin cuentas por cobrar", texto: "Se generan al facturar ventas a crédito." }}
-        actions={
-          puedeRecaudar
-            ? (f) =>
-                Number(f.cuenta.saldoPendiente) > 0 ? (
-                  <AbonoButton
-                    cuentaId={f.cuenta.id}
-                    saldo={Number(f.cuenta.saldoPendiente)}
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title="Cobrar" description="¿Quién te debe?" />
+
+      {deudores.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
+          <PartyPopper className="mb-3 size-9 text-primary/60" />
+          <p className="font-medium">Nadie te debe</p>
+          <p className="text-sm text-muted-foreground">Cuando vendas fiado, aquí verás a quién cobrarle.</p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <HandCoins className="size-5" />
+              </span>
+              <div>
+                <p className="text-xs text-muted-foreground">Te deben en total</p>
+                <p className="tabular text-2xl font-bold tracking-tight">{money(totalGeneral)}</p>
+              </div>
+            </div>
+            <span className="text-sm text-muted-foreground">{deudores.length} {deudores.length === 1 ? "cliente" : "clientes"}</span>
+          </div>
+
+          <div className="mb-3">
+            <FiltroBar placeholder="Buscar cliente…" />
+          </div>
+
+          {lista.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+              Ningún cliente coincide con “{q}”.
+            </p>
+          ) : (
+            <div className="space-y-2.5">
+              {lista.map((d) =>
+                puedeCobrar ? (
+                  <CobrarCliente
+                    key={d.clienteId}
+                    clienteId={d.clienteId}
+                    cliente={d.cliente}
+                    total={d.total}
+                    vencido={d.venceMin < hoy}
                     hoy={hoy}
-                    triggerLabel="Recaudar"
-                    modalTitulo={`Recaudo de ${f.cliente}`}
-                    confirmarLabel="Registrar recaudo"
-                    action={registrarRecaudoAction}
                     cuentasDestino={cuentasDestino}
                   />
                 ) : (
-                  <Badge variant="default" className="font-normal">Pagada</Badge>
-                )
-            : undefined
-        }
-      />
+                  <div key={d.clienteId} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
+                    <span className={`size-2.5 shrink-0 rounded-full ${d.venceMin < hoy ? "bg-destructive" : "bg-primary/40"}`} />
+                    <span className="min-w-0 flex-1 truncate font-medium">{d.cliente}</span>
+                    <span className="tabular text-lg font-bold">{money(d.total)}</span>
+                  </div>
+                ),
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

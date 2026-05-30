@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, desc, count } from "drizzle-orm";
+import { and, eq, desc, count, asc, gt, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   cuentasPorPagar,
@@ -18,6 +18,7 @@ import { formatearNumero } from "@/lib/domain/numeracion";
 import { aplicarAbono } from "@/lib/domain/cartera";
 import { calcularRetenciones } from "@/lib/domain/retenciones";
 import { retencionesActivas } from "./retenciones";
+import { distribuirFIFO } from "@/lib/domain/cobro";
 import type { Contexto } from "./bodegas";
 
 export class AbonoInvalido extends Error {}
@@ -188,6 +189,56 @@ export async function listarCuentasPorCobrar(empresaId: number) {
     .innerJoin(terceros, eq(cuentasPorCobrar.clienteId, terceros.id))
     .where(eq(cuentasPorCobrar.empresaId, empresaId))
     .orderBy(cuentasPorCobrar.fechaVencimiento);
+}
+
+/** Deudores agrupados por cliente (solo con saldo > 0), más antiguo primero. */
+export async function deudoresPorCliente(empresaId: number) {
+  const rows = await db
+    .select({
+      clienteId: cuentasPorCobrar.clienteId,
+      cliente: terceros.razonSocial,
+      total: sql<string>`sum(${cuentasPorCobrar.saldoPendiente})`,
+      venceMin: sql<string>`min(${cuentasPorCobrar.fechaVencimiento})`,
+      docs: count(),
+    })
+    .from(cuentasPorCobrar)
+    .innerJoin(terceros, eq(cuentasPorCobrar.clienteId, terceros.id))
+    .where(and(eq(cuentasPorCobrar.empresaId, empresaId), gt(cuentasPorCobrar.saldoPendiente, "0")))
+    .groupBy(cuentasPorCobrar.clienteId, terceros.razonSocial)
+    .orderBy(asc(sql`min(${cuentasPorCobrar.fechaVencimiento})`));
+  return rows.map((r) => ({
+    clienteId: r.clienteId,
+    cliente: r.cliente,
+    total: Number(r.total),
+    venceMin: r.venceMin,
+    docs: Number(r.docs),
+  }));
+}
+
+/** Registra cuánto pagó un cliente y lo reparte FIFO entre sus deudas abiertas. */
+export async function cobrarACliente(
+  clienteId: number,
+  datos: { monto: number; metodoPago: string; fecha: string; cuentaDestinoId?: number; referencia?: string },
+  ctx: Contexto,
+): Promise<number> {
+  if (datos.monto <= 0) throw new AbonoInvalido("El valor debe ser mayor a 0.");
+  const abiertas = await db
+    .select({ id: cuentasPorCobrar.id, saldo: cuentasPorCobrar.saldoPendiente })
+    .from(cuentasPorCobrar)
+    .where(and(eq(cuentasPorCobrar.empresaId, ctx.empresaId), eq(cuentasPorCobrar.clienteId, clienteId), gt(cuentasPorCobrar.saldoPendiente, "0")))
+    .orderBy(asc(cuentasPorCobrar.fechaVencimiento), asc(cuentasPorCobrar.id));
+  const aplic = distribuirFIFO(abiertas.map((a) => ({ id: a.id, saldo: Number(a.saldo) })), datos.monto);
+  if (aplic.length === 0) throw new AbonoInvalido("Este cliente no tiene deudas pendientes.");
+  let aplicado = 0;
+  for (const a of aplic) {
+    await registrarRecaudo(
+      a.id,
+      { valor: a.abono, metodoPago: datos.metodoPago, fecha: datos.fecha, cuentaDestinoId: datos.cuentaDestinoId, referencia: datos.referencia },
+      ctx,
+    );
+    aplicado += a.abono;
+  }
+  return aplicado;
 }
 
 export async function listarRecaudos(empresaId: number) {
