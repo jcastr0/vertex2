@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { ResponsiveTable, type Columna } from "@/components/responsive-table";
-import { SearchFilter } from "@/components/ui/search-filter";
+import { FiltroBar } from "@/components/ui/filtro-bar";
+import type { FiltroDef } from "@/lib/domain/filtros";
 import { Pagination } from "@/components/ui/pagination";
 import { hrefPaginaFactory } from "@/lib/domain/listado";
 import type { ReactNode } from "react";
@@ -17,6 +18,7 @@ interface Props<T> {
   actions?: (row: T) => ReactNode;
   rowClassName?: (row: T) => string;
   searchPlaceholder: string;
+  filtros?: FiltroDef[];
   /** ¿Hay datos antes de filtrar? (distingue "sin datos" de "sin resultados"). */
   hayDatos: boolean;
   vacio: { icon: LucideIcon; titulo: string; texto: string };
@@ -35,6 +37,7 @@ export function ListaFiltrable<T>({
   actions,
   rowClassName,
   searchPlaceholder,
+  filtros,
   hayDatos,
   vacio,
 }: Props<T>) {
@@ -52,7 +55,7 @@ export function ListaFiltrable<T>({
   return (
     <>
       <div className="mb-4">
-        <SearchFilter placeholder={searchPlaceholder} />
+        <FiltroBar placeholder={searchPlaceholder} filtros={filtros} />
       </div>
       {items.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
