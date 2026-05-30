@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/components/ui/field";
 import { SearchSelect } from "@/components/ui/search-select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { FormSection } from "@/components/ui/form-section";
 import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react";
 
 interface Opt { id: number; nombre: string }
@@ -61,7 +62,7 @@ export function DevolucionForm({
   const set = (i: number, patch: Partial<Linea>) => setLineas((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
 
   return (
-    <form action={action} className="max-w-3xl space-y-6">
+    <form action={action} className="space-y-5">
       <input type="hidden" name="lineasJson" value={lineasJson} />
       <input type="hidden" name="clienteId" value={clienteId} />
 
@@ -71,28 +72,39 @@ export function DevolucionForm({
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Field label="Cliente" required>
-          <SearchSelect value={clienteId} onValueChange={setClienteId} placeholder="Elegir cliente…" options={clientes.map((c) => ({ value: String(c.id), label: c.nombre }))} />
-        </Field>
-        <Field label="Factura (opcional)" hint="Reduce su cuenta por cobrar.">
-          <SearchSelect name="facturaId" placeholder="Sin factura" options={facturasCliente.map((f) => ({ value: String(f.id), label: f.numero }))} />
-        </Field>
-        <Field label="Bodega de reingreso" required>
-          <SearchSelect name="bodegaId" placeholder="Selecciona…" options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))} />
-        </Field>
-      </div>
+      <FormSection title="Datos de la devolución" description="Cliente, factura de referencia, bodega de reingreso, fecha y motivo.">
+        <div className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-3">
+            <Field label="Cliente" required>
+              <SearchSelect value={clienteId} onValueChange={setClienteId} placeholder="Elegir cliente…" options={clientes.map((c) => ({ value: String(c.id), label: c.nombre }))} />
+            </Field>
+            <Field label="Factura (opcional)" hint="Reduce su cuenta por cobrar.">
+              <SearchSelect name="facturaId" placeholder="Sin factura" options={facturasCliente.map((f) => ({ value: String(f.id), label: f.numero }))} />
+            </Field>
+            <Field label="Bodega de reingreso" required>
+              <SearchSelect name="bodegaId" placeholder="Selecciona…" options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))} />
+            </Field>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Fecha">
+              <DatePicker name="fecha" defaultValue={hoy} />
+            </Field>
+          </div>
+          <Field label="Motivo" required>
+            <Textarea name="motivo" rows={2} required />
+          </Field>
+        </div>
+      </FormSection>
 
-      <Field label="Fecha">
-        <DatePicker name="fecha" defaultValue={hoy} />
-      </Field>
-
-      <div className="space-y-3">
-        <Label>Productos devueltos</Label>
+      <FormSection
+        title="Productos a devolver"
+        description="Artículos que el cliente regresa y el valor de crédito correspondiente."
+        bodyClassName="space-y-3"
+      >
         {lineas.map((l, i) => {
           const sub = (Number(l.cantidad) || 0) * (Number(l.precioUnitario) || 0);
           return (
-            <div key={i} className="grid gap-3 rounded-lg border border-border bg-card p-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
+            <div key={i} className="grid gap-3 rounded-lg border border-border bg-background p-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Producto</Label>
                 <SearchSelect value={l.productoId} onValueChange={(v) => set(i, { productoId: v })} placeholder="Producto…" searchPlaceholder="Nombre o SKU…" options={productos.map((p) => ({ value: String(p.id), label: p.nombre, hint: `(${p.sku})` }))} />
@@ -117,19 +129,16 @@ export function DevolucionForm({
         <Button type="button" variant="outline" size="sm" onClick={() => setLineas((ls) => [...ls, { productoId: "", cantidad: "", precioUnitario: "" }])}>
           <Plus className="size-4" /> Agregar producto
         </Button>
-      </div>
+      </FormSection>
 
-      <Field label="Motivo" required>
-        <Textarea name="motivo" rows={2} required />
-      </Field>
-
-      <div className="rounded-lg border border-border bg-muted/30 p-4 sm:ml-auto sm:max-w-xs">
-        <div className="flex justify-between font-semibold"><span>Total nota crédito</span><span className="tabular">{money(total)}</span></div>
-      </div>
-
-      <div className="flex gap-3">
-        <Guardar />
-        <Link href="/devoluciones" className={buttonVariants({ variant: "outline" })}>Cancelar</Link>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex gap-3">
+          <Guardar />
+          <Link href="/devoluciones" className={buttonVariants({ variant: "outline" })}>Cancelar</Link>
+        </div>
+        <div className="rounded-lg border border-border bg-muted/30 p-4 sm:max-w-xs">
+          <div className="flex justify-between font-semibold"><span>Total nota crédito</span><span className="tabular">{money(total)}</span></div>
+        </div>
       </div>
     </form>
   );

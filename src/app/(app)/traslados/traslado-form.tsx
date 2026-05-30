@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/components/ui/field";
 import { SearchSelect } from "@/components/ui/search-select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { FormSection } from "@/components/ui/form-section";
 import { AlertCircle, ArrowRight, Loader2, Plus, Trash2 } from "lucide-react";
 
 interface Opt { id: number; nombre: string }
@@ -41,7 +42,7 @@ export function TrasladoForm({ bodegas, productos, hoy }: { bodegas: Opt[]; prod
     setLineas((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
 
   return (
-    <form action={action} className="max-w-3xl space-y-6">
+    <form action={action} className="space-y-5">
       <input type="hidden" name="lineasJson" value={lineasJson} />
 
       {state.error && (
@@ -50,24 +51,35 @@ export function TrasladoForm({ bodegas, productos, hoy }: { bodegas: Opt[]; prod
         </div>
       )}
 
-      <div className="grid items-end gap-4 sm:grid-cols-[1fr_auto_1fr]">
-        <Field label="Bodega origen" required>
-          <SearchSelect name="bodegaOrigenId" placeholder="Origen…" options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))} />
-        </Field>
-        <ArrowRight className="mb-2.5 hidden size-4 text-muted-foreground sm:block" />
-        <Field label="Bodega destino" required>
-          <SearchSelect name="bodegaDestinoId" placeholder="Destino…" options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))} />
-        </Field>
-      </div>
+      <FormSection title="Datos del traslado" description="Bodegas involucradas, fecha y observaciones.">
+        <div className="space-y-5">
+          <div className="grid items-end gap-4 sm:grid-cols-[1fr_auto_1fr]">
+            <Field label="Bodega origen" required>
+              <SearchSelect name="bodegaOrigenId" placeholder="Origen…" options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))} />
+            </Field>
+            <ArrowRight className="mb-2.5 hidden size-4 text-muted-foreground sm:block" />
+            <Field label="Bodega destino" required>
+              <SearchSelect name="bodegaDestinoId" placeholder="Destino…" options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))} />
+            </Field>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Fecha">
+              <DatePicker name="fecha" defaultValue={hoy} />
+            </Field>
+          </div>
+          <Field label="Observaciones">
+            <Textarea name="observaciones" rows={2} />
+          </Field>
+        </div>
+      </FormSection>
 
-      <Field label="Fecha">
-        <DatePicker name="fecha" defaultValue={hoy} />
-      </Field>
-
-      <div className="space-y-3">
-        <Label>Productos a trasladar</Label>
+      <FormSection
+        title="Productos"
+        description="Artículos que se van a trasladar y sus cantidades."
+        bodyClassName="space-y-3"
+      >
         {lineas.map((l, i) => (
-          <div key={i} className="grid gap-3 rounded-lg border border-border bg-card p-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
+          <div key={i} className="grid gap-3 rounded-lg border border-border bg-background p-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Producto</Label>
               <SearchSelect
@@ -90,11 +102,7 @@ export function TrasladoForm({ bodegas, productos, hoy }: { bodegas: Opt[]; prod
         <Button type="button" variant="outline" size="sm" onClick={() => setLineas((ls) => [...ls, { productoId: "", cantidad: "" }])}>
           <Plus className="size-4" /> Agregar producto
         </Button>
-      </div>
-
-      <Field label="Observaciones">
-        <Textarea name="observaciones" rows={2} />
-      </Field>
+      </FormSection>
 
       <div className="flex gap-3">
         <Guardar />
