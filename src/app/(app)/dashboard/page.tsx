@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireSesion } from "@/lib/auth/guard";
 import { empresaActivaId } from "@/lib/auth/empresa";
-import { kpis, stockBajo, cxcVencidas } from "@/lib/services/reportes";
+import { kpis, stockBajo, cxcVencidas, novedadesPorProveedor } from "@/lib/services/reportes";
 import { rangoMes } from "@/lib/domain/periodo";
 import {
   ShoppingBag,
@@ -12,6 +12,7 @@ import {
   ArrowRight,
   PackageX,
   CalendarClock,
+  AlertTriangle,
 } from "lucide-react";
 
 export const metadata: Metadata = { title: "Inicio — Vertex" };
@@ -28,11 +29,13 @@ export default async function InicioPage() {
   const hoy = now.toISOString().slice(0, 10);
 
   const datos = empresaId
-    ? await Promise.all([kpis(empresaId, desde, hasta), stockBajo(empresaId), cxcVencidas(empresaId, hoy)])
+    ? await Promise.all([kpis(empresaId, desde, hasta), stockBajo(empresaId), cxcVencidas(empresaId, hoy), novedadesPorProveedor(empresaId)])
     : null;
   const k = datos?.[0] ?? { ventas: 0, compras: 0, utilidad: 0, inventario: 0, porCobrar: 0, porPagar: 0 };
   const alertaStock = datos?.[1] ?? [];
   const alertaCxc = datos?.[2] ?? [];
+  const alertaNovedades = datos?.[3] ?? [];
+  const totalNovedades = alertaNovedades.reduce((acc, n) => acc + n.novedades, 0);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -71,7 +74,7 @@ export default async function InicioPage() {
       </div>
 
       {/* Avisos: solo si hay algo que atender */}
-      {(alertaStock.length > 0 || alertaCxc.length > 0) && (
+      {(alertaStock.length > 0 || alertaCxc.length > 0 || alertaNovedades.length > 0) && (
         <div className="grid gap-4 lg:grid-cols-2">
           {alertaStock.length > 0 && (
             <div className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] p-4">
@@ -99,6 +102,17 @@ export default async function InicioPage() {
               </ul>
               <Link href="/cuentas-cobrar" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
                 Ir a cobrar <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          )}
+          {alertaNovedades.length > 0 && (
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] p-4">
+              <h3 className="mb-2 flex items-center gap-2 font-semibold"><AlertTriangle className="size-4 text-amber-600" /> Novedades de proveedores</h3>
+              <p className="text-sm text-muted-foreground">
+                {totalNovedades} novedad{totalNovedades !== 1 ? "es" : ""} registrada{totalNovedades !== 1 ? "s" : ""} (faltantes, mermas o daños).
+              </p>
+              <Link href="/reportes" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                Ver detalle <ArrowRight className="size-3.5" />
               </Link>
             </div>
           )}
