@@ -15,6 +15,7 @@ import { eq } from "drizzle-orm";
 import * as schema from "./schema";
 import { ROLES } from "@/lib/auth/roles";
 import { hashPassword } from "@/lib/auth/password";
+import { CATALOGO } from "./nomenclatura";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -39,6 +40,34 @@ const UNIDADES = [
 ];
 
 async function main() {
+  console.log("→ Sembrando nomenclatura (vx00)…");
+  for (let i = 0; i < CATALOGO.length; i++) {
+    const e = CATALOGO[i];
+    await db
+      .insert(schema.nomenclatura)
+      .values({
+        codigo: e.codigo,
+        nombreModelo: e.nombreModelo,
+        descripcion: e.descripcion,
+        modulo: e.modulo,
+        tieneEmpresaId: e.tieneEmpresaId,
+        esCatalogo: e.esCatalogo,
+        orden: i + 1,
+      })
+      .onConflictDoUpdate({
+        target: schema.nomenclatura.codigo,
+        set: {
+          nombreModelo: e.nombreModelo,
+          descripcion: e.descripcion,
+          modulo: e.modulo,
+          tieneEmpresaId: e.tieneEmpresaId,
+          esCatalogo: e.esCatalogo,
+          orden: i + 1,
+          updatedAt: new Date(),
+        },
+      });
+  }
+
   console.log("→ Sembrando roles…");
   for (const [nombre, permisos] of Object.entries(ROLES)) {
     await db
