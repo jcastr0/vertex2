@@ -107,7 +107,7 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
 
         {esProveedor && (
           puedeEditar ? (
-            <BeneficiariosPanel terceroId={t.id} cuentas={beneficiarios} />
+            <BeneficiariosPanel terceroId={t.id} terceroNit={t.identificacion} terceroNombre={t.razonSocial} cuentas={beneficiarios} />
           ) : (
             <FormSection title="Cuentas de pago" description="Cuentas a las que se le paga a este proveedor.">
               {beneficiarios.length === 0 ? (

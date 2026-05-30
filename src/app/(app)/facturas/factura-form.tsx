@@ -9,6 +9,8 @@ import { buscarProductos, agregarOIncrementar, precioSugerido, type LineaCarrito
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchSelect } from "@/components/ui/search-select";
+import { METODOS_PAGO } from "@/lib/domain/cartera";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Loader2, ShoppingBag, Trash2, ScanLine, Minus, Plus, Check, Receipt } from "lucide-react";
 
@@ -33,11 +35,13 @@ function Vender({ className }: { className?: string }) {
   );
 }
 
-export function FacturaForm({ clientes, bodegas, productos, hoy }: { clientes: Cliente[]; bodegas: Bodega[]; productos: Prod[]; hoy: string }) {
+export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy }: { clientes: Cliente[]; bodegas: Bodega[]; productos: Prod[]; cuentasDestino: { id: number; nombre: string }[]; hoy: string }) {
   const [state, action] = useActionState<FacturaState, FormData>(crearFacturaAction, {});
   const [clienteId, setClienteId] = useState("");
   const [bodegaId, setBodegaId] = useState(bodegas[0] ? String(bodegas[0].id) : "");
   const [tipo, setTipo] = useState<"contado" | "credito">("contado");
+  const [metodoPago, setMetodoPago] = useState("efectivo");
+  const [cuentaDestinoId, setCuentaDestinoId] = useState(cuentasDestino[0] ? String(cuentasDestino[0].id) : "");
   const [carrito, setCarrito] = useState<LineaCarrito[]>([]);
   const [preciosCliente, setPreciosCliente] = useState<Record<number, number>>({});
   const [, startTransition] = useTransition();
@@ -87,6 +91,8 @@ export function FacturaForm({ clientes, bodegas, productos, hoy }: { clientes: C
       <input type="hidden" name="clienteId" value={clienteId} />
       <input type="hidden" name="bodegaId" value={bodegaId} />
       <input type="hidden" name="tipoVenta" value={tipo} />
+      <input type="hidden" name="metodoPago" value={metodoPago} />
+      <input type="hidden" name="cuentaDestinoId" value={cuentaDestinoId} />
       <input type="hidden" name="fecha" value={hoy} />
 
       {state.error && (
@@ -126,6 +132,25 @@ export function FacturaForm({ clientes, bodegas, productos, hoy }: { clientes: C
                 ))}
               </div>
             </div>
+
+            {tipo === "contado" && (
+              <div className="grid gap-3 rounded-lg bg-muted/40 p-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">¿Cómo te pagó?</Label>
+                  <SearchSelect name="metodoPagoUI" defaultValue="efectivo" onValueChange={setMetodoPago} options={METODOS_PAGO.map((m) => ({ value: m.value, label: m.label }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">¿A dónde entró?</Label>
+                  <SearchSelect
+                    name="cuentaDestinoUI"
+                    placeholder="Elige la cuenta"
+                    defaultValue={cuentaDestinoId || undefined}
+                    onValueChange={setCuentaDestinoId}
+                    options={cuentasDestino.map((c) => ({ value: String(c.id), label: c.nombre }))}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Bodega</Label>

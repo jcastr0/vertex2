@@ -3,6 +3,7 @@ import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { listarTerceros } from "@/lib/services/terceros";
 import { listarBodegas } from "@/lib/services/bodegas";
 import { listarProductosVenta } from "@/lib/services/productos";
+import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
 import { PageHeader } from "@/components/page-header";
 import { FacturaForm } from "../factura-form";
 
@@ -11,10 +12,11 @@ export const metadata: Metadata = { title: "Vender — Vertex" };
 export default async function NuevaFacturaPage() {
   await requirePermiso("facturas.crear");
   const { empresaId } = await requireEmpresa();
-  const [terceros, bodegas, productos] = await Promise.all([
+  const [terceros, bodegas, productos, cuentasDestino] = await Promise.all([
     listarTerceros(empresaId),
     listarBodegas(empresaId),
     listarProductosVenta(empresaId),
+    cuentasPropiasActivas(empresaId),
   ]);
 
   const hoy = new Date().toISOString().slice(0, 10);
@@ -32,6 +34,7 @@ export default async function NuevaFacturaPage() {
           .map((t) => ({ id: t.id, nombre: t.razonSocial }))}
         bodegas={bodegasActivas.map((b) => ({ id: b.id, nombre: b.nombre }))}
         productos={productos}
+        cuentasDestino={cuentasDestino.map((c) => ({ id: c.id, nombre: c.nombre }))}
       />
     </div>
   );

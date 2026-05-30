@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
-import { parseBeneficiarioForm } from "@/lib/validation/beneficiario";
+import { beneficiarioSchema } from "@/lib/validation/beneficiario";
+import { resolverTitular } from "@/lib/domain/beneficiario";
 import { crearBeneficiario, cambiarEstadoBeneficiario } from "@/lib/services/beneficiarios";
 
 export interface BeneficiarioState { error?: string; ok?: boolean }
@@ -12,7 +13,23 @@ export async function agregarBeneficiarioAction(terceroId: number, _prev: Benefi
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
   if (!puede(c.rol, "terceros.editar")) return { error: "No tienes permiso." };
-  const parsed = parseBeneficiarioForm(form);
+
+  // El titular es el mismo proveedor (propia) salvo que sea otra persona/empresa.
+  const esPropia = form.get("esPropia") !== "false";
+  const titular = resolverTitular(
+    esPropia,
+    { nit: String(form.get("terceroNit") || ""), nombre: String(form.get("terceroNombre") || "") },
+    { nit: String(form.get("titularNit") || ""), nombre: String(form.get("titularNombre") || "") },
+  );
+
+  const parsed = beneficiarioSchema.safeParse({
+    banco: form.get("banco"),
+    tipo: form.get("tipo"),
+    numeroCuenta: form.get("numeroCuenta"),
+    titularNit: titular.nit,
+    titularNombre: titular.nombre,
+    activa: true,
+  });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   try {
     await crearBeneficiario(terceroId, parsed.data, c.ctx);

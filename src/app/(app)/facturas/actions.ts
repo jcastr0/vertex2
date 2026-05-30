@@ -22,6 +22,15 @@ export async function crearFacturaAction(
   const parsed = parseFacturaForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
 
+  // Contado: cómo pagó y a qué cuenta entró el dinero.
+  let metodoPago: string | undefined;
+  let cuentaDestinoId: number | undefined;
+  if (parsed.data.tipoVenta === "contado") {
+    metodoPago = String(form.get("metodoPago") || "efectivo");
+    cuentaDestinoId = Number(form.get("cuentaDestinoId")) || undefined;
+    if (!cuentaDestinoId) return { error: "Elige a dónde entró el dinero." };
+  }
+
   let nuevoId: number;
   try {
     const f = await crearFactura(
@@ -31,6 +40,8 @@ export async function crearFacturaAction(
         fecha: parsed.data.fecha,
         tipoVenta: parsed.data.tipoVenta,
         lineas: parsed.data.lineas,
+        metodoPago,
+        cuentaDestinoId,
       },
       c.ctx,
     );

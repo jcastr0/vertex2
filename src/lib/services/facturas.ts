@@ -6,6 +6,7 @@ import {
   facturaDetalles,
   inventario,
   movimientosInventario,
+  movimientosTesoreria,
   cuentasPorCobrar,
   productos,
   productoUnidades,
@@ -30,6 +31,9 @@ export interface NuevaFactura {
   fecha: string;
   tipoVenta: "contado" | "credito";
   lineas: LineaVenta[];
+  /** Solo contado: cómo pagó y a qué cuenta entró el dinero. */
+  metodoPago?: string;
+  cuentaDestinoId?: number;
 }
 
 export class VentaInvalida extends Error {}
@@ -153,6 +157,8 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
         numero,
         fecha: data.fecha,
         tipoVenta: data.tipoVenta,
+        metodoPago: data.tipoVenta === "contado" ? (data.metodoPago ?? null) : null,
+        cuentaDestinoId: data.tipoVenta === "contado" ? (data.cuentaDestinoId ?? null) : null,
         subtotal: String(subtotal),
         impuestos: "0",
         total: String(total),
@@ -214,6 +220,19 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
         fechaVencimiento: venc.toISOString().slice(0, 10),
         valorTotal: String(total),
         saldoPendiente: String(total),
+      });
+    } else if (data.cuentaDestinoId) {
+      // Contado: el dinero entra a la cuenta elegida (tesorería).
+      await tx.insert(movimientosTesoreria).values({
+        empresaId: ctx.empresaId,
+        cuentaPropiaId: data.cuentaDestinoId,
+        fecha: data.fecha,
+        tipo: "entrada",
+        origen: "venta",
+        valor: String(total),
+        descripcion: `Venta ${numero}`,
+        facturaId: factura.id,
+        usuarioId: ctx.usuarioId,
       });
     }
 
