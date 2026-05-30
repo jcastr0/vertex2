@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+# scaffolding local de tests (integración que toca la BD): nunca versionar
+/src/test/
 
 # next.js
 /.next/
