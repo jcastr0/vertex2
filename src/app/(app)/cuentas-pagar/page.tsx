@@ -3,6 +3,8 @@ import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarCuentasPorPagar } from "@/lib/services/cartera";
 import { retencionesActivas } from "@/lib/services/retenciones";
+import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
+import { beneficiariosActivos } from "@/lib/services/beneficiarios";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { estadoCartera } from "@/lib/domain/cartera";
 import { PageHeader } from "@/components/page-header";
@@ -39,6 +41,12 @@ export default async function CuentasPagarPage({
     pageSize: PAGE_SIZE,
     texto: (f) => `${f.proveedor} ${f.cuenta.numeroFactura}`,
   });
+
+  const cuentasOrigen = await cuentasPropiasActivas(empresaId);
+  // Beneficiarios por proveedor (solo filas con saldo)
+  const proveedorIds = [...new Set(items.filter((f) => Number(f.cuenta.saldoPendiente) > 0).map((f) => f.cuenta.proveedorId))];
+  const benefPorProveedor = new Map<number, Awaited<ReturnType<typeof beneficiariosActivos>>>();
+  await Promise.all(proveedorIds.map(async (pid) => { benefPorProveedor.set(pid, await beneficiariosActivos(empresaId, pid)); }));
 
   const columnas: Columna<Fila>[] = [
     { header: "Proveedor", primary: true, cell: (f) => f.proveedor },
@@ -85,6 +93,8 @@ export default async function CuentasPagarPage({
                     facturaElectronica={f.facturaElectronica ?? false}
                     retenciones={retenciones}
                     action={registrarPagoAction}
+                    cuentasOrigen={cuentasOrigen}
+                    beneficiarios={benefPorProveedor.get(f.cuenta.proveedorId) ?? []}
                   />
                 ) : (
                   <Badge variant="default" className="font-normal">Pagada</Badge>

@@ -36,6 +36,8 @@ interface Props {
   facturaElectronica: boolean;
   retenciones: RetencionConfig[];
   action: (prev: State, form: FormData) => Promise<State>;
+  cuentasOrigen: { id: number; nombre: string }[];
+  beneficiarios: { id: number; banco: string; numeroCuenta: string; titularNit: string; titularNombre: string }[];
 }
 
 const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
@@ -48,10 +50,13 @@ export function PagoProveedorButton({
   facturaElectronica,
   retenciones,
   action,
+  cuentasOrigen,
+  beneficiarios,
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [valor, setValor] = useState(saldo);
+  const [destino, setDestino] = useState<string>("proveedor");
   const [state, formAction] = useActionState<State, FormData>(action, {});
 
   useEffect(() => {
@@ -107,6 +112,41 @@ export function PagoProveedorButton({
               <Input name="referencia" maxLength={100} />
             </Field>
           </div>
+
+          <Field label="Cuenta de origen (de dónde sale)" required>
+            <SearchSelect
+              name="cuentaOrigenId"
+              placeholder="Elige la cuenta"
+              options={cuentasOrigen.map((c) => ({ value: String(c.id), label: c.nombre }))}
+            />
+          </Field>
+
+          <Field label="Beneficiario (a quién se paga)" required>
+            <SearchSelect
+              name="destino"
+              defaultValue="proveedor"
+              onValueChange={setDestino}
+              options={[
+                { value: "proveedor", label: `Al proveedor (${proveedor})` },
+                ...beneficiarios.map((b) => ({ value: `cuenta:${b.id}`, label: `${b.titularNombre} · ${b.banco} ${b.numeroCuenta}` })),
+                { value: "adhoc", label: "+ Otro beneficiario…" },
+              ]}
+            />
+          </Field>
+
+          {destino === "adhoc" && (
+            <div className="grid gap-4 sm:grid-cols-2 rounded-lg border p-3">
+              <Field label="Banco" required><Input name="adhocBanco" maxLength={100} /></Field>
+              <Field label="N° de cuenta" required><Input name="adhocCuenta" maxLength={50} /></Field>
+              <Field label="NIT titular" required><Input name="adhocNit" maxLength={50} /></Field>
+              <Field label="Nombre titular" required><Input name="adhocNombre" maxLength={200} /></Field>
+              <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                <input type="checkbox" name="guardarBeneficiario" value="true" /> Guardar este beneficiario para futuros pagos
+              </label>
+            </div>
+          )}
+
+          <input type="hidden" name="beneficiariosJson" value={JSON.stringify(beneficiarios)} />
 
           {facturaElectronica && ret.detalle.length > 0 && (
             <div className="rounded-lg border bg-muted/40 p-3 text-sm">
