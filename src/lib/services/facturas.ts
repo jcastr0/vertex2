@@ -174,6 +174,11 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
         esPrecioBajoCosto: p.esBajoCosto,
       });
 
+      await tx
+        .update(productoUnidades)
+        .set({ ultimoPrecioVenta: String(p.l.precioUnitario), updatedAt: new Date() })
+        .where(and(eq(productoUnidades.productoId, p.l.productoId), eq(productoUnidades.unidadId, p.l.unidadId)));
+
       const nuevaCant = p.disponible - p.cantidadBase;
       await tx
         .update(inventario)
@@ -226,4 +231,18 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
     );
     return factura;
   });
+}
+
+/** Último precio cobrado de cada producto a un cliente (DISTINCT ON por producto, factura más reciente). */
+export async function ultimoPrecioPorCliente(empresaId: number, clienteId: number): Promise<Record<number, number>> {
+  const rows = await db
+    .selectDistinctOn([facturaDetalles.productoId], {
+      productoId: facturaDetalles.productoId,
+      precio: facturaDetalles.precioUnitario,
+    })
+    .from(facturaDetalles)
+    .innerJoin(facturas, eq(facturaDetalles.facturaId, facturas.id))
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId)))
+    .orderBy(facturaDetalles.productoId, desc(facturas.fecha), desc(facturas.id));
+  return Object.fromEntries(rows.map((r) => [r.productoId, Number(r.precio)]));
 }

@@ -42,6 +42,7 @@ export async function listarProductosVenta(empresaId: number): Promise<ProductoV
       unidadBaseId: productos.unidadBaseId,
       unidadAbrev: unidadesMedida.abreviatura,
       precioVenta: productoUnidades.precioVenta,
+      ultimoPrecioVenta: productoUnidades.ultimoPrecioVenta,
     })
     .from(productos)
     .innerJoin(unidadesMedida, eq(productos.unidadBaseId, unidadesMedida.id))
@@ -60,7 +61,7 @@ export async function listarProductosVenta(empresaId: number): Promise<ProductoV
     sku: r.sku,
     unidadBaseId: r.unidadBaseId,
     unidadAbrev: r.unidadAbrev,
-    precio: r.precioVenta ? Number(r.precioVenta) : 0,
+    precio: r.ultimoPrecioVenta ? Number(r.ultimoPrecioVenta) : (r.precioVenta ? Number(r.precioVenta) : 0),
   }));
 }
 

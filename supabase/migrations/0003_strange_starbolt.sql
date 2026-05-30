@@ -1,0 +1,1 @@
+ALTER TABLE "vx11" ADD COLUMN "ultimo_precio_venta" numeric(12, 2);
