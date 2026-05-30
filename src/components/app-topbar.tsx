@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/lib/auth/actions";
-import { NAV } from "@/lib/modules";
+import { ubicarRuta, grupoPorSlug } from "@/lib/modules";
 import { MobileNav } from "@/components/mobile-nav";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmpresaSwitcher } from "@/components/empresa-switcher";
-import { Building2, LogOut, ChevronDown } from "lucide-react";
+import { Building2, LogOut, ChevronDown, ChevronRight } from "lucide-react";
 
 interface Props {
   nombre: string;
@@ -25,15 +26,33 @@ interface Props {
   empresaActivaId: number | null;
 }
 
-function tituloDeRuta(pathname: string): string {
-  for (const grupo of NAV) {
-    for (const item of grupo.items) {
-      if (pathname === item.href || pathname.startsWith(item.href + "/")) {
-        return item.label;
-      }
-    }
+/** Migas de pan: Grupo (enlaza a su página) › Página actual. */
+function Breadcrumb({ pathname }: { pathname: string }) {
+  // Página de grupo (/g/[slug]): el grupo es la página actual.
+  if (pathname.startsWith("/g/")) {
+    const slug = pathname.split("/")[2] ?? "";
+    const grupo = grupoPorSlug(slug);
+    return (
+      <nav aria-label="Ruta" className="flex min-w-0 items-center gap-1.5 text-lg font-semibold tracking-tight">
+        <span className="truncate">{grupo?.titulo ?? "Vertex"}</span>
+      </nav>
+    );
   }
-  return "Vertex";
+  const ubic = ubicarRuta(pathname);
+  if (!ubic) return <h1 className="text-lg font-semibold tracking-tight">Vertex</h1>;
+  const { grupo, item } = ubic;
+  return (
+    <nav aria-label="Ruta" className="flex min-w-0 items-center gap-1.5">
+      <Link
+        href={`/g/${grupo.slug}`}
+        className="hidden shrink-0 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
+      >
+        {grupo.titulo}
+      </Link>
+      <ChevronRight className="hidden size-3.5 shrink-0 text-muted-foreground/50 sm:inline" />
+      <h1 className="truncate text-lg font-semibold tracking-tight">{item.label}</h1>
+    </nav>
+  );
 }
 
 function iniciales(nombre: string) {
@@ -46,13 +65,13 @@ function iniciales(nombre: string) {
 }
 
 export function AppTopbar({ nombre, email, rol, empresa, empresas, empresaActivaId }: Props) {
-  const titulo = tituloDeRuta(usePathname());
+  const pathname = usePathname();
   const esSuperadmin = empresas.length > 0;
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <MobileNav rol={rol} />
-        <h1 className="text-lg font-semibold tracking-tight">{titulo}</h1>
+        <Breadcrumb pathname={pathname} />
         {rol && (
           <Badge variant="secondary" className="hidden font-normal sm:inline-flex">
             {rol}
