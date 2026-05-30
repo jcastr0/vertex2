@@ -16,7 +16,11 @@ Compran por **bulto** o **½ bulto**. Al recibir, normalmente entra todo, pero a
 - `facturaDetalles` con `unidadId` + `cantidadBase` (la venta ya convierte a base).
 - Precio pegajoso por cliente (`ultimoPrecioPorCliente`) y global (`ultimoPrecioVenta`).
 
-## A · Pedir (por bulto / ½ bulto)
+## Principio: las unidades son genéricas (bulto es solo un ejemplo)
+
+"Bulto", "½ bulto", "arroba", "caja", "docena", "manojo", "kg" son **ejemplos**. El sistema NO hornea ninguna unidad en la lógica: toda unidad/presentación es **dato configurable** (`unidadesMedida` + `productoUnidades` con su `factorConversion`). Cada producto define las suyas. Nada en el código asume "bulto".
+
+## A · Pedir (presentación elegible; ej. bulto, arroba, caja…)
 
 - Línea de pedido = **producto + presentación + cantidad** (decimales; `0.5` bulto). Ya hay tabla compacta.
 - Las presentaciones vendibles/comprables salen de `productoUnidades` (p. ej. "Bulto = 50 kg"). Si el producto no tiene presentación de bulto, se compra en su unidad base.
