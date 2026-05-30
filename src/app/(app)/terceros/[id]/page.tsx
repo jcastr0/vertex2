@@ -9,6 +9,7 @@ import { listarBeneficiarios } from "@/lib/services/beneficiarios";
 import { BeneficiariosPanel } from "../beneficiarios-panel";
 import { PageHeader } from "@/components/page-header";
 import { FormSection } from "@/components/ui/form-section";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import type { ReactNode } from "react";
@@ -58,7 +59,20 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
         {t.nombreComercial && <span className="text-sm text-muted-foreground">{t.nombreComercial}</span>}
       </div>
 
-      <div className="space-y-4">
+      <Tabs defaultValue="info">
+        <TabsList>
+          <TabsTrigger value="info">Información</TabsTrigger>
+          {esProveedor && (
+            <TabsTrigger value="cuentas">
+              Cuentas de pago
+              {beneficiarios.length > 0 && (
+                <span className="rounded-full bg-primary/15 px-1.5 text-xs font-medium text-primary">{beneficiarios.length}</span>
+              )}
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        <TabsContent value="info" className="space-y-4">
         <FormSection title="Identificación">
           <dl className="grid gap-5 sm:grid-cols-3">
             <Dato label="Tipo">{TIPO[t.tipo] ?? t.tipo}</Dato>
@@ -105,33 +119,36 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
           </FormSection>
         )}
 
-        {esProveedor && (
-          puedeEditar ? (
-            <BeneficiariosPanel terceroId={t.id} terceroNit={t.identificacion} terceroNombre={t.razonSocial} cuentas={beneficiarios} />
-          ) : (
-            <FormSection title="Cuentas de pago" description="Cuentas a las que se le paga a este proveedor.">
-              {beneficiarios.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin cuentas registradas.</p>
-              ) : (
-                <ul className="divide-y divide-border text-sm">
-                  {beneficiarios.map((b) => (
-                    <li key={b.id} className="py-2 first:pt-0 last:pb-0">
-                      <span className="font-medium">{b.titularNombre}</span>
-                      <span className="text-muted-foreground"> · {b.banco} {b.numeroCuenta} · NIT {b.titularNit}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </FormSection>
-          )
-        )}
-
         {t.observaciones && (
           <FormSection title="Observaciones">
             <p className="whitespace-pre-line text-sm">{t.observaciones}</p>
           </FormSection>
         )}
-      </div>
+        </TabsContent>
+
+        {esProveedor && (
+          <TabsContent value="cuentas">
+            {puedeEditar ? (
+              <BeneficiariosPanel terceroId={t.id} terceroNit={t.identificacion} terceroNombre={t.razonSocial} cuentas={beneficiarios} />
+            ) : (
+              <FormSection title="Cuentas de pago" description="Cuentas a las que se le paga a este proveedor.">
+                {beneficiarios.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sin cuentas registradas.</p>
+                ) : (
+                  <ul className="divide-y divide-border text-sm">
+                    {beneficiarios.map((b) => (
+                      <li key={b.id} className="py-2 first:pt-0 last:pb-0">
+                        <span className="font-medium">{b.titularNombre}</span>
+                        <span className="text-muted-foreground"> · {b.banco} {b.numeroCuenta} · NIT {b.titularNit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </FormSection>
+            )}
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
