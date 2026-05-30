@@ -265,3 +265,18 @@ export async function ultimoPrecioPorCliente(empresaId: number, clienteId: numbe
     .orderBy(facturaDetalles.productoId, desc(facturas.fecha), desc(facturas.id));
   return Object.fromEntries(rows.map((r) => [r.productoId, Number(r.precio)]));
 }
+
+/** Última venta de cada producto a un cliente: unidad y precio usados. */
+export async function ultimaUnidadVentaPorCliente(empresaId: number, clienteId: number): Promise<Record<number, { unidadId: number; precio: number }>> {
+  const rows = await db
+    .selectDistinctOn([facturaDetalles.productoId], {
+      productoId: facturaDetalles.productoId,
+      unidadId: facturaDetalles.unidadId,
+      precio: facturaDetalles.precioUnitario,
+    })
+    .from(facturaDetalles)
+    .innerJoin(facturas, eq(facturaDetalles.facturaId, facturas.id))
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId)))
+    .orderBy(facturaDetalles.productoId, desc(facturas.fecha), desc(facturas.id));
+  return Object.fromEntries(rows.map((r) => [r.productoId, { unidadId: r.unidadId, precio: Number(r.precio) }]));
+}

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { productos, productoUnidades, unidadesMedida } from "@/lib/db/schema";
 import { registrarAuditoria } from "@/lib/audit";
@@ -30,6 +30,7 @@ export interface ProductoVenta {
   unidadBaseId: number;
   unidadAbrev: string;
   precio: number;
+  unidades: { unidadId: number; abrev: string; factor: number; precio: number | null }[];
 }
 
 /** Productos activos con su unidad base y precio de venta base (para vender). */
@@ -55,6 +56,26 @@ export async function listarProductosVenta(empresaId: number): Promise<ProductoV
     )
     .where(and(eq(productos.empresaId, empresaId), eq(productos.activo, true)))
     .orderBy(productos.nombre);
+  const ids = rows.map((r) => r.id);
+  const presRaw = ids.length
+    ? await db
+        .select({
+          productoId: productoUnidades.productoId,
+          unidadId: productoUnidades.unidadId,
+          abrev: unidadesMedida.abreviatura,
+          factor: productoUnidades.factorConversion,
+          precio: productoUnidades.precioVenta,
+        })
+        .from(productoUnidades)
+        .innerJoin(unidadesMedida, eq(productoUnidades.unidadId, unidadesMedida.id))
+        .where(and(inArray(productoUnidades.productoId, ids), eq(productoUnidades.permiteVenta, true)))
+    : [];
+  const presPorProd = new Map<number, { unidadId: number; abrev: string; factor: number; precio: number | null }[]>();
+  for (const p of presRaw) {
+    const arr = presPorProd.get(p.productoId) ?? [];
+    arr.push({ unidadId: p.unidadId, abrev: p.abrev, factor: Number(p.factor), precio: p.precio ? Number(p.precio) : null });
+    presPorProd.set(p.productoId, arr);
+  }
   return rows.map((r) => ({
     id: r.id,
     nombre: r.nombre,
@@ -62,6 +83,11 @@ export async function listarProductosVenta(empresaId: number): Promise<ProductoV
     unidadBaseId: r.unidadBaseId,
     unidadAbrev: r.unidadAbrev,
     precio: r.ultimoPrecioVenta ? Number(r.ultimoPrecioVenta) : (r.precioVenta ? Number(r.precioVenta) : 0),
+    unidades: (() => {
+      const base = { unidadId: r.unidadBaseId, abrev: r.unidadAbrev, factor: 1, precio: r.precioVenta ? Number(r.precioVenta) : (r.ultimoPrecioVenta ? Number(r.ultimoPrecioVenta) : 0) };
+      const otras = (presPorProd.get(r.id) ?? []).filter((u) => u.unidadId !== r.unidadBaseId);
+      return [base, ...otras];
+    })(),
   }));
 }
 
