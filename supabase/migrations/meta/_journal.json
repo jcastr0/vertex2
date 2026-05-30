@@ -8,6 +8,13 @@
       "when": 1780102946960,
       "tag": "0000_violet_roxanne_simpson",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780103205208,
+      "tag": "0001_goofy_red_ghost",
+      "breakpoints": true
     }
   ]
 }

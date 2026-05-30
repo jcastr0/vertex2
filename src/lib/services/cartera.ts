@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import {
   cuentasPorPagar,
   pagosProveedor,
+  pagoRetenciones,
   cuentasPorCobrar,
   recaudosClientes,
   terceros,
@@ -11,6 +12,8 @@ import {
 import { registrarAuditoria } from "@/lib/audit";
 import { formatearNumero } from "@/lib/domain/numeracion";
 import { aplicarAbono } from "@/lib/domain/cartera";
+import { calcularRetenciones } from "@/lib/domain/retenciones";
+import { retencionesActivas } from "./retenciones";
 import type { Contexto } from "./bodegas";
 
 export class AbonoInvalido extends Error {}
@@ -25,7 +28,11 @@ export interface DatosAbono {
 // ── Cuentas por pagar (vx26) / Pagos a proveedor (vx27) ──────────────────────
 export async function listarCuentasPorPagar(empresaId: number) {
   return db
-    .select({ cuenta: cuentasPorPagar, proveedor: terceros.razonSocial })
+    .select({
+      cuenta: cuentasPorPagar,
+      proveedor: terceros.razonSocial,
+      facturaElectronica: terceros.requiereFacturaElectronica,
+    })
     .from(cuentasPorPagar)
     .innerJoin(terceros, eq(cuentasPorPagar.proveedorId, terceros.id))
     .where(eq(cuentasPorPagar.empresaId, empresaId))
@@ -53,6 +60,16 @@ export async function registrarPago(
     .where(eq(pagosProveedor.empresaId, ctx.empresaId));
   const numero = formatearNumero("PAG", Number(c) + 1);
 
+  // Retenciones: solo aplican a proveedores con factura electrónica.
+  const [prov] = await db
+    .select({ fe: terceros.requiereFacturaElectronica })
+    .from(cuentasPorPagar)
+    .innerJoin(terceros, eq(cuentasPorPagar.proveedorId, terceros.id))
+    .where(and(eq(cuentasPorPagar.empresaId, ctx.empresaId), eq(cuentasPorPagar.id, cuentaPorPagarId)))
+    .limit(1);
+  const config = await retencionesActivas(ctx.empresaId);
+  const ret = calcularRetenciones(datos.valor, config, prov?.fe ?? false);
+
   await db.transaction(async (tx) => {
     const [cxp] = await tx
       .select()
@@ -75,12 +92,26 @@ export async function registrarPago(
         numero,
         fecha: datos.fecha,
         valor: String(datos.valor),
+        retencionTotal: String(ret.total),
         metodoPago: datos.metodoPago,
         referencia: datos.referencia || null,
         estado: "activo",
         usuarioId: ctx.usuarioId,
       })
       .returning();
+
+    if (ret.detalle.length) {
+      await tx.insert(pagoRetenciones).values(
+        ret.detalle.map((d) => ({
+          empresaId: ctx.empresaId,
+          pagoId: pago.id,
+          retencionId: d.retencionId,
+          base: String(d.base),
+          porcentaje: String(d.porcentaje),
+          valor: String(d.valor),
+        })),
+      );
+    }
 
     await tx
       .update(cuentasPorPagar)

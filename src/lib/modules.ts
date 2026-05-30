@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   BookOpen,
   Route,
+  Percent,
 } from "lucide-react";
 import type { Modulo } from "./auth/roles";
 
@@ -82,6 +83,7 @@ export const NAV: GrupoNav[] = [
       { modulo: "recaudos", label: "Recaudos", href: "/recaudos", icon: HandCoins, listo: true },
       { modulo: "cuentas_pagar", label: "Cuentas por pagar", href: "/cuentas-pagar", icon: Wallet, listo: true },
       { modulo: "pagos_proveedor", label: "Pagos a proveedor", href: "/pagos-proveedor", icon: Wallet, listo: true },
+      { modulo: "retenciones", label: "Retenciones", href: "/retenciones", icon: Percent, listo: true },
     ],
   },
   {

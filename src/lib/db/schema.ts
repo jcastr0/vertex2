@@ -755,6 +755,7 @@ export const pagosProveedor = pgTable("vx27",
     numero: varchar("numero", { length: 20 }).notNull(),
     fecha: date("fecha").notNull(),
     valor: money("valor").notNull(),
+    retencionTotal: money("retencion_total").notNull().default("0"),
     metodoPago: varchar("metodo_pago", { length: 30 }).notNull(),
     referencia: varchar("referencia", { length: 100 }),
     observaciones: text("observaciones"),
@@ -861,4 +862,49 @@ export const visitasRecaudo = pgTable("vx30",
     index("vx30_empresa_recaudador_fecha_idx").on(t.empresaId, t.recaudadorId, t.fecha),
     index("vx30_cliente_idx").on(t.clienteId),
   ],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx31 — Retenciones (configuración parametrizable)
+// ──────────────────────────────────────────────────────────────────────────
+export const retenciones = pgTable(
+  "vx31",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" })
+      .notNull()
+      .references(() => empresas.id),
+    nombre: varchar("nombre", { length: 100 }).notNull(),
+    porcentaje: numeric("porcentaje", { precision: 6, scale: 3 }).notNull(),
+    baseMinima: money("base_minima").notNull().default("0"),
+    aplicaTodas: boolean("aplica_todas").notNull().default(true),
+    activa: boolean("activa").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("vx31_empresa_idx").on(t.empresaId)],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx32 — Retenciones aplicadas en pagos
+// ──────────────────────────────────────────────────────────────────────────
+export const pagoRetenciones = pgTable(
+  "vx32",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" })
+      .notNull()
+      .references(() => empresas.id),
+    pagoId: bigint("pago_id", { mode: "number" })
+      .notNull()
+      .references(() => pagosProveedor.id),
+    retencionId: bigint("retencion_id", { mode: "number" })
+      .notNull()
+      .references(() => retenciones.id),
+    base: money("base").notNull(),
+    porcentaje: numeric("porcentaje", { precision: 6, scale: 3 }).notNull(),
+    valor: money("valor").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("vx32_pago_idx").on(t.pagoId)],
 );

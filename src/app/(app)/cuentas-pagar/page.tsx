@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
 import { listarCuentasPorPagar } from "@/lib/services/cartera";
+import { retencionesActivas } from "@/lib/services/retenciones";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { estadoCartera } from "@/lib/domain/cartera";
 import { PageHeader } from "@/components/page-header";
 import { ListaFiltrable } from "@/components/lista-filtrable";
 import { type Columna } from "@/components/responsive-table";
 import { Badge } from "@/components/ui/badge";
-import { AbonoButton } from "@/components/abono-button";
+import { PagoProveedorButton } from "@/components/pago-proveedor-button";
 import { registrarPagoAction } from "./actions";
 import { Wallet } from "lucide-react";
 
@@ -28,6 +29,7 @@ export default async function CuentasPagarPage({
   const { empresaId } = await requireEmpresa();
   const { q = "", page: pageRaw } = await searchParams;
   const todos = await listarCuentasPorPagar(empresaId);
+  const retenciones = await retencionesActivas(empresaId);
   const hoy = new Date().toISOString().slice(0, 10);
   const puedePagar = puede(sesion.rol, "pagos_proveedor.crear");
 
@@ -75,13 +77,13 @@ export default async function CuentasPagarPage({
           puedePagar
             ? (f) =>
                 Number(f.cuenta.saldoPendiente) > 0 ? (
-                  <AbonoButton
+                  <PagoProveedorButton
                     cuentaId={f.cuenta.id}
                     saldo={Number(f.cuenta.saldoPendiente)}
                     hoy={hoy}
-                    triggerLabel="Pagar"
-                    modalTitulo={`Pago a ${f.proveedor}`}
-                    confirmarLabel="Registrar pago"
+                    proveedor={f.proveedor}
+                    facturaElectronica={f.facturaElectronica ?? false}
+                    retenciones={retenciones}
                     action={registrarPagoAction}
                   />
                 ) : (
