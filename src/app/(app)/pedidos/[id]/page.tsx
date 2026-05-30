@@ -85,7 +85,16 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
       )}
 
       {puede(sesion.rol, "pedidos.editar") && (
-        <PedidoAcciones id={pedido.id} estado={pedido.estado} />
+        <PedidoAcciones
+          id={pedido.id}
+          estado={pedido.estado}
+          lineas={pedido.detalles.map((d) => ({
+            id: d.id,
+            producto: prodPorId.get(d.productoId) ?? `#${d.productoId}`,
+            cantidad: Number(d.cantidad),
+            unidad: undPorId.get(d.unidadId) ?? "",
+          }))}
+        />
       )}
     </div>
   );

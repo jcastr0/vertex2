@@ -70,3 +70,22 @@ export async function recibirPedidoAction(id: number): Promise<{ error?: string 
   revalidatePath("/inventario");
   return {};
 }
+
+export async function recibirParcialAction(
+  id: number,
+  recepciones: Record<number, number>,
+): Promise<{ error?: string }> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "pedidos.editar")) return { error: "No tienes permiso." };
+  try {
+    await recibirPedido(id, c.ctx, recepciones);
+  } catch (e) {
+    if (e instanceof PedidoNoRecibible) return { error: e.message };
+    console.error("[pedidos] recibir parcial:", e);
+    return { error: "No se pudo recibir el pedido." };
+  }
+  revalidatePath(`/pedidos/${id}`);
+  revalidatePath("/inventario");
+  return {};
+}
