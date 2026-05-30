@@ -42,6 +42,18 @@ export const tipoIdentificacionEnum = pgEnum("vx_tipo_identificacion", [
   "OTRO",
 ]);
 export const tipoPersonaEnum = pgEnum("vx_tipo_persona", ["natural", "juridica"]);
+export const cuentaTipoEnum = pgEnum("vx_cuenta_tipo", ["ahorros", "corriente", "caja"]);
+export const movTipoEnum = pgEnum("vx_mov_tipo", ["entrada", "salida"]);
+export const movOrigenEnum = pgEnum("vx_mov_origen", [
+  "saldo_inicial",
+  "pago_proveedor",
+  "recaudo_cliente",
+  "traslado",
+  "comision",
+  "ajuste",
+  "consignacion",
+  "retiro",
+]);
 
 // Helpers de columnas reutilizables
 const money = (name: string) => numeric(name, { precision: 15, scale: 2 });
@@ -756,6 +768,12 @@ export const pagosProveedor = pgTable("vx27",
     fecha: date("fecha").notNull(),
     valor: money("valor").notNull(),
     retencionTotal: money("retencion_total").notNull().default("0"),
+    cuentaOrigenId: bigint("cuenta_origen_id", { mode: "number" }).references(() => cuentasPropias.id),
+    beneficiarioCuentaId: bigint("beneficiario_cuenta_id", { mode: "number" }).references(() => cuentasBeneficiario.id),
+    beneficiarioBanco: varchar("beneficiario_banco", { length: 100 }),
+    beneficiarioCuenta: varchar("beneficiario_cuenta", { length: 50 }),
+    beneficiarioNit: varchar("beneficiario_nit", { length: 50 }),
+    beneficiarioNombre: varchar("beneficiario_nombre", { length: 200 }),
     metodoPago: varchar("metodo_pago", { length: 30 }).notNull(),
     referencia: varchar("referencia", { length: 100 }),
     observaciones: text("observaciones"),
@@ -818,6 +836,7 @@ export const recaudosClientes = pgTable("vx29",
     valor: money("valor").notNull(),
     metodoPago: varchar("metodo_pago", { length: 30 }).notNull(),
     referencia: varchar("referencia", { length: 100 }),
+    cuentaDestinoId: bigint("cuenta_destino_id", { mode: "number" }).references(() => cuentasPropias.id),
     observaciones: text("observaciones"),
     estado: varchar("estado", { length: 20 }).notNull().default("activo"),
     usuarioId: bigint("usuario_id", { mode: "number" })
@@ -907,4 +926,70 @@ export const pagoRetenciones = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("vx32_pago_idx").on(t.pagoId)],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx33 — Cuentas propias (tesorería)
+// ──────────────────────────────────────────────────────────────────────────
+export const cuentasPropias = pgTable(
+  "vx33",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" }).notNull().references(() => empresas.id),
+    nombre: varchar("nombre", { length: 100 }).notNull(),
+    tipo: cuentaTipoEnum("tipo").notNull(),
+    banco: varchar("banco", { length: 100 }),
+    numeroCuenta: varchar("numero_cuenta", { length: 50 }),
+    titularNit: varchar("titular_nit", { length: 50 }),
+    titularNombre: varchar("titular_nombre", { length: 200 }),
+    saldoInicial: money("saldo_inicial").notNull().default("0"),
+    activa: boolean("activa").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("vx33_empresa_idx").on(t.empresaId)],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx34 — Cuentas de beneficiario (por proveedor)
+// ──────────────────────────────────────────────────────────────────────────
+export const cuentasBeneficiario = pgTable(
+  "vx34",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" }).notNull().references(() => empresas.id),
+    terceroId: bigint("tercero_id", { mode: "number" }).notNull().references(() => terceros.id),
+    banco: varchar("banco", { length: 100 }).notNull(),
+    tipo: cuentaTipoEnum("tipo").notNull(),
+    numeroCuenta: varchar("numero_cuenta", { length: 50 }).notNull(),
+    titularNit: varchar("titular_nit", { length: 50 }).notNull(),
+    titularNombre: varchar("titular_nombre", { length: 200 }).notNull(),
+    activa: boolean("activa").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("vx34_empresa_tercero_idx").on(t.empresaId, t.terceroId)],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx35 — Movimientos de tesorería (libro mayor)
+// ──────────────────────────────────────────────────────────────────────────
+export const movimientosTesoreria = pgTable(
+  "vx35",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" }).notNull().references(() => empresas.id),
+    cuentaPropiaId: bigint("cuenta_propia_id", { mode: "number" }).notNull().references(() => cuentasPropias.id),
+    fecha: date("fecha").notNull(),
+    tipo: movTipoEnum("tipo").notNull(),
+    origen: movOrigenEnum("origen").notNull(),
+    valor: money("valor").notNull(),
+    descripcion: text("descripcion"),
+    pagoId: bigint("pago_id", { mode: "number" }).references(() => pagosProveedor.id),
+    recaudoId: bigint("recaudo_id", { mode: "number" }).references(() => recaudosClientes.id),
+    contraCuentaId: bigint("contra_cuenta_id", { mode: "number" }).references((): AnyPgColumn => cuentasPropias.id),
+    usuarioId: bigint("usuario_id", { mode: "number" }).notNull().references(() => usuarios.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("vx35_cuenta_fecha_idx").on(t.empresaId, t.cuentaPropiaId, t.fecha)],
 );

@@ -15,6 +15,13 @@
       "when": 1780103205208,
       "tag": "0001_goofy_red_ghost",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780108649481,
+      "tag": "0002_funny_triton",
+      "breakpoints": true
     }
   ]
 }
