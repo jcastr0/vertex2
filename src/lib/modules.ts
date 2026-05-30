@@ -91,9 +91,9 @@ export const NAV: GrupoNav[] = [
   {
     titulo: "Administración",
     items: [
-      { modulo: "empresas", label: "Empresas", href: "/empresas", icon: Building2, listo: false },
-      { modulo: "usuarios", label: "Usuarios", href: "/usuarios", icon: Users, listo: false },
-      { modulo: "auditoria", label: "Auditoría", href: "/auditoria", icon: ShieldCheck, listo: false },
+      { modulo: "empresas", label: "Empresas", href: "/empresas", icon: Building2, listo: true },
+      { modulo: "usuarios", label: "Usuarios", href: "/usuarios", icon: Users, listo: true },
+      { modulo: "auditoria", label: "Auditoría", href: "/auditoria", icon: ShieldCheck, listo: true },
       { modulo: "manuales", label: "Manuales", href: "/manuales", icon: BookOpen, listo: true },
     ],
   },

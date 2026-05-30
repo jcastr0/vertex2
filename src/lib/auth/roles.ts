@@ -51,7 +51,6 @@ export const ROLES: Record<string, readonly (Permiso | "*")[]> = {
   SuperAdmin: ["*"],
 
   Admin: [
-    ...p("empresas", VER),
     ...p("usuarios", CRUD),
     ...p("bodegas", CRUD),
     ...p("terceros", CRUD),
