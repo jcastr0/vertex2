@@ -125,7 +125,7 @@ export async function registrarRecaudo(
   cuentaPorCobrarId: number,
   datos: DatosAbono,
   ctx: Contexto,
-): Promise<void> {
+): Promise<number> {
   if (datos.valor <= 0) throw new AbonoInvalido("El valor debe ser mayor a 0.");
   const [{ c }] = await db
     .select({ c: count() })
@@ -133,7 +133,7 @@ export async function registrarRecaudo(
     .where(eq(recaudosClientes.empresaId, ctx.empresaId));
   const numero = formatearNumero("REC", Number(c) + 1);
 
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const [cxc] = await tx
       .select()
       .from(cuentasPorCobrar)
@@ -179,5 +179,6 @@ export async function registrarRecaudo(
       },
       tx,
     );
+    return recaudo.id;
   });
 }

@@ -41,6 +41,8 @@ function aColumnas(data: TerceroInput) {
     diasCreditoCliente: data.diasCreditoCliente,
     requiereFacturaElectronica: data.requiereFacturaElectronica,
     observaciones: data.observaciones || null,
+    recaudadorId: data.recaudadorId,
+    diaCobro: data.diaCobro,
   };
 }
 

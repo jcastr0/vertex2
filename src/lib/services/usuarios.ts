@@ -19,6 +19,7 @@ export interface FilaUsuario {
   email: string;
   activo: boolean;
   esSuperadmin: boolean;
+  esRecaudador: boolean;
   rol: string | null;
   rolId: number | null;
 }
@@ -32,6 +33,7 @@ export async function listarUsuarios(empresaId: number): Promise<FilaUsuario[]> 
       email: usuarios.email,
       activo: usuarios.activo,
       esSuperadmin: usuarios.esSuperadmin,
+      esRecaudador: usuarios.esRecaudador,
       rol: roles.nombre,
       rolId: usuariosEmpresas.rolId,
     })
@@ -51,6 +53,7 @@ export async function obtenerUsuario(empresaId: number, id: number): Promise<Fil
       email: usuarios.email,
       activo: usuarios.activo,
       esSuperadmin: usuarios.esSuperadmin,
+      esRecaudador: usuarios.esRecaudador,
       rol: roles.nombre,
       rolId: usuariosEmpresas.rolId,
     })
@@ -67,6 +70,22 @@ export async function listarRolesAsignables() {
   return (await db.select().from(roles).orderBy(roles.nombre)).filter((r) => r.nombre !== "SuperAdmin");
 }
 
+/** Usuarios recaudadores activos de la empresa (para asignar a clientes). */
+export async function listarRecaudadores(empresaId: number): Promise<{ id: number; nombre: string }[]> {
+  return db
+    .select({ id: usuarios.id, nombre: usuarios.nombre })
+    .from(usuariosEmpresas)
+    .innerJoin(usuarios, eq(usuariosEmpresas.usuarioId, usuarios.id))
+    .where(
+      and(
+        eq(usuariosEmpresas.empresaId, empresaId),
+        eq(usuarios.esRecaudador, true),
+        eq(usuarios.activo, true),
+      ),
+    )
+    .orderBy(usuarios.nombre);
+}
+
 export async function crearUsuario(data: UsuarioInput, ctx: Contexto): Promise<void> {
   if (!data.password) throw new ConflictoUsuario("La contraseña es obligatoria al crear.");
   const hash = await hashPassword(data.password);
@@ -80,6 +99,7 @@ export async function crearUsuario(data: UsuarioInput, ctx: Contexto): Promise<v
           email: data.email.toLowerCase().trim(),
           password: hash,
           activo: data.activo,
+          esRecaudador: data.esRecaudador,
         })
         .returning();
       await tx.insert(usuariosEmpresas).values({
@@ -112,6 +132,7 @@ export async function actualizarUsuario(id: number, data: UsuarioInput, ctx: Con
       nombre: data.nombre,
       email: data.email.toLowerCase().trim(),
       activo: data.activo,
+      esRecaudador: data.esRecaudador,
       updatedAt: new Date(),
     };
     if (data.password) set.password = await hashPassword(data.password);

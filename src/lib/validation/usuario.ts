@@ -5,6 +5,7 @@ export const usuarioSchema = z.object({
   email: z.string().trim().email("Correo inválido").max(150),
   rolId: z.coerce.number().int().positive("Selecciona el rol"),
   activo: z.boolean().default(true),
+  esRecaudador: z.boolean().default(false),
   // Opcional: requerida al crear (se valida en la acción).
   password: z
     .string()
@@ -22,6 +23,7 @@ export function parseUsuarioForm(form: FormData) {
     email: form.get("email"),
     rolId: form.get("rolId"),
     activo: form.get("activo") !== "false",
+    esRecaudador: form.get("esRecaudador") === "true" || form.get("esRecaudador") === "on",
     password: form.get("password") ?? "",
   });
 }

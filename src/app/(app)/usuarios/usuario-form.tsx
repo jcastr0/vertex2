@@ -14,7 +14,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 
 interface Rol { id: number; nombre: string }
 interface Props {
-  usuario?: { id: number; nombre: string; email: string; activo: boolean; rolId: number | null };
+  usuario?: { id: number; nombre: string; email: string; activo: boolean; esRecaudador: boolean; rolId: number | null };
   roles: Rol[];
 }
 
@@ -31,11 +31,13 @@ function Guardar() {
 export function UsuarioForm({ usuario, roles }: Props) {
   const [state, action] = useActionState<UsuarioState, FormData>(guardarUsuarioAction, {});
   const [activo, setActivo] = useState(usuario?.activo ?? true);
+  const [esRecaudador, setEsRecaudador] = useState(usuario?.esRecaudador ?? false);
 
   return (
     <form action={action} className="max-w-xl space-y-6">
       {usuario && <input type="hidden" name="id" value={usuario.id} />}
       <input type="hidden" name="activo" value={activo ? "true" : "false"} />
+      <input type="hidden" name="esRecaudador" value={esRecaudador ? "true" : "false"} />
       {state.error && (
         <div role="alert" className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <AlertCircle className="size-4 shrink-0" /> {state.error}
@@ -61,6 +63,13 @@ export function UsuarioForm({ usuario, roles }: Props) {
       <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 px-4 py-3">
         <Switch id="activo" checked={activo} onCheckedChange={setActivo} />
         <Label htmlFor="activo" className="cursor-pointer">Usuario activo</Label>
+      </div>
+      <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 px-4 py-3">
+        <Switch id="esRecaudador" checked={esRecaudador} onCheckedChange={setEsRecaudador} />
+        <div>
+          <Label htmlFor="esRecaudador" className="cursor-pointer">Es recaudador</Label>
+          <p className="text-xs text-muted-foreground">Podrá tener clientes asignados y su ruta diaria de cobro.</p>
+        </div>
       </div>
       <div className="flex gap-3">
         <Guardar />

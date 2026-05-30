@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerTercero } from "@/lib/services/terceros";
+import { listarRecaudadores } from "@/lib/services/usuarios";
 import { PageHeader } from "@/components/page-header";
 import { TerceroForm } from "../../tercero-form";
 
@@ -17,11 +18,13 @@ export default async function EditarTerceroPage({
   const { id } = await params;
   const t = await obtenerTercero(empresaId, Number(id));
   if (!t) notFound();
+  const recaudadores = await listarRecaudadores(empresaId);
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Editar tercero" description={t.razonSocial} />
       <TerceroForm
+        recaudadores={recaudadores}
         tercero={{
           id: t.id,
           tipo: t.tipo,
@@ -43,6 +46,8 @@ export default async function EditarTerceroPage({
           diasCreditoCliente: t.diasCreditoCliente,
           requiereFacturaElectronica: t.requiereFacturaElectronica,
           observaciones: t.observaciones,
+          recaudadorId: t.recaudadorId,
+          diaCobro: t.diaCobro,
         }}
       />
     </div>

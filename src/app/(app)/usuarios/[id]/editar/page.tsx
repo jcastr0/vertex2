@@ -17,7 +17,7 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Editar usuario" description={u.email} />
-      <UsuarioForm usuario={{ id: u.id, nombre: u.nombre, email: u.email, activo: u.activo, rolId: u.rolId }} roles={roles.map((r) => ({ id: r.id, nombre: r.nombre }))} />
+      <UsuarioForm usuario={{ id: u.id, nombre: u.nombre, email: u.email, activo: u.activo, esRecaudador: u.esRecaudador, rolId: u.rolId }} roles={roles.map((r) => ({ id: r.id, nombre: r.nombre }))} />
     </div>
   );
 }

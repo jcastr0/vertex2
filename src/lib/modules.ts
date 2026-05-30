@@ -24,6 +24,7 @@ import {
   BarChart3,
   ShieldCheck,
   BookOpen,
+  Route,
 } from "lucide-react";
 import type { Modulo } from "./auth/roles";
 
@@ -77,6 +78,7 @@ export const NAV: GrupoNav[] = [
     titulo: "Cartera",
     items: [
       { modulo: "cuentas_cobrar", label: "Cuentas por cobrar", href: "/cuentas-cobrar", icon: HandCoins, listo: true },
+      { modulo: "ruta_recaudo", label: "Ruta de recaudo", href: "/ruta-recaudo", icon: Route, listo: true },
       { modulo: "recaudos", label: "Recaudos", href: "/recaudos", icon: HandCoins, listo: true },
       { modulo: "cuentas_pagar", label: "Cuentas por pagar", href: "/cuentas-pagar", icon: Wallet, listo: true },
       { modulo: "pagos_proveedor", label: "Pagos a proveedor", href: "/pagos-proveedor", icon: Wallet, listo: true },

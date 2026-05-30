@@ -16,6 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchSelect } from "@/components/ui/search-select";
+import { DIAS_COBRO } from "@/lib/domain/ruta-recaudo";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 type TerceroData = {
@@ -39,6 +41,8 @@ type TerceroData = {
   diasCreditoCliente: number;
   requiereFacturaElectronica: boolean;
   observaciones: string | null;
+  recaudadorId: number | null;
+  diaCobro: number | null;
 };
 
 function Guardar() {
@@ -60,7 +64,13 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export function TerceroForm({ tercero }: { tercero?: TerceroData }) {
+export function TerceroForm({
+  tercero,
+  recaudadores,
+}: {
+  tercero?: TerceroData;
+  recaudadores: { id: number; nombre: string }[];
+}) {
   const [state, action] = useActionState<TerceroState, FormData>(guardarTerceroAction, {});
   const [fe, setFe] = useState(tercero?.requiereFacturaElectronica ?? false);
 
@@ -168,6 +178,28 @@ export function TerceroForm({ tercero }: { tercero?: TerceroData }) {
         <Label htmlFor="fe" className="cursor-pointer">
           Requiere factura electrónica
         </Label>
+      </div>
+
+      <div className="grid gap-5 rounded-md border border-border bg-muted/20 p-4 sm:grid-cols-2">
+        <Campo label="Recaudador asignado">
+          <SearchSelect
+            name="recaudadorId"
+            placeholder="Sin asignar"
+            defaultValue={tercero?.recaudadorId ? String(tercero.recaudadorId) : undefined}
+            options={recaudadores.map((r) => ({ value: String(r.id), label: r.nombre }))}
+          />
+        </Campo>
+        <Campo label="Día de cobro">
+          <Select name="diaCobro" defaultValue={tercero?.diaCobro ? String(tercero.diaCobro) : "0"}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">— Sin día fijo —</SelectItem>
+              {DIAS_COBRO.map((d) => (
+                <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Campo>
       </div>
 
       <Campo label="Observaciones">

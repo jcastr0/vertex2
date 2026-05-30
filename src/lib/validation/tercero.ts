@@ -26,6 +26,14 @@ export const terceroSchema = z.object({
   diasCreditoCliente: z.coerce.number().int().min(0).default(0),
   requiereFacturaElectronica: z.boolean().default(false),
   observaciones: opcional(1000),
+  recaudadorId: z
+    .union([z.coerce.number().int().positive(), z.null()])
+    .optional()
+    .transform((v) => v ?? null),
+  diaCobro: z
+    .union([z.coerce.number().int().min(1).max(6), z.null()])
+    .optional()
+    .transform((v) => v ?? null),
 });
 
 export type TerceroInput = z.infer<typeof terceroSchema>;
@@ -54,5 +62,7 @@ export function parseTerceroForm(form: FormData) {
       form.get("requiereFacturaElectronica") === "on" ||
       form.get("requiereFacturaElectronica") === "true",
     observaciones: v("observaciones"),
+    recaudadorId: form.get("recaudadorId") && form.get("recaudadorId") !== "0" ? form.get("recaudadorId") : null,
+    diaCobro: form.get("diaCobro") && form.get("diaCobro") !== "0" ? form.get("diaCobro") : null,
   });
 }

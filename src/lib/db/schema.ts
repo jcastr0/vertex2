@@ -117,6 +117,7 @@ export const usuarios = pgTable(
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     activo: boolean("activo").notNull().default(true),
     esSuperadmin: boolean("es_superadmin").notNull().default(false),
+    esRecaudador: boolean("es_recaudador").notNull().default(false),
     ultimoLoginAt: timestamp("ultimo_login_at", { withTimezone: true }),
     ultimoLogoutAt: timestamp("ultimo_logout_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -241,6 +242,9 @@ export const terceros = pgTable(
     diasCreditoCliente: integer("dias_credito_cliente").notNull().default(0),
     requiereFacturaElectronica: boolean("requiere_factura_electronica").notNull().default(false),
     observaciones: text("observaciones"),
+    // Recaudo: recaudador asignado y día de cobro (1=lunes … 6=sábado).
+    recaudadorId: bigint("recaudador_id", { mode: "number" }).references(() => usuarios.id),
+    diaCobro: integer("dia_cobro"),
     activo: boolean("activo").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -850,5 +854,37 @@ export const recaudosClientes = pgTable(
     unique("vx29_empresa_numero_uq").on(t.empresaId, t.numero),
     index("vx29_empresa_cliente_idx").on(t.empresaId, t.clienteId),
     index("vx29_cxc_idx").on(t.cuentaPorCobrarId),
+  ],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx30 — Visitas de recaudo (ruta diaria del recaudador)
+// ──────────────────────────────────────────────────────────────────────────
+export const visitasRecaudo = pgTable(
+  "vx30_visitas_recaudo",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" })
+      .notNull()
+      .references(() => empresas.id),
+    recaudadorId: bigint("recaudador_id", { mode: "number" })
+      .notNull()
+      .references(() => usuarios.id),
+    clienteId: bigint("cliente_id", { mode: "number" })
+      .notNull()
+      .references(() => terceros.id),
+    fecha: date("fecha").notNull(),
+    resultado: varchar("resultado", { length: 20 }).notNull(), // pago | abono | no_estaba | no_quiso
+    recaudoId: bigint("recaudo_id", { mode: "number" }).references(() => recaudosClientes.id),
+    fotoUrl: varchar("foto_url", { length: 500 }),
+    observaciones: text("observaciones"),
+    usuarioId: bigint("usuario_id", { mode: "number" })
+      .notNull()
+      .references(() => usuarios.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("vx30_empresa_recaudador_fecha_idx").on(t.empresaId, t.recaudadorId, t.fecha),
+    index("vx30_cliente_idx").on(t.clienteId),
   ],
 );
