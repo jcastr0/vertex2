@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcularSaldo, saldoCorrido, movimientoDesdePago, type MovimientoSaldo } from "./tesoreria";
+import { calcularSaldo, saldoCorrido, movimientoDesdePago, resolverBeneficiario, type MovimientoSaldo, type BeneficiarioSnapshot } from "./tesoreria";
 
 const mov = (tipo: "entrada" | "salida", valor: number): MovimientoSaldo => ({ tipo, valor });
 
@@ -43,5 +43,27 @@ describe("movimientoDesdePago", () => {
       tipo: "salida",
       valor: 500_000,
     });
+  });
+});
+
+const cuenta = { id: 7, banco: "Bancolombia", numeroCuenta: "123", titularNit: "900", titularNombre: "Factor SAS" };
+
+describe("resolverBeneficiario", () => {
+  it("opción proveedor → sin beneficiario (null)", () => {
+    expect(resolverBeneficiario({ opcion: "proveedor" })).toBeNull();
+  });
+  it("opción guardada → snapshot con id de catálogo", () => {
+    expect(resolverBeneficiario({ opcion: "guardada", cuenta })).toEqual({
+      beneficiarioCuentaId: 7,
+      banco: "Bancolombia",
+      numeroCuenta: "123",
+      nit: "900",
+      nombre: "Factor SAS",
+    } satisfies BeneficiarioSnapshot);
+  });
+  it("opción adhoc → snapshot sin id de catálogo", () => {
+    expect(
+      resolverBeneficiario({ opcion: "adhoc", adhoc: { banco: "Davivienda", numeroCuenta: "999", nit: "800", nombre: "Pepe" } }),
+    ).toEqual({ beneficiarioCuentaId: null, banco: "Davivienda", numeroCuenta: "999", nit: "800", nombre: "Pepe" });
   });
 });

@@ -28,3 +28,43 @@ export function saldoCorrido<T extends MovimientoSaldo>(
 export function movimientoDesdePago(pago: { valor: number; retencionTotal: number }): MovimientoSaldo {
   return { tipo: "salida", valor: pago.valor - pago.retencionTotal };
 }
+
+export interface BeneficiarioSnapshot {
+  beneficiarioCuentaId: number | null;
+  banco: string;
+  numeroCuenta: string;
+  nit: string;
+  nombre: string;
+}
+
+interface CuentaGuardada {
+  id: number;
+  banco: string;
+  numeroCuenta: string;
+  titularNit: string;
+  titularNombre: string;
+}
+interface DatosAdhoc {
+  banco: string;
+  numeroCuenta: string;
+  nit: string;
+  nombre: string;
+}
+type OpcionBeneficiario =
+  | { opcion: "proveedor" }
+  | { opcion: "guardada"; cuenta: CuentaGuardada }
+  | { opcion: "adhoc"; adhoc: DatosAdhoc };
+
+export function resolverBeneficiario(sel: OpcionBeneficiario): BeneficiarioSnapshot | null {
+  if (sel.opcion === "proveedor") return null;
+  if (sel.opcion === "guardada") {
+    return {
+      beneficiarioCuentaId: sel.cuenta.id,
+      banco: sel.cuenta.banco,
+      numeroCuenta: sel.cuenta.numeroCuenta,
+      nit: sel.cuenta.titularNit,
+      nombre: sel.cuenta.titularNombre,
+    };
+  }
+  return { beneficiarioCuentaId: null, ...sel.adhoc };
+}
