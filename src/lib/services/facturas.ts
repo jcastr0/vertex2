@@ -216,7 +216,7 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx21_facturas",
+        tablaAfectada: "vx21",
         modelId: factura.id,
         accion: "CREAR",
         registroNuevo: factura,

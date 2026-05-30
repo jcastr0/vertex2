@@ -37,7 +37,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   await registrarAuditoria({
     empresaId: res.payload.empresaId,
     usuarioId: res.payload.uid,
-    tablaAfectada: "vx02_usuarios",
+    tablaAfectada: "vx02",
     modelId: res.payload.uid,
     accion: "ACTUALIZAR",
     registroNuevo: { evento: "login" },

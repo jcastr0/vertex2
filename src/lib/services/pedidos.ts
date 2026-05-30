@@ -128,7 +128,7 @@ export async function crearPedido(data: NuevoPedido, ctx: Contexto): Promise<Ped
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx13_pedidos",
+        tablaAfectada: "vx13",
         modelId: pedido.id,
         accion: "CREAR",
         registroNuevo: pedido,
@@ -148,7 +148,7 @@ export async function confirmarPedido(id: number, ctx: Contexto): Promise<void> 
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx13_pedidos",
+    tablaAfectada: "vx13",
     modelId: id,
     accion: "ACTUALIZAR",
     registroNuevo: { estado: "confirmado" },
@@ -293,7 +293,7 @@ export async function recibirPedido(id: number, ctx: Contexto): Promise<void> {
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx13_pedidos",
+        tablaAfectada: "vx13",
         modelId: pedido.id,
         accion: "ACTUALIZAR",
         registroNuevo: { estado: "recibido" },

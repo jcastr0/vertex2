@@ -174,7 +174,7 @@ export async function crearDevolucionCliente(data: NuevaDevolucion, ctx: Context
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx23_devoluciones",
+        tablaAfectada: "vx23",
         modelId: dev.id,
         accion: "CREAR",
         registroNuevo: dev,

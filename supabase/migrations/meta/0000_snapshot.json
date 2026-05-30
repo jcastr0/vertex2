@@ -1,11 +1,11 @@
 {
-  "id": "91c6ce7e-c10f-4bc9-8e16-e6de460eac6c",
+  "id": "1cf357b2-66b9-44d7-8532-362c2318fafc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.vx03_auditoria": {
-      "name": "vx03_auditoria",
+    "public.vx03": {
+      "name": "vx03",
       "schema": "",
       "columns": {
         "id": {
@@ -145,10 +145,10 @@
         }
       },
       "foreignKeys": {
-        "vx03_auditoria_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx03_auditoria_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx03_auditoria",
-          "tableTo": "vx04_empresas",
+        "vx03_empresa_id_vx04_id_fk": {
+          "name": "vx03_empresa_id_vx04_id_fk",
+          "tableFrom": "vx03",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -158,10 +158,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx03_auditoria_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx03_auditoria_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx03_auditoria",
-          "tableTo": "vx02_usuarios",
+        "vx03_usuario_id_vx02_id_fk": {
+          "name": "vx03_usuario_id_vx02_id_fk",
+          "tableFrom": "vx03",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -178,8 +178,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx06_bodegas": {
-      "name": "vx06_bodegas",
+    "public.vx06": {
+      "name": "vx06",
       "schema": "",
       "columns": {
         "id": {
@@ -277,10 +277,10 @@
         }
       },
       "foreignKeys": {
-        "vx06_bodegas_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx06_bodegas_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx06_bodegas",
-          "tableTo": "vx04_empresas",
+        "vx06_empresa_id_vx04_id_fk": {
+          "name": "vx06_empresa_id_vx04_id_fk",
+          "tableFrom": "vx06",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -306,8 +306,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx08_categorias_productos": {
-      "name": "vx08_categorias_productos",
+    "public.vx08": {
+      "name": "vx08",
       "schema": "",
       "columns": {
         "id": {
@@ -395,10 +395,10 @@
         }
       },
       "foreignKeys": {
-        "vx08_categorias_productos_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx08_categorias_productos_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx08_categorias_productos",
-          "tableTo": "vx04_empresas",
+        "vx08_empresa_id_vx04_id_fk": {
+          "name": "vx08_empresa_id_vx04_id_fk",
+          "tableFrom": "vx08",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -408,10 +408,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx08_categorias_productos_padre_id_vx08_categorias_productos_id_fk": {
-          "name": "vx08_categorias_productos_padre_id_vx08_categorias_productos_id_fk",
-          "tableFrom": "vx08_categorias_productos",
-          "tableTo": "vx08_categorias_productos",
+        "vx08_padre_id_vx08_id_fk": {
+          "name": "vx08_padre_id_vx08_id_fk",
+          "tableFrom": "vx08",
+          "tableTo": "vx08",
           "columnsFrom": [
             "padre_id"
           ],
@@ -428,8 +428,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx28_cuentas_por_cobrar": {
-      "name": "vx28_cuentas_por_cobrar",
+    "public.vx28": {
+      "name": "vx28",
       "schema": "",
       "columns": {
         "id": {
@@ -555,10 +555,10 @@
         }
       },
       "foreignKeys": {
-        "vx28_cuentas_por_cobrar_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx28_cuentas_por_cobrar_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx28_cuentas_por_cobrar",
-          "tableTo": "vx04_empresas",
+        "vx28_empresa_id_vx04_id_fk": {
+          "name": "vx28_empresa_id_vx04_id_fk",
+          "tableFrom": "vx28",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -568,10 +568,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx28_cuentas_por_cobrar_cliente_id_vx07_terceros_id_fk": {
-          "name": "vx28_cuentas_por_cobrar_cliente_id_vx07_terceros_id_fk",
-          "tableFrom": "vx28_cuentas_por_cobrar",
-          "tableTo": "vx07_terceros",
+        "vx28_cliente_id_vx07_id_fk": {
+          "name": "vx28_cliente_id_vx07_id_fk",
+          "tableFrom": "vx28",
+          "tableTo": "vx07",
           "columnsFrom": [
             "cliente_id"
           ],
@@ -581,10 +581,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx28_cuentas_por_cobrar_factura_id_vx21_facturas_id_fk": {
-          "name": "vx28_cuentas_por_cobrar_factura_id_vx21_facturas_id_fk",
-          "tableFrom": "vx28_cuentas_por_cobrar",
-          "tableTo": "vx21_facturas",
+        "vx28_factura_id_vx21_id_fk": {
+          "name": "vx28_factura_id_vx21_id_fk",
+          "tableFrom": "vx28",
+          "tableTo": "vx21",
           "columnsFrom": [
             "factura_id"
           ],
@@ -601,8 +601,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx26_cuentas_por_pagar": {
-      "name": "vx26_cuentas_por_pagar",
+    "public.vx26": {
+      "name": "vx26",
       "schema": "",
       "columns": {
         "id": {
@@ -726,10 +726,10 @@
         }
       },
       "foreignKeys": {
-        "vx26_cuentas_por_pagar_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx26_cuentas_por_pagar_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx26_cuentas_por_pagar",
-          "tableTo": "vx04_empresas",
+        "vx26_empresa_id_vx04_id_fk": {
+          "name": "vx26_empresa_id_vx04_id_fk",
+          "tableFrom": "vx26",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -739,10 +739,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx26_cuentas_por_pagar_proveedor_id_vx07_terceros_id_fk": {
-          "name": "vx26_cuentas_por_pagar_proveedor_id_vx07_terceros_id_fk",
-          "tableFrom": "vx26_cuentas_por_pagar",
-          "tableTo": "vx07_terceros",
+        "vx26_proveedor_id_vx07_id_fk": {
+          "name": "vx26_proveedor_id_vx07_id_fk",
+          "tableFrom": "vx26",
+          "tableTo": "vx07",
           "columnsFrom": [
             "proveedor_id"
           ],
@@ -752,10 +752,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx26_cuentas_por_pagar_pedido_id_vx13_pedidos_id_fk": {
-          "name": "vx26_cuentas_por_pagar_pedido_id_vx13_pedidos_id_fk",
-          "tableFrom": "vx26_cuentas_por_pagar",
-          "tableTo": "vx13_pedidos",
+        "vx26_pedido_id_vx13_id_fk": {
+          "name": "vx26_pedido_id_vx13_id_fk",
+          "tableFrom": "vx26",
+          "tableTo": "vx13",
           "columnsFrom": [
             "pedido_id"
           ],
@@ -772,8 +772,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx24_devolucion_detalles": {
-      "name": "vx24_devolucion_detalles",
+    "public.vx24": {
+      "name": "vx24",
       "schema": "",
       "columns": {
         "id": {
@@ -838,10 +838,10 @@
         }
       },
       "foreignKeys": {
-        "vx24_devolucion_detalles_devolucion_id_vx23_devoluciones_id_fk": {
-          "name": "vx24_devolucion_detalles_devolucion_id_vx23_devoluciones_id_fk",
-          "tableFrom": "vx24_devolucion_detalles",
-          "tableTo": "vx23_devoluciones",
+        "vx24_devolucion_id_vx23_id_fk": {
+          "name": "vx24_devolucion_id_vx23_id_fk",
+          "tableFrom": "vx24",
+          "tableTo": "vx23",
           "columnsFrom": [
             "devolucion_id"
           ],
@@ -851,10 +851,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "vx24_devolucion_detalles_producto_id_vx10_productos_id_fk": {
-          "name": "vx24_devolucion_detalles_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx24_devolucion_detalles",
-          "tableTo": "vx10_productos",
+        "vx24_producto_id_vx10_id_fk": {
+          "name": "vx24_producto_id_vx10_id_fk",
+          "tableFrom": "vx24",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -871,8 +871,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx23_devoluciones": {
-      "name": "vx23_devoluciones",
+    "public.vx23": {
+      "name": "vx23",
       "schema": "",
       "columns": {
         "id": {
@@ -898,6 +898,12 @@
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": true
+        },
+        "cliente_id": {
+          "name": "cliente_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
         },
         "factura_id": {
           "name": "factura_id",
@@ -1003,10 +1009,10 @@
         }
       },
       "foreignKeys": {
-        "vx23_devoluciones_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx23_devoluciones_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx23_devoluciones",
-          "tableTo": "vx04_empresas",
+        "vx23_empresa_id_vx04_id_fk": {
+          "name": "vx23_empresa_id_vx04_id_fk",
+          "tableFrom": "vx23",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -1016,10 +1022,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx23_devoluciones_bodega_id_vx06_bodegas_id_fk": {
-          "name": "vx23_devoluciones_bodega_id_vx06_bodegas_id_fk",
-          "tableFrom": "vx23_devoluciones",
-          "tableTo": "vx06_bodegas",
+        "vx23_bodega_id_vx06_id_fk": {
+          "name": "vx23_bodega_id_vx06_id_fk",
+          "tableFrom": "vx23",
+          "tableTo": "vx06",
           "columnsFrom": [
             "bodega_id"
           ],
@@ -1029,10 +1035,23 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx23_devoluciones_factura_id_vx21_facturas_id_fk": {
-          "name": "vx23_devoluciones_factura_id_vx21_facturas_id_fk",
-          "tableFrom": "vx23_devoluciones",
-          "tableTo": "vx21_facturas",
+        "vx23_cliente_id_vx07_id_fk": {
+          "name": "vx23_cliente_id_vx07_id_fk",
+          "tableFrom": "vx23",
+          "tableTo": "vx07",
+          "columnsFrom": [
+            "cliente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vx23_factura_id_vx21_id_fk": {
+          "name": "vx23_factura_id_vx21_id_fk",
+          "tableFrom": "vx23",
+          "tableTo": "vx21",
           "columnsFrom": [
             "factura_id"
           ],
@@ -1042,10 +1061,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx23_devoluciones_pedido_id_vx13_pedidos_id_fk": {
-          "name": "vx23_devoluciones_pedido_id_vx13_pedidos_id_fk",
-          "tableFrom": "vx23_devoluciones",
-          "tableTo": "vx13_pedidos",
+        "vx23_pedido_id_vx13_id_fk": {
+          "name": "vx23_pedido_id_vx13_id_fk",
+          "tableFrom": "vx23",
+          "tableTo": "vx13",
           "columnsFrom": [
             "pedido_id"
           ],
@@ -1055,10 +1074,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx23_devoluciones_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx23_devoluciones_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx23_devoluciones",
-          "tableTo": "vx02_usuarios",
+        "vx23_usuario_id_vx02_id_fk": {
+          "name": "vx23_usuario_id_vx02_id_fk",
+          "tableFrom": "vx23",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -1084,8 +1103,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx04_empresas": {
-      "name": "vx04_empresas",
+    "public.vx04": {
+      "name": "vx04",
       "schema": "",
       "columns": {
         "id": {
@@ -1181,8 +1200,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "vx04_empresas_nombre_unique": {
-          "name": "vx04_empresas_nombre_unique",
+        "vx04_nombre_unique": {
+          "name": "vx04_nombre_unique",
           "nullsNotDistinct": false,
           "columns": [
             "nombre"
@@ -1193,8 +1212,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx22_factura_detalles": {
-      "name": "vx22_factura_detalles",
+    "public.vx22": {
+      "name": "vx22",
       "schema": "",
       "columns": {
         "id": {
@@ -1299,10 +1318,10 @@
         }
       },
       "foreignKeys": {
-        "vx22_factura_detalles_factura_id_vx21_facturas_id_fk": {
-          "name": "vx22_factura_detalles_factura_id_vx21_facturas_id_fk",
-          "tableFrom": "vx22_factura_detalles",
-          "tableTo": "vx21_facturas",
+        "vx22_factura_id_vx21_id_fk": {
+          "name": "vx22_factura_id_vx21_id_fk",
+          "tableFrom": "vx22",
+          "tableTo": "vx21",
           "columnsFrom": [
             "factura_id"
           ],
@@ -1312,10 +1331,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "vx22_factura_detalles_producto_id_vx10_productos_id_fk": {
-          "name": "vx22_factura_detalles_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx22_factura_detalles",
-          "tableTo": "vx10_productos",
+        "vx22_producto_id_vx10_id_fk": {
+          "name": "vx22_producto_id_vx10_id_fk",
+          "tableFrom": "vx22",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -1325,10 +1344,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx22_factura_detalles_unidad_id_vx09_unidades_medida_id_fk": {
-          "name": "vx22_factura_detalles_unidad_id_vx09_unidades_medida_id_fk",
-          "tableFrom": "vx22_factura_detalles",
-          "tableTo": "vx09_unidades_medida",
+        "vx22_unidad_id_vx09_id_fk": {
+          "name": "vx22_unidad_id_vx09_id_fk",
+          "tableFrom": "vx22",
+          "tableTo": "vx09",
           "columnsFrom": [
             "unidad_id"
           ],
@@ -1345,8 +1364,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx21_facturas": {
-      "name": "vx21_facturas",
+    "public.vx21": {
+      "name": "vx21",
       "schema": "",
       "columns": {
         "id": {
@@ -1493,10 +1512,10 @@
         }
       },
       "foreignKeys": {
-        "vx21_facturas_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx21_facturas_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx21_facturas",
-          "tableTo": "vx04_empresas",
+        "vx21_empresa_id_vx04_id_fk": {
+          "name": "vx21_empresa_id_vx04_id_fk",
+          "tableFrom": "vx21",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -1506,10 +1525,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx21_facturas_bodega_id_vx06_bodegas_id_fk": {
-          "name": "vx21_facturas_bodega_id_vx06_bodegas_id_fk",
-          "tableFrom": "vx21_facturas",
-          "tableTo": "vx06_bodegas",
+        "vx21_bodega_id_vx06_id_fk": {
+          "name": "vx21_bodega_id_vx06_id_fk",
+          "tableFrom": "vx21",
+          "tableTo": "vx06",
           "columnsFrom": [
             "bodega_id"
           ],
@@ -1519,10 +1538,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx21_facturas_cliente_id_vx07_terceros_id_fk": {
-          "name": "vx21_facturas_cliente_id_vx07_terceros_id_fk",
-          "tableFrom": "vx21_facturas",
-          "tableTo": "vx07_terceros",
+        "vx21_cliente_id_vx07_id_fk": {
+          "name": "vx21_cliente_id_vx07_id_fk",
+          "tableFrom": "vx21",
+          "tableTo": "vx07",
           "columnsFrom": [
             "cliente_id"
           ],
@@ -1532,10 +1551,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx21_facturas_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx21_facturas_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx21_facturas",
-          "tableTo": "vx02_usuarios",
+        "vx21_usuario_id_vx02_id_fk": {
+          "name": "vx21_usuario_id_vx02_id_fk",
+          "tableFrom": "vx21",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -1561,8 +1580,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx16_inventario": {
-      "name": "vx16_inventario",
+    "public.vx16": {
+      "name": "vx16",
       "schema": "",
       "columns": {
         "id": {
@@ -1670,10 +1689,10 @@
         }
       },
       "foreignKeys": {
-        "vx16_inventario_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx16_inventario_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx16_inventario",
-          "tableTo": "vx04_empresas",
+        "vx16_empresa_id_vx04_id_fk": {
+          "name": "vx16_empresa_id_vx04_id_fk",
+          "tableFrom": "vx16",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -1683,10 +1702,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx16_inventario_bodega_id_vx06_bodegas_id_fk": {
-          "name": "vx16_inventario_bodega_id_vx06_bodegas_id_fk",
-          "tableFrom": "vx16_inventario",
-          "tableTo": "vx06_bodegas",
+        "vx16_bodega_id_vx06_id_fk": {
+          "name": "vx16_bodega_id_vx06_id_fk",
+          "tableFrom": "vx16",
+          "tableTo": "vx06",
           "columnsFrom": [
             "bodega_id"
           ],
@@ -1696,10 +1715,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx16_inventario_producto_id_vx10_productos_id_fk": {
-          "name": "vx16_inventario_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx16_inventario",
-          "tableTo": "vx10_productos",
+        "vx16_producto_id_vx10_id_fk": {
+          "name": "vx16_producto_id_vx10_id_fk",
+          "tableFrom": "vx16",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -1726,8 +1745,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx17_movimientos_inventario": {
-      "name": "vx17_movimientos_inventario",
+    "public.vx17": {
+      "name": "vx17",
       "schema": "",
       "columns": {
         "id": {
@@ -1910,10 +1929,10 @@
         }
       },
       "foreignKeys": {
-        "vx17_movimientos_inventario_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx17_movimientos_inventario_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx17_movimientos_inventario",
-          "tableTo": "vx04_empresas",
+        "vx17_empresa_id_vx04_id_fk": {
+          "name": "vx17_empresa_id_vx04_id_fk",
+          "tableFrom": "vx17",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -1923,10 +1942,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx17_movimientos_inventario_bodega_id_vx06_bodegas_id_fk": {
-          "name": "vx17_movimientos_inventario_bodega_id_vx06_bodegas_id_fk",
-          "tableFrom": "vx17_movimientos_inventario",
-          "tableTo": "vx06_bodegas",
+        "vx17_bodega_id_vx06_id_fk": {
+          "name": "vx17_bodega_id_vx06_id_fk",
+          "tableFrom": "vx17",
+          "tableTo": "vx06",
           "columnsFrom": [
             "bodega_id"
           ],
@@ -1936,10 +1955,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx17_movimientos_inventario_producto_id_vx10_productos_id_fk": {
-          "name": "vx17_movimientos_inventario_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx17_movimientos_inventario",
-          "tableTo": "vx10_productos",
+        "vx17_producto_id_vx10_id_fk": {
+          "name": "vx17_producto_id_vx10_id_fk",
+          "tableFrom": "vx17",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -1949,10 +1968,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx17_movimientos_inventario_pedido_id_vx13_pedidos_id_fk": {
-          "name": "vx17_movimientos_inventario_pedido_id_vx13_pedidos_id_fk",
-          "tableFrom": "vx17_movimientos_inventario",
-          "tableTo": "vx13_pedidos",
+        "vx17_pedido_id_vx13_id_fk": {
+          "name": "vx17_pedido_id_vx13_id_fk",
+          "tableFrom": "vx17",
+          "tableTo": "vx13",
           "columnsFrom": [
             "pedido_id"
           ],
@@ -1962,10 +1981,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx17_movimientos_inventario_factura_id_vx21_facturas_id_fk": {
-          "name": "vx17_movimientos_inventario_factura_id_vx21_facturas_id_fk",
-          "tableFrom": "vx17_movimientos_inventario",
-          "tableTo": "vx21_facturas",
+        "vx17_factura_id_vx21_id_fk": {
+          "name": "vx17_factura_id_vx21_id_fk",
+          "tableFrom": "vx17",
+          "tableTo": "vx21",
           "columnsFrom": [
             "factura_id"
           ],
@@ -1975,10 +1994,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx17_movimientos_inventario_traslado_id_vx19_traslados_bodega_id_fk": {
-          "name": "vx17_movimientos_inventario_traslado_id_vx19_traslados_bodega_id_fk",
-          "tableFrom": "vx17_movimientos_inventario",
-          "tableTo": "vx19_traslados_bodega",
+        "vx17_traslado_id_vx19_id_fk": {
+          "name": "vx17_traslado_id_vx19_id_fk",
+          "tableFrom": "vx17",
+          "tableTo": "vx19",
           "columnsFrom": [
             "traslado_id"
           ],
@@ -1988,10 +2007,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx17_movimientos_inventario_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx17_movimientos_inventario_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx17_movimientos_inventario",
-          "tableTo": "vx02_usuarios",
+        "vx17_usuario_id_vx02_id_fk": {
+          "name": "vx17_usuario_id_vx02_id_fk",
+          "tableFrom": "vx17",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -2008,8 +2027,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx00_nomenclatura": {
-      "name": "vx00_nomenclatura",
+    "public.vx00": {
+      "name": "vx00",
       "schema": "",
       "columns": {
         "id": {
@@ -2088,8 +2107,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "vx00_nomenclatura_codigo_unique": {
-          "name": "vx00_nomenclatura_codigo_unique",
+        "vx00_codigo_unique": {
+          "name": "vx00_codigo_unique",
           "nullsNotDistinct": false,
           "columns": [
             "codigo"
@@ -2100,8 +2119,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx25_notas_credito": {
-      "name": "vx25_notas_credito",
+    "public.vx25": {
+      "name": "vx25",
       "schema": "",
       "columns": {
         "id": {
@@ -2205,10 +2224,10 @@
         }
       },
       "foreignKeys": {
-        "vx25_notas_credito_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx25_notas_credito_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx25_notas_credito",
-          "tableTo": "vx04_empresas",
+        "vx25_empresa_id_vx04_id_fk": {
+          "name": "vx25_empresa_id_vx04_id_fk",
+          "tableFrom": "vx25",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -2218,10 +2237,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx25_notas_credito_cliente_id_vx07_terceros_id_fk": {
-          "name": "vx25_notas_credito_cliente_id_vx07_terceros_id_fk",
-          "tableFrom": "vx25_notas_credito",
-          "tableTo": "vx07_terceros",
+        "vx25_cliente_id_vx07_id_fk": {
+          "name": "vx25_cliente_id_vx07_id_fk",
+          "tableFrom": "vx25",
+          "tableTo": "vx07",
           "columnsFrom": [
             "cliente_id"
           ],
@@ -2231,10 +2250,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx25_notas_credito_factura_id_vx21_facturas_id_fk": {
-          "name": "vx25_notas_credito_factura_id_vx21_facturas_id_fk",
-          "tableFrom": "vx25_notas_credito",
-          "tableTo": "vx21_facturas",
+        "vx25_factura_id_vx21_id_fk": {
+          "name": "vx25_factura_id_vx21_id_fk",
+          "tableFrom": "vx25",
+          "tableTo": "vx21",
           "columnsFrom": [
             "factura_id"
           ],
@@ -2244,10 +2263,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx25_notas_credito_devolucion_id_vx23_devoluciones_id_fk": {
-          "name": "vx25_notas_credito_devolucion_id_vx23_devoluciones_id_fk",
-          "tableFrom": "vx25_notas_credito",
-          "tableTo": "vx23_devoluciones",
+        "vx25_devolucion_id_vx23_id_fk": {
+          "name": "vx25_devolucion_id_vx23_id_fk",
+          "tableFrom": "vx25",
+          "tableTo": "vx23",
           "columnsFrom": [
             "devolucion_id"
           ],
@@ -2257,10 +2276,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx25_notas_credito_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx25_notas_credito_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx25_notas_credito",
-          "tableTo": "vx02_usuarios",
+        "vx25_usuario_id_vx02_id_fk": {
+          "name": "vx25_usuario_id_vx02_id_fk",
+          "tableFrom": "vx25",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -2286,8 +2305,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx18_notas_inventario": {
-      "name": "vx18_notas_inventario",
+    "public.vx18": {
+      "name": "vx18",
       "schema": "",
       "columns": {
         "id": {
@@ -2407,10 +2426,10 @@
         }
       },
       "foreignKeys": {
-        "vx18_notas_inventario_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx18_notas_inventario_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx18_notas_inventario",
-          "tableTo": "vx04_empresas",
+        "vx18_empresa_id_vx04_id_fk": {
+          "name": "vx18_empresa_id_vx04_id_fk",
+          "tableFrom": "vx18",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -2420,10 +2439,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx18_notas_inventario_bodega_id_vx06_bodegas_id_fk": {
-          "name": "vx18_notas_inventario_bodega_id_vx06_bodegas_id_fk",
-          "tableFrom": "vx18_notas_inventario",
-          "tableTo": "vx06_bodegas",
+        "vx18_bodega_id_vx06_id_fk": {
+          "name": "vx18_bodega_id_vx06_id_fk",
+          "tableFrom": "vx18",
+          "tableTo": "vx06",
           "columnsFrom": [
             "bodega_id"
           ],
@@ -2433,10 +2452,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx18_notas_inventario_producto_id_vx10_productos_id_fk": {
-          "name": "vx18_notas_inventario_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx18_notas_inventario",
-          "tableTo": "vx10_productos",
+        "vx18_producto_id_vx10_id_fk": {
+          "name": "vx18_producto_id_vx10_id_fk",
+          "tableFrom": "vx18",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -2446,10 +2465,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx18_notas_inventario_pedido_id_vx13_pedidos_id_fk": {
-          "name": "vx18_notas_inventario_pedido_id_vx13_pedidos_id_fk",
-          "tableFrom": "vx18_notas_inventario",
-          "tableTo": "vx13_pedidos",
+        "vx18_pedido_id_vx13_id_fk": {
+          "name": "vx18_pedido_id_vx13_id_fk",
+          "tableFrom": "vx18",
+          "tableTo": "vx13",
           "columnsFrom": [
             "pedido_id"
           ],
@@ -2459,10 +2478,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx18_notas_inventario_proveedor_id_vx07_terceros_id_fk": {
-          "name": "vx18_notas_inventario_proveedor_id_vx07_terceros_id_fk",
-          "tableFrom": "vx18_notas_inventario",
-          "tableTo": "vx07_terceros",
+        "vx18_proveedor_id_vx07_id_fk": {
+          "name": "vx18_proveedor_id_vx07_id_fk",
+          "tableFrom": "vx18",
+          "tableTo": "vx07",
           "columnsFrom": [
             "proveedor_id"
           ],
@@ -2472,10 +2491,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx18_notas_inventario_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx18_notas_inventario_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx18_notas_inventario",
-          "tableTo": "vx02_usuarios",
+        "vx18_usuario_id_vx02_id_fk": {
+          "name": "vx18_usuario_id_vx02_id_fk",
+          "tableFrom": "vx18",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -2501,8 +2520,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx27_pagos_proveedor": {
-      "name": "vx27_pagos_proveedor",
+    "public.vx27": {
+      "name": "vx27",
       "schema": "",
       "columns": {
         "id": {
@@ -2632,10 +2651,10 @@
         }
       },
       "foreignKeys": {
-        "vx27_pagos_proveedor_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx27_pagos_proveedor_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx27_pagos_proveedor",
-          "tableTo": "vx04_empresas",
+        "vx27_empresa_id_vx04_id_fk": {
+          "name": "vx27_empresa_id_vx04_id_fk",
+          "tableFrom": "vx27",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -2645,10 +2664,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx27_pagos_proveedor_proveedor_id_vx07_terceros_id_fk": {
-          "name": "vx27_pagos_proveedor_proveedor_id_vx07_terceros_id_fk",
-          "tableFrom": "vx27_pagos_proveedor",
-          "tableTo": "vx07_terceros",
+        "vx27_proveedor_id_vx07_id_fk": {
+          "name": "vx27_proveedor_id_vx07_id_fk",
+          "tableFrom": "vx27",
+          "tableTo": "vx07",
           "columnsFrom": [
             "proveedor_id"
           ],
@@ -2658,10 +2677,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx27_pagos_proveedor_cuenta_por_pagar_id_vx26_cuentas_por_pagar_id_fk": {
-          "name": "vx27_pagos_proveedor_cuenta_por_pagar_id_vx26_cuentas_por_pagar_id_fk",
-          "tableFrom": "vx27_pagos_proveedor",
-          "tableTo": "vx26_cuentas_por_pagar",
+        "vx27_cuenta_por_pagar_id_vx26_id_fk": {
+          "name": "vx27_cuenta_por_pagar_id_vx26_id_fk",
+          "tableFrom": "vx27",
+          "tableTo": "vx26",
           "columnsFrom": [
             "cuenta_por_pagar_id"
           ],
@@ -2671,10 +2690,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx27_pagos_proveedor_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx27_pagos_proveedor_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx27_pagos_proveedor",
-          "tableTo": "vx02_usuarios",
+        "vx27_usuario_id_vx02_id_fk": {
+          "name": "vx27_usuario_id_vx02_id_fk",
+          "tableFrom": "vx27",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -2700,8 +2719,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx15_pedido_costos": {
-      "name": "vx15_pedido_costos",
+    "public.vx15": {
+      "name": "vx15",
       "schema": "",
       "columns": {
         "id": {
@@ -2760,10 +2779,10 @@
         }
       },
       "foreignKeys": {
-        "vx15_pedido_costos_pedido_id_vx13_pedidos_id_fk": {
-          "name": "vx15_pedido_costos_pedido_id_vx13_pedidos_id_fk",
-          "tableFrom": "vx15_pedido_costos",
-          "tableTo": "vx13_pedidos",
+        "vx15_pedido_id_vx13_id_fk": {
+          "name": "vx15_pedido_id_vx13_id_fk",
+          "tableFrom": "vx15",
+          "tableTo": "vx13",
           "columnsFrom": [
             "pedido_id"
           ],
@@ -2780,8 +2799,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx14_pedido_detalles": {
-      "name": "vx14_pedido_detalles",
+    "public.vx14": {
+      "name": "vx14",
       "schema": "",
       "columns": {
         "id": {
@@ -2874,10 +2893,10 @@
         }
       },
       "foreignKeys": {
-        "vx14_pedido_detalles_pedido_id_vx13_pedidos_id_fk": {
-          "name": "vx14_pedido_detalles_pedido_id_vx13_pedidos_id_fk",
-          "tableFrom": "vx14_pedido_detalles",
-          "tableTo": "vx13_pedidos",
+        "vx14_pedido_id_vx13_id_fk": {
+          "name": "vx14_pedido_id_vx13_id_fk",
+          "tableFrom": "vx14",
+          "tableTo": "vx13",
           "columnsFrom": [
             "pedido_id"
           ],
@@ -2887,10 +2906,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "vx14_pedido_detalles_producto_id_vx10_productos_id_fk": {
-          "name": "vx14_pedido_detalles_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx14_pedido_detalles",
-          "tableTo": "vx10_productos",
+        "vx14_producto_id_vx10_id_fk": {
+          "name": "vx14_producto_id_vx10_id_fk",
+          "tableFrom": "vx14",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -2900,10 +2919,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx14_pedido_detalles_unidad_id_vx09_unidades_medida_id_fk": {
-          "name": "vx14_pedido_detalles_unidad_id_vx09_unidades_medida_id_fk",
-          "tableFrom": "vx14_pedido_detalles",
-          "tableTo": "vx09_unidades_medida",
+        "vx14_unidad_id_vx09_id_fk": {
+          "name": "vx14_unidad_id_vx09_id_fk",
+          "tableFrom": "vx14",
+          "tableTo": "vx09",
           "columnsFrom": [
             "unidad_id"
           ],
@@ -2920,8 +2939,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx13_pedidos": {
-      "name": "vx13_pedidos",
+    "public.vx13": {
+      "name": "vx13",
       "schema": "",
       "columns": {
         "id": {
@@ -2938,6 +2957,12 @@
         },
         "proveedor_id": {
           "name": "proveedor_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bodega_id": {
+          "name": "bodega_id",
           "type": "bigint",
           "primaryKey": false,
           "notNull": true
@@ -3060,10 +3085,10 @@
         }
       },
       "foreignKeys": {
-        "vx13_pedidos_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx13_pedidos_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx13_pedidos",
-          "tableTo": "vx04_empresas",
+        "vx13_empresa_id_vx04_id_fk": {
+          "name": "vx13_empresa_id_vx04_id_fk",
+          "tableFrom": "vx13",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -3073,10 +3098,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx13_pedidos_proveedor_id_vx07_terceros_id_fk": {
-          "name": "vx13_pedidos_proveedor_id_vx07_terceros_id_fk",
-          "tableFrom": "vx13_pedidos",
-          "tableTo": "vx07_terceros",
+        "vx13_proveedor_id_vx07_id_fk": {
+          "name": "vx13_proveedor_id_vx07_id_fk",
+          "tableFrom": "vx13",
+          "tableTo": "vx07",
           "columnsFrom": [
             "proveedor_id"
           ],
@@ -3086,10 +3111,23 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx13_pedidos_usuario_crea_id_vx02_usuarios_id_fk": {
-          "name": "vx13_pedidos_usuario_crea_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx13_pedidos",
-          "tableTo": "vx02_usuarios",
+        "vx13_bodega_id_vx06_id_fk": {
+          "name": "vx13_bodega_id_vx06_id_fk",
+          "tableFrom": "vx13",
+          "tableTo": "vx06",
+          "columnsFrom": [
+            "bodega_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vx13_usuario_crea_id_vx02_id_fk": {
+          "name": "vx13_usuario_crea_id_vx02_id_fk",
+          "tableFrom": "vx13",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_crea_id"
           ],
@@ -3099,10 +3137,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx13_pedidos_usuario_recibe_id_vx02_usuarios_id_fk": {
-          "name": "vx13_pedidos_usuario_recibe_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx13_pedidos",
-          "tableTo": "vx02_usuarios",
+        "vx13_usuario_recibe_id_vx02_id_fk": {
+          "name": "vx13_usuario_recibe_id_vx02_id_fk",
+          "tableFrom": "vx13",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_recibe_id"
           ],
@@ -3128,8 +3166,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx11_producto_unidades": {
-      "name": "vx11_producto_unidades",
+    "public.vx11": {
+      "name": "vx11",
       "schema": "",
       "columns": {
         "id": {
@@ -3216,10 +3254,10 @@
         }
       },
       "foreignKeys": {
-        "vx11_producto_unidades_producto_id_vx10_productos_id_fk": {
-          "name": "vx11_producto_unidades_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx11_producto_unidades",
-          "tableTo": "vx10_productos",
+        "vx11_producto_id_vx10_id_fk": {
+          "name": "vx11_producto_id_vx10_id_fk",
+          "tableFrom": "vx11",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -3229,10 +3267,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "vx11_producto_unidades_unidad_id_vx09_unidades_medida_id_fk": {
-          "name": "vx11_producto_unidades_unidad_id_vx09_unidades_medida_id_fk",
-          "tableFrom": "vx11_producto_unidades",
-          "tableTo": "vx09_unidades_medida",
+        "vx11_unidad_id_vx09_id_fk": {
+          "name": "vx11_unidad_id_vx09_id_fk",
+          "tableFrom": "vx11",
+          "tableTo": "vx09",
           "columnsFrom": [
             "unidad_id"
           ],
@@ -3258,8 +3296,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx10_productos": {
-      "name": "vx10_productos",
+    "public.vx10": {
+      "name": "vx10",
       "schema": "",
       "columns": {
         "id": {
@@ -3396,10 +3434,10 @@
         }
       },
       "foreignKeys": {
-        "vx10_productos_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx10_productos_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx10_productos",
-          "tableTo": "vx04_empresas",
+        "vx10_empresa_id_vx04_id_fk": {
+          "name": "vx10_empresa_id_vx04_id_fk",
+          "tableFrom": "vx10",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -3409,10 +3447,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx10_productos_categoria_id_vx08_categorias_productos_id_fk": {
-          "name": "vx10_productos_categoria_id_vx08_categorias_productos_id_fk",
-          "tableFrom": "vx10_productos",
-          "tableTo": "vx08_categorias_productos",
+        "vx10_categoria_id_vx08_id_fk": {
+          "name": "vx10_categoria_id_vx08_id_fk",
+          "tableFrom": "vx10",
+          "tableTo": "vx08",
           "columnsFrom": [
             "categoria_id"
           ],
@@ -3422,10 +3460,10 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "vx10_productos_unidad_base_id_vx09_unidades_medida_id_fk": {
-          "name": "vx10_productos_unidad_base_id_vx09_unidades_medida_id_fk",
-          "tableFrom": "vx10_productos",
-          "tableTo": "vx09_unidades_medida",
+        "vx10_unidad_base_id_vx09_id_fk": {
+          "name": "vx10_unidad_base_id_vx09_id_fk",
+          "tableFrom": "vx10",
+          "tableTo": "vx09",
           "columnsFrom": [
             "unidad_base_id"
           ],
@@ -3451,8 +3489,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx29_recaudos_clientes": {
-      "name": "vx29_recaudos_clientes",
+    "public.vx29": {
+      "name": "vx29",
       "schema": "",
       "columns": {
         "id": {
@@ -3582,10 +3620,10 @@
         }
       },
       "foreignKeys": {
-        "vx29_recaudos_clientes_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx29_recaudos_clientes_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx29_recaudos_clientes",
-          "tableTo": "vx04_empresas",
+        "vx29_empresa_id_vx04_id_fk": {
+          "name": "vx29_empresa_id_vx04_id_fk",
+          "tableFrom": "vx29",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -3595,10 +3633,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx29_recaudos_clientes_cliente_id_vx07_terceros_id_fk": {
-          "name": "vx29_recaudos_clientes_cliente_id_vx07_terceros_id_fk",
-          "tableFrom": "vx29_recaudos_clientes",
-          "tableTo": "vx07_terceros",
+        "vx29_cliente_id_vx07_id_fk": {
+          "name": "vx29_cliente_id_vx07_id_fk",
+          "tableFrom": "vx29",
+          "tableTo": "vx07",
           "columnsFrom": [
             "cliente_id"
           ],
@@ -3608,10 +3646,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx29_recaudos_clientes_cuenta_por_cobrar_id_vx28_cuentas_por_cobrar_id_fk": {
-          "name": "vx29_recaudos_clientes_cuenta_por_cobrar_id_vx28_cuentas_por_cobrar_id_fk",
-          "tableFrom": "vx29_recaudos_clientes",
-          "tableTo": "vx28_cuentas_por_cobrar",
+        "vx29_cuenta_por_cobrar_id_vx28_id_fk": {
+          "name": "vx29_cuenta_por_cobrar_id_vx28_id_fk",
+          "tableFrom": "vx29",
+          "tableTo": "vx28",
           "columnsFrom": [
             "cuenta_por_cobrar_id"
           ],
@@ -3621,10 +3659,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx29_recaudos_clientes_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx29_recaudos_clientes_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx29_recaudos_clientes",
-          "tableTo": "vx02_usuarios",
+        "vx29_usuario_id_vx02_id_fk": {
+          "name": "vx29_usuario_id_vx02_id_fk",
+          "tableFrom": "vx29",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -3650,8 +3688,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx01_roles": {
-      "name": "vx01_roles",
+    "public.vx01": {
+      "name": "vx01",
       "schema": "",
       "columns": {
         "id": {
@@ -3704,8 +3742,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "vx01_roles_nombre_unique": {
-          "name": "vx01_roles_nombre_unique",
+        "vx01_nombre_unique": {
+          "name": "vx01_nombre_unique",
           "nullsNotDistinct": false,
           "columns": [
             "nombre"
@@ -3716,8 +3754,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx07_terceros": {
-      "name": "vx07_terceros",
+    "public.vx07": {
+      "name": "vx07",
       "schema": "",
       "columns": {
         "id": {
@@ -3892,6 +3930,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "recaudador_id": {
+          "name": "recaudador_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dia_cobro": {
+          "name": "dia_cobro",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "activo": {
           "name": "activo",
           "type": "boolean",
@@ -3953,12 +4003,25 @@
         }
       },
       "foreignKeys": {
-        "vx07_terceros_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx07_terceros_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx07_terceros",
-          "tableTo": "vx04_empresas",
+        "vx07_empresa_id_vx04_id_fk": {
+          "name": "vx07_empresa_id_vx04_id_fk",
+          "tableFrom": "vx07",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vx07_recaudador_id_vx02_id_fk": {
+          "name": "vx07_recaudador_id_vx02_id_fk",
+          "tableFrom": "vx07",
+          "tableTo": "vx02",
+          "columnsFrom": [
+            "recaudador_id"
           ],
           "columnsTo": [
             "id"
@@ -3990,8 +4053,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx20_traslado_detalles": {
-      "name": "vx20_traslado_detalles",
+    "public.vx20": {
+      "name": "vx20",
       "schema": "",
       "columns": {
         "id": {
@@ -4057,10 +4120,10 @@
         }
       },
       "foreignKeys": {
-        "vx20_traslado_detalles_traslado_id_vx19_traslados_bodega_id_fk": {
-          "name": "vx20_traslado_detalles_traslado_id_vx19_traslados_bodega_id_fk",
-          "tableFrom": "vx20_traslado_detalles",
-          "tableTo": "vx19_traslados_bodega",
+        "vx20_traslado_id_vx19_id_fk": {
+          "name": "vx20_traslado_id_vx19_id_fk",
+          "tableFrom": "vx20",
+          "tableTo": "vx19",
           "columnsFrom": [
             "traslado_id"
           ],
@@ -4070,10 +4133,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "vx20_traslado_detalles_producto_id_vx10_productos_id_fk": {
-          "name": "vx20_traslado_detalles_producto_id_vx10_productos_id_fk",
-          "tableFrom": "vx20_traslado_detalles",
-          "tableTo": "vx10_productos",
+        "vx20_producto_id_vx10_id_fk": {
+          "name": "vx20_producto_id_vx10_id_fk",
+          "tableFrom": "vx20",
+          "tableTo": "vx10",
           "columnsFrom": [
             "producto_id"
           ],
@@ -4090,8 +4153,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx19_traslados_bodega": {
-      "name": "vx19_traslados_bodega",
+    "public.vx19": {
+      "name": "vx19",
       "schema": "",
       "columns": {
         "id": {
@@ -4213,10 +4276,10 @@
         }
       },
       "foreignKeys": {
-        "vx19_traslados_bodega_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx19_traslados_bodega_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx19_traslados_bodega",
-          "tableTo": "vx04_empresas",
+        "vx19_empresa_id_vx04_id_fk": {
+          "name": "vx19_empresa_id_vx04_id_fk",
+          "tableFrom": "vx19",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -4226,10 +4289,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx19_traslados_bodega_bodega_origen_id_vx06_bodegas_id_fk": {
-          "name": "vx19_traslados_bodega_bodega_origen_id_vx06_bodegas_id_fk",
-          "tableFrom": "vx19_traslados_bodega",
-          "tableTo": "vx06_bodegas",
+        "vx19_bodega_origen_id_vx06_id_fk": {
+          "name": "vx19_bodega_origen_id_vx06_id_fk",
+          "tableFrom": "vx19",
+          "tableTo": "vx06",
           "columnsFrom": [
             "bodega_origen_id"
           ],
@@ -4239,10 +4302,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx19_traslados_bodega_bodega_destino_id_vx06_bodegas_id_fk": {
-          "name": "vx19_traslados_bodega_bodega_destino_id_vx06_bodegas_id_fk",
-          "tableFrom": "vx19_traslados_bodega",
-          "tableTo": "vx06_bodegas",
+        "vx19_bodega_destino_id_vx06_id_fk": {
+          "name": "vx19_bodega_destino_id_vx06_id_fk",
+          "tableFrom": "vx19",
+          "tableTo": "vx06",
           "columnsFrom": [
             "bodega_destino_id"
           ],
@@ -4252,10 +4315,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx19_traslados_bodega_usuario_crea_id_vx02_usuarios_id_fk": {
-          "name": "vx19_traslados_bodega_usuario_crea_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx19_traslados_bodega",
-          "tableTo": "vx02_usuarios",
+        "vx19_usuario_crea_id_vx02_id_fk": {
+          "name": "vx19_usuario_crea_id_vx02_id_fk",
+          "tableFrom": "vx19",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_crea_id"
           ],
@@ -4265,10 +4328,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx19_traslados_bodega_usuario_envia_id_vx02_usuarios_id_fk": {
-          "name": "vx19_traslados_bodega_usuario_envia_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx19_traslados_bodega",
-          "tableTo": "vx02_usuarios",
+        "vx19_usuario_envia_id_vx02_id_fk": {
+          "name": "vx19_usuario_envia_id_vx02_id_fk",
+          "tableFrom": "vx19",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_envia_id"
           ],
@@ -4278,10 +4341,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "vx19_traslados_bodega_usuario_recibe_id_vx02_usuarios_id_fk": {
-          "name": "vx19_traslados_bodega_usuario_recibe_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx19_traslados_bodega",
-          "tableTo": "vx02_usuarios",
+        "vx19_usuario_recibe_id_vx02_id_fk": {
+          "name": "vx19_usuario_recibe_id_vx02_id_fk",
+          "tableFrom": "vx19",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_recibe_id"
           ],
@@ -4307,8 +4370,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx09_unidades_medida": {
-      "name": "vx09_unidades_medida",
+    "public.vx09": {
+      "name": "vx09",
       "schema": "",
       "columns": {
         "id": {
@@ -4366,8 +4429,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "vx09_unidades_medida_codigo_unique": {
-          "name": "vx09_unidades_medida_codigo_unique",
+        "vx09_codigo_unique": {
+          "name": "vx09_codigo_unique",
           "nullsNotDistinct": false,
           "columns": [
             "codigo"
@@ -4378,8 +4441,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx02_usuarios": {
-      "name": "vx02_usuarios",
+    "public.vx02": {
+      "name": "vx02",
       "schema": "",
       "columns": {
         "id": {
@@ -4463,6 +4526,13 @@
           "notNull": true,
           "default": false
         },
+        "es_recaudador": {
+          "name": "es_recaudador",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "ultimo_login_at": {
           "name": "ultimo_login_at",
           "type": "timestamp with time zone",
@@ -4523,10 +4593,10 @@
         }
       },
       "foreignKeys": {
-        "vx02_usuarios_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx02_usuarios_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx02_usuarios",
-          "tableTo": "vx04_empresas",
+        "vx02_empresa_id_vx04_id_fk": {
+          "name": "vx02_empresa_id_vx04_id_fk",
+          "tableFrom": "vx02",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -4539,8 +4609,8 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "vx02_usuarios_email_unique": {
-          "name": "vx02_usuarios_email_unique",
+        "vx02_email_unique": {
+          "name": "vx02_email_unique",
           "nullsNotDistinct": false,
           "columns": [
             "email"
@@ -4551,8 +4621,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.vx05_usuarios_empresas": {
-      "name": "vx05_usuarios_empresas",
+    "public.vx05": {
+      "name": "vx05",
       "schema": "",
       "columns": {
         "id": {
@@ -4627,10 +4697,10 @@
         }
       },
       "foreignKeys": {
-        "vx05_usuarios_empresas_usuario_id_vx02_usuarios_id_fk": {
-          "name": "vx05_usuarios_empresas_usuario_id_vx02_usuarios_id_fk",
-          "tableFrom": "vx05_usuarios_empresas",
-          "tableTo": "vx02_usuarios",
+        "vx05_usuario_id_vx02_id_fk": {
+          "name": "vx05_usuario_id_vx02_id_fk",
+          "tableFrom": "vx05",
+          "tableTo": "vx02",
           "columnsFrom": [
             "usuario_id"
           ],
@@ -4640,10 +4710,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "vx05_usuarios_empresas_empresa_id_vx04_empresas_id_fk": {
-          "name": "vx05_usuarios_empresas_empresa_id_vx04_empresas_id_fk",
-          "tableFrom": "vx05_usuarios_empresas",
-          "tableTo": "vx04_empresas",
+        "vx05_empresa_id_vx04_id_fk": {
+          "name": "vx05_empresa_id_vx04_id_fk",
+          "tableFrom": "vx05",
+          "tableTo": "vx04",
           "columnsFrom": [
             "empresa_id"
           ],
@@ -4653,10 +4723,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "vx05_usuarios_empresas_rol_id_vx01_roles_id_fk": {
-          "name": "vx05_usuarios_empresas_rol_id_vx01_roles_id_fk",
-          "tableFrom": "vx05_usuarios_empresas",
-          "tableTo": "vx01_roles",
+        "vx05_rol_id_vx01_id_fk": {
+          "name": "vx05_rol_id_vx01_id_fk",
+          "tableFrom": "vx05",
+          "tableTo": "vx01",
           "columnsFrom": [
             "rol_id"
           ],
@@ -4678,6 +4748,195 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.vx30": {
+      "name": "vx30",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "empresa_id": {
+          "name": "empresa_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recaudador_id": {
+          "name": "recaudador_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cliente_id": {
+          "name": "cliente_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fecha": {
+          "name": "fecha",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resultado": {
+          "name": "resultado",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recaudo_id": {
+          "name": "recaudo_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "foto_url": {
+          "name": "foto_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observaciones": {
+          "name": "observaciones",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "usuario_id": {
+          "name": "usuario_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "vx30_empresa_recaudador_fecha_idx": {
+          "name": "vx30_empresa_recaudador_fecha_idx",
+          "columns": [
+            {
+              "expression": "empresa_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "recaudador_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "fecha",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vx30_cliente_idx": {
+          "name": "vx30_cliente_idx",
+          "columns": [
+            {
+              "expression": "cliente_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vx30_empresa_id_vx04_id_fk": {
+          "name": "vx30_empresa_id_vx04_id_fk",
+          "tableFrom": "vx30",
+          "tableTo": "vx04",
+          "columnsFrom": [
+            "empresa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vx30_recaudador_id_vx02_id_fk": {
+          "name": "vx30_recaudador_id_vx02_id_fk",
+          "tableFrom": "vx30",
+          "tableTo": "vx02",
+          "columnsFrom": [
+            "recaudador_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vx30_cliente_id_vx07_id_fk": {
+          "name": "vx30_cliente_id_vx07_id_fk",
+          "tableFrom": "vx30",
+          "tableTo": "vx07",
+          "columnsFrom": [
+            "cliente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vx30_recaudo_id_vx29_id_fk": {
+          "name": "vx30_recaudo_id_vx29_id_fk",
+          "tableFrom": "vx30",
+          "tableTo": "vx29",
+          "columnsFrom": [
+            "recaudo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vx30_usuario_id_vx02_id_fk": {
+          "name": "vx30_usuario_id_vx02_id_fk",
+          "tableFrom": "vx30",
+          "tableTo": "vx02",
+          "columnsFrom": [
+            "usuario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

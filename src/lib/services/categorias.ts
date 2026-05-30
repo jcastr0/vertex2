@@ -38,7 +38,7 @@ export async function crearCategoria(data: CategoriaInput, ctx: Contexto): Promi
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx08_categorias_productos",
+    tablaAfectada: "vx08",
     modelId: creada.id,
     accion: "CREAR",
     registroNuevo: creada,
@@ -69,7 +69,7 @@ export async function actualizarCategoria(
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx08_categorias_productos",
+    tablaAfectada: "vx08",
     modelId: id,
     accion: "ACTUALIZAR",
     registroAnterior: anterior,
@@ -91,7 +91,7 @@ export async function cambiarEstadoCategoria(
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx08_categorias_productos",
+    tablaAfectada: "vx08",
     modelId: id,
     accion: "ACTUALIZAR",
     registroNuevo: { activo },

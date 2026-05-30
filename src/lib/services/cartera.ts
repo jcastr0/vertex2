@@ -91,7 +91,7 @@ export async function registrarPago(
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx27_pagos_proveedor",
+        tablaAfectada: "vx27",
         modelId: pago.id,
         accion: "CREAR",
         registroNuevo: pago,
@@ -171,7 +171,7 @@ export async function registrarRecaudo(
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx29_recaudos_clientes",
+        tablaAfectada: "vx29",
         modelId: recaudo.id,
         accion: "CREAR",
         registroNuevo: recaudo,

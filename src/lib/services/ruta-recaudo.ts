@@ -161,7 +161,7 @@ export async function registrarVisita(
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx30_visitas_recaudo",
+    tablaAfectada: "vx30",
     modelId: v.id,
     accion: "CREAR",
     registroNuevo: { clienteId, resultado },

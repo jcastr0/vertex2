@@ -66,7 +66,7 @@ export async function crearBodega(data: BodegaInput, ctx: Contexto): Promise<Bod
         {
           empresaId: ctx.empresaId,
           usuarioId: ctx.usuarioId,
-          tablaAfectada: "vx06_bodegas",
+          tablaAfectada: "vx06",
           modelId: creada.id,
           accion: "CREAR",
           registroNuevo: creada,
@@ -117,7 +117,7 @@ export async function actualizarBodega(
         {
           empresaId: ctx.empresaId,
           usuarioId: ctx.usuarioId,
-          tablaAfectada: "vx06_bodegas",
+          tablaAfectada: "vx06",
           modelId: id,
           accion: "ACTUALIZAR",
           registroAnterior: anterior,
@@ -148,7 +148,7 @@ export async function cambiarEstadoBodega(
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx06_bodegas",
+    tablaAfectada: "vx06",
     modelId: id,
     accion: "ACTUALIZAR",
     registroNuevo: { activo },

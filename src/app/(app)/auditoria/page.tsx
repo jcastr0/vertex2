@@ -16,23 +16,7 @@ const VARIANTE: Record<string, "default" | "secondary" | "destructive" | "outlin
   ACTUALIZAR: "secondary",
   ELIMINAR: "destructive",
 };
-// Nombres legibles de tablas vxNN frecuentes.
-const TABLA: Record<string, string> = {
-  vx02_usuarios: "Usuarios",
-  vx04_empresas: "Empresas",
-  vx06_bodegas: "Bodegas",
-  vx07_terceros: "Terceros",
-  vx08_categorias_productos: "Categorías",
-  vx10_productos: "Productos",
-  vx11_producto_unidades: "Presentaciones",
-  vx13_pedidos: "Pedidos",
-  vx18_notas_inventario: "Notas de inventario",
-  vx19_traslados_bodega: "Traslados",
-  vx21_facturas: "Facturas",
-  vx23_devoluciones: "Devoluciones",
-  vx27_pagos_proveedor: "Pagos a proveedor",
-  vx29_recaudos_clientes: "Recaudos",
-};
+const moduloLabel = (a: { modulo: string | null; tabla: string }) => a.modulo ?? a.tabla;
 
 export default async function AuditoriaPage({
   searchParams,
@@ -48,7 +32,7 @@ export default async function AuditoriaPage({
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
-    texto: (a) => `${a.usuario ?? ""} ${a.accion} ${TABLA[a.tabla] ?? a.tabla}`,
+    texto: (a) => `${a.usuario ?? ""} ${a.accion} ${moduloLabel(a)}`,
   });
 
   const columnas: Columna<FilaAuditoria>[] = [
@@ -58,7 +42,7 @@ export default async function AuditoriaPage({
       header: "Acción",
       cell: (a) => <Badge variant={VARIANTE[a.accion] ?? "outline"} className="font-normal capitalize">{a.accion.toLowerCase()}</Badge>,
     },
-    { header: "Módulo", cell: (a) => TABLA[a.tabla] ?? a.tabla },
+    { header: "Módulo", cell: (a) => moduloLabel(a) },
     { header: "IP", cell: (a) => <span className="tabular text-muted-foreground">{a.ip ?? "—"}</span> },
   ];
 

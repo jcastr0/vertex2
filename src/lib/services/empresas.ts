@@ -45,7 +45,7 @@ export async function crearEmpresa(data: EmpresaInput, ctx: CtxSistema): Promise
     await registrarAuditoria({
       empresaId: creada.id,
       usuarioId: ctx.usuarioId,
-      tablaAfectada: "vx04_empresas",
+      tablaAfectada: "vx04",
       modelId: creada.id,
       accion: "CREAR",
       registroNuevo: creada,
@@ -70,7 +70,7 @@ export async function actualizarEmpresa(id: number, data: EmpresaInput, ctx: Ctx
     await registrarAuditoria({
       empresaId: id,
       usuarioId: ctx.usuarioId,
-      tablaAfectada: "vx04_empresas",
+      tablaAfectada: "vx04",
       modelId: id,
       accion: "ACTUALIZAR",
       registroAnterior: anterior,
@@ -89,7 +89,7 @@ export async function cambiarEstadoEmpresa(id: number, activa: boolean, ctx: Ctx
   await registrarAuditoria({
     empresaId: id,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx04_empresas",
+    tablaAfectada: "vx04",
     modelId: id,
     accion: "ACTUALIZAR",
     registroNuevo: { activa },

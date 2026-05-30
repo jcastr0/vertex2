@@ -45,6 +45,4 @@ export const CATALOGO: EntradaNomenclatura[] = [
   { codigo: "vx28", nombreModelo: "CuentaPorCobrar", descripcion: "Cuentas por cobrar", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
   { codigo: "vx29", nombreModelo: "RecaudoCliente", descripcion: "Recaudos de clientes", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
   { codigo: "vx30", nombreModelo: "VisitaRecaudo", descripcion: "Visitas de ruta de recaudo", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
-  { codigo: "vx31", nombreModelo: "Retencion", descripcion: "Retenciones parametrizables", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: true },
-  { codigo: "vx32", nombreModelo: "PagoRetencion", descripcion: "Retenciones aplicadas en pagos", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
 ];

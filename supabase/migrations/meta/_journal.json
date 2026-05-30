@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1780065354928,
-      "tag": "0000_friendly_gladiator",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1780076189662,
-      "tag": "0001_swift_shinko_yamashiro",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1780080591757,
-      "tag": "0002_conscious_pet_avengers",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1780100352667,
-      "tag": "0003_public_warbird",
+      "when": 1780102946960,
+      "tag": "0000_violet_roxanne_simpson",
       "breakpoints": true
     }
   ]

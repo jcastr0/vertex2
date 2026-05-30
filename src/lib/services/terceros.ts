@@ -72,7 +72,7 @@ export async function crearTercero(data: TerceroInput, ctx: Contexto): Promise<T
     await registrarAuditoria({
       empresaId: ctx.empresaId,
       usuarioId: ctx.usuarioId,
-      tablaAfectada: "vx07_terceros",
+      tablaAfectada: "vx07",
       modelId: creado.id,
       accion: "CREAR",
       registroNuevo: creado,
@@ -102,7 +102,7 @@ export async function actualizarTercero(
     await registrarAuditoria({
       empresaId: ctx.empresaId,
       usuarioId: ctx.usuarioId,
-      tablaAfectada: "vx07_terceros",
+      tablaAfectada: "vx07",
       modelId: id,
       accion: "ACTUALIZAR",
       registroAnterior: anterior,
@@ -129,7 +129,7 @@ export async function cambiarEstadoTercero(
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx07_terceros",
+    tablaAfectada: "vx07",
     modelId: id,
     accion: "ACTUALIZAR",
     registroNuevo: { activo },

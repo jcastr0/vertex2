@@ -111,7 +111,7 @@ export async function crearUsuario(data: UsuarioInput, ctx: Contexto): Promise<v
         {
           empresaId: ctx.empresaId,
           usuarioId: ctx.usuarioId,
-          tablaAfectada: "vx02_usuarios",
+          tablaAfectada: "vx02",
           modelId: u.id,
           accion: "CREAR",
           registroNuevo: { nombre: u.nombre, email: u.email },
@@ -145,7 +145,7 @@ export async function actualizarUsuario(id: number, data: UsuarioInput, ctx: Con
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx02_usuarios",
+        tablaAfectada: "vx02",
         modelId: id,
         accion: "ACTUALIZAR",
         registroNuevo: { nombre: data.nombre, rolId: data.rolId, activo: data.activo },
@@ -161,7 +161,7 @@ export async function cambiarEstadoUsuario(id: number, activo: boolean, ctx: Con
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx02_usuarios",
+    tablaAfectada: "vx02",
     modelId: id,
     accion: "ACTUALIZAR",
     registroNuevo: { activo },

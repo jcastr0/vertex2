@@ -120,7 +120,7 @@ export async function crearNotaInventario(
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx18_notas_inventario",
+        tablaAfectada: "vx18",
         modelId: nota.id,
         accion: "CREAR",
         registroNuevo: nota,

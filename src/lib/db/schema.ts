@@ -51,7 +51,7 @@ const price = (name: string) => numeric(name, { precision: 12, scale: 2 });
 // ──────────────────────────────────────────────────────────────────────────
 // vx04 — Empresas (raíz multi-tenant)
 // ──────────────────────────────────────────────────────────────────────────
-export const empresas = pgTable("vx04_empresas", {
+export const empresas = pgTable("vx04", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   nombre: varchar("nombre", { length: 150 }).notNull().unique(),
   razonSocial: varchar("razon_social", { length: 200 }).notNull(),
@@ -71,7 +71,7 @@ export const empresas = pgTable("vx04_empresas", {
 // ──────────────────────────────────────────────────────────────────────────
 // vx00 — Nomenclatura del sistema
 // ──────────────────────────────────────────────────────────────────────────
-export const nomenclatura = pgTable("vx00_nomenclatura", {
+export const nomenclatura = pgTable("vx00", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   codigo: varchar("codigo", { length: 10 }).notNull().unique(),
   nombreModelo: varchar("nombre_modelo", { length: 100 }).notNull(),
@@ -88,7 +88,7 @@ export const nomenclatura = pgTable("vx00_nomenclatura", {
 // ──────────────────────────────────────────────────────────────────────────
 // vx01 — Roles (globales)
 // ──────────────────────────────────────────────────────────────────────────
-export const roles = pgTable("vx01_roles", {
+export const roles = pgTable("vx01", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   nombre: varchar("nombre", { length: 50 }).notNull().unique(),
   descripcion: text("descripcion"),
@@ -101,8 +101,7 @@ export const roles = pgTable("vx01_roles", {
 // ──────────────────────────────────────────────────────────────────────────
 // vx02 — Usuarios (auth custom con bloqueo por intentos)
 // ──────────────────────────────────────────────────────────────────────────
-export const usuarios = pgTable(
-  "vx02_usuarios",
+export const usuarios = pgTable("vx02",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" }).references(() => empresas.id),
@@ -132,8 +131,7 @@ export const usuarios = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx05 — Usuario ↔ Empresa ↔ Rol
 // ──────────────────────────────────────────────────────────────────────────
-export const usuariosEmpresas = pgTable(
-  "vx05_usuarios_empresas",
+export const usuariosEmpresas = pgTable("vx05",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     usuarioId: bigint("usuario_id", { mode: "number" })
@@ -158,8 +156,7 @@ export const usuariosEmpresas = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx03 — Auditoría
 // ──────────────────────────────────────────────────────────────────────────
-export const auditoria = pgTable(
-  "vx03_auditoria",
+export const auditoria = pgTable("vx03",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" }).references(() => empresas.id),
@@ -184,8 +181,7 @@ export const auditoria = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx06 — Bodegas
 // ──────────────────────────────────────────────────────────────────────────
-export const bodegas = pgTable(
-  "vx06_bodegas",
+export const bodegas = pgTable("vx06",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -210,8 +206,7 @@ export const bodegas = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx07 — Terceros (proveedores / clientes)
 // ──────────────────────────────────────────────────────────────────────────
-export const terceros = pgTable(
-  "vx07_terceros",
+export const terceros = pgTable("vx07",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -260,8 +255,7 @@ export const terceros = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx08 — Categorías de productos (jerárquica)
 // ──────────────────────────────────────────────────────────────────────────
-export const categoriasProductos = pgTable(
-  "vx08_categorias_productos",
+export const categoriasProductos = pgTable("vx08",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -285,7 +279,7 @@ export const categoriasProductos = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx09 — Unidades de medida (catálogo global)
 // ──────────────────────────────────────────────────────────────────────────
-export const unidadesMedida = pgTable("vx09_unidades_medida", {
+export const unidadesMedida = pgTable("vx09", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   codigo: varchar("codigo", { length: 20 }).notNull().unique(),
   nombre: varchar("nombre", { length: 50 }).notNull(),
@@ -299,8 +293,7 @@ export const unidadesMedida = pgTable("vx09_unidades_medida", {
 // ──────────────────────────────────────────────────────────────────────────
 // vx10 — Productos
 // ──────────────────────────────────────────────────────────────────────────
-export const productos = pgTable(
-  "vx10_productos",
+export const productos = pgTable("vx10",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -335,8 +328,7 @@ export const productos = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx11 — Producto · unidades (conversiones / precios)
 // ──────────────────────────────────────────────────────────────────────────
-export const productoUnidades = pgTable(
-  "vx11_producto_unidades",
+export const productoUnidades = pgTable("vx11",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     productoId: bigint("producto_id", { mode: "number" })
@@ -362,8 +354,7 @@ export const productoUnidades = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx13 — Pedidos a proveedores
 // ──────────────────────────────────────────────────────────────────────────
-export const pedidos = pgTable(
-  "vx13_pedidos",
+export const pedidos = pgTable("vx13",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -398,8 +389,7 @@ export const pedidos = pgTable(
 );
 
 // vx14 — Detalle de pedidos
-export const pedidoDetalles = pgTable(
-  "vx14_pedido_detalles",
+export const pedidoDetalles = pgTable("vx14",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     pedidoId: bigint("pedido_id", { mode: "number" })
@@ -421,8 +411,7 @@ export const pedidoDetalles = pgTable(
 );
 
 // vx15 — Costos adicionales de pedidos
-export const pedidoCostos = pgTable(
-  "vx15_pedido_costos",
+export const pedidoCostos = pgTable("vx15",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     pedidoId: bigint("pedido_id", { mode: "number" })
@@ -439,8 +428,7 @@ export const pedidoCostos = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx16 — Inventario (stock por bodega/producto con costo promedio)
 // ──────────────────────────────────────────────────────────────────────────
-export const inventario = pgTable(
-  "vx16_inventario",
+export const inventario = pgTable("vx16",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -467,8 +455,7 @@ export const inventario = pgTable(
 );
 
 // vx17 — Movimientos de inventario
-export const movimientosInventario = pgTable(
-  "vx17_movimientos_inventario",
+export const movimientosInventario = pgTable("vx17",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -505,8 +492,7 @@ export const movimientosInventario = pgTable(
 );
 
 // vx18 — Notas de inventario (ajustes)
-export const notasInventario = pgTable(
-  "vx18_notas_inventario",
+export const notasInventario = pgTable("vx18",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -538,8 +524,7 @@ export const notasInventario = pgTable(
 );
 
 // vx19 — Traslados entre bodegas
-export const trasladosBodega = pgTable(
-  "vx19_traslados_bodega",
+export const trasladosBodega = pgTable("vx19",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -572,8 +557,7 @@ export const trasladosBodega = pgTable(
 );
 
 // vx20 — Detalle de traslados
-export const trasladoDetalles = pgTable(
-  "vx20_traslado_detalles",
+export const trasladoDetalles = pgTable("vx20",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     trasladoId: bigint("traslado_id", { mode: "number" })
@@ -593,8 +577,7 @@ export const trasladoDetalles = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx21 — Facturas de venta
 // ──────────────────────────────────────────────────────────────────────────
-export const facturas = pgTable(
-  "vx21_facturas",
+export const facturas = pgTable("vx21",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -629,8 +612,7 @@ export const facturas = pgTable(
 );
 
 // vx22 — Detalle de facturas
-export const facturaDetalles = pgTable(
-  "vx22_factura_detalles",
+export const facturaDetalles = pgTable("vx22",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     facturaId: bigint("factura_id", { mode: "number" })
@@ -654,8 +636,7 @@ export const facturaDetalles = pgTable(
 );
 
 // vx23 — Devoluciones (clientes / proveedores)
-export const devoluciones = pgTable(
-  "vx23_devoluciones",
+export const devoluciones = pgTable("vx23",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -687,8 +668,7 @@ export const devoluciones = pgTable(
 );
 
 // vx24 — Detalle de devoluciones
-export const devolucionDetalles = pgTable(
-  "vx24_devolucion_detalles",
+export const devolucionDetalles = pgTable("vx24",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     devolucionId: bigint("devolucion_id", { mode: "number" })
@@ -706,8 +686,7 @@ export const devolucionDetalles = pgTable(
 );
 
 // vx25 — Notas crédito
-export const notasCredito = pgTable(
-  "vx25_notas_credito",
+export const notasCredito = pgTable("vx25",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -735,8 +714,7 @@ export const notasCredito = pgTable(
 );
 
 // vx26 — Cuentas por pagar
-export const cuentasPorPagar = pgTable(
-  "vx26_cuentas_por_pagar",
+export const cuentasPorPagar = pgTable("vx26",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -762,8 +740,7 @@ export const cuentasPorPagar = pgTable(
 );
 
 // vx27 — Pagos a proveedores
-export const pagosProveedor = pgTable(
-  "vx27_pagos_proveedor",
+export const pagosProveedor = pgTable("vx27",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -796,8 +773,7 @@ export const pagosProveedor = pgTable(
 );
 
 // vx28 — Cuentas por cobrar
-export const cuentasPorCobrar = pgTable(
-  "vx28_cuentas_por_cobrar",
+export const cuentasPorCobrar = pgTable("vx28",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -824,8 +800,7 @@ export const cuentasPorCobrar = pgTable(
 );
 
 // vx29 — Recaudos de clientes
-export const recaudosClientes = pgTable(
-  "vx29_recaudos_clientes",
+export const recaudosClientes = pgTable("vx29",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })
@@ -860,8 +835,7 @@ export const recaudosClientes = pgTable(
 // ──────────────────────────────────────────────────────────────────────────
 // vx30 — Visitas de recaudo (ruta diaria del recaudador)
 // ──────────────────────────────────────────────────────────────────────────
-export const visitasRecaudo = pgTable(
-  "vx30_visitas_recaudo",
+export const visitasRecaudo = pgTable("vx30",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     empresaId: bigint("empresa_id", { mode: "number" })

@@ -106,7 +106,7 @@ export async function crearProducto(data: ProductoInput, ctx: Contexto): Promise
     await registrarAuditoria({
       empresaId: ctx.empresaId,
       usuarioId: ctx.usuarioId,
-      tablaAfectada: "vx10_productos",
+      tablaAfectada: "vx10",
       modelId: creado.id,
       accion: "CREAR",
       registroNuevo: creado,
@@ -135,7 +135,7 @@ export async function actualizarProducto(
     await registrarAuditoria({
       empresaId: ctx.empresaId,
       usuarioId: ctx.usuarioId,
-      tablaAfectada: "vx10_productos",
+      tablaAfectada: "vx10",
       modelId: id,
       accion: "ACTUALIZAR",
       registroAnterior: anterior,
@@ -161,7 +161,7 @@ export async function cambiarEstadoProducto(
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx10_productos",
+    tablaAfectada: "vx10",
     modelId: id,
     accion: "ACTUALIZAR",
     registroNuevo: { activo },
@@ -213,7 +213,7 @@ export async function agregarUnidadProducto(
     await registrarAuditoria({
       empresaId: ctx.empresaId,
       usuarioId: ctx.usuarioId,
-      tablaAfectada: "vx11_producto_unidades",
+      tablaAfectada: "vx11",
       modelId: creada.id,
       accion: "CREAR",
       registroNuevo: creada,
@@ -238,7 +238,7 @@ export async function eliminarUnidadProducto(
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
-    tablaAfectada: "vx11_producto_unidades",
+    tablaAfectada: "vx11",
     modelId: productoUnidadId,
     accion: "ELIMINAR",
     ipOrigen: ctx.ip,

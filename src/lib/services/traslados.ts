@@ -81,7 +81,7 @@ export async function crearTraslado(data: TrasladoInput, ctx: Contexto): Promise
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx19_traslados_bodega",
+        tablaAfectada: "vx19",
         modelId: traslado.id,
         accion: "CREAR",
         registroNuevo: traslado,
@@ -158,7 +158,7 @@ export async function enviarTraslado(id: number, ctx: Contexto): Promise<void> {
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx19_traslados_bodega",
+        tablaAfectada: "vx19",
         modelId: t.id,
         accion: "ACTUALIZAR",
         registroNuevo: { estado: "enviado" },
@@ -244,7 +244,7 @@ export async function recibirTraslado(id: number, ctx: Contexto): Promise<void> 
       {
         empresaId: ctx.empresaId,
         usuarioId: ctx.usuarioId,
-        tablaAfectada: "vx19_traslados_bodega",
+        tablaAfectada: "vx19",
         modelId: t.id,
         accion: "ACTUALIZAR",
         registroNuevo: { estado: "recibido" },
