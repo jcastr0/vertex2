@@ -13,3 +13,14 @@ export function calcularSaldo(saldoInicial: number, movimientos: MovimientoSaldo
     saldoInicial,
   );
 }
+
+export function saldoCorrido<T extends MovimientoSaldo>(
+  saldoInicial: number,
+  movimientos: T[],
+): Array<T & { saldo: number }> {
+  let saldo = saldoInicial;
+  return movimientos.map((m) => {
+    saldo = m.tipo === "entrada" ? saldo + m.valor : saldo - m.valor;
+    return { ...m, saldo };
+  });
+}

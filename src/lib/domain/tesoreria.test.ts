@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcularSaldo, type MovimientoSaldo } from "./tesoreria";
+import { calcularSaldo, saldoCorrido, type MovimientoSaldo } from "./tesoreria";
 
 const mov = (tipo: "entrada" | "salida", valor: number): MovimientoSaldo => ({ tipo, valor });
 
@@ -12,5 +12,21 @@ describe("calcularSaldo", () => {
   });
   it("puede quedar negativo (sobregiro)", () => {
     expect(calcularSaldo(0, [mov("salida", 10_000)])).toBe(-10_000);
+  });
+});
+
+describe("saldoCorrido", () => {
+  it("acumula el saldo movimiento a movimiento", () => {
+    const movs = [
+      { tipo: "entrada" as const, valor: 100 },
+      { tipo: "salida" as const, valor: 40 },
+      { tipo: "entrada" as const, valor: 10 },
+    ];
+    const r = saldoCorrido(0, movs);
+    expect(r.map((m) => m.saldo)).toEqual([100, 60, 70]);
+  });
+  it("arranca desde el saldo inicial", () => {
+    const r = saldoCorrido(500, [{ tipo: "salida" as const, valor: 200 }]);
+    expect(r[0].saldo).toBe(300);
   });
 });
