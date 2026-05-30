@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseAbonoForm } from "@/lib/validation/abono";
-import { registrarPago, AbonoInvalido } from "@/lib/services/cartera";
+import { registrarPago, pagarAProveedor, AbonoInvalido } from "@/lib/services/cartera";
+import { beneficiariosActivos } from "@/lib/services/beneficiarios";
 import { resolverBeneficiario } from "@/lib/domain/tesoreria";
 
 export interface AbonoState {
@@ -64,5 +65,49 @@ export async function registrarPagoAction(_prev: AbonoState, form: FormData): Pr
   }
   revalidatePath("/cuentas-pagar");
   revalidatePath("/pagos-proveedor");
+  return { ok: true };
+}
+
+export interface PagoState { error?: string; ok?: boolean }
+
+/** Cuentas de pago guardadas del proveedor (para "a dónde va"). */
+export async function beneficiariosProveedorAction(proveedorId: number) {
+  const c = await contexto();
+  if (!c || !proveedorId) return [];
+  return beneficiariosActivos(c.ctx.empresaId, proveedorId);
+}
+
+/** Registra cuánto le pagaste a un proveedor (se reparte FIFO a sus facturas). */
+export async function pagarProveedorAction(proveedorId: number, _prev: PagoState, form: FormData): Promise<PagoState> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
+
+  const monto = Number(form.get("monto"));
+  if (!monto || monto <= 0) return { error: "Escribe cuánto le pagaste." };
+  const metodoPago = String(form.get("metodoPago") || "efectivo");
+  const fecha = String(form.get("fecha") || new Date().toISOString().slice(0, 10));
+  const cuentaOrigenId = Number(form.get("cuentaOrigenId")) || undefined;
+  if (!cuentaOrigenId) return { error: "Elige de qué cuenta sale el dinero." };
+
+  const destino = String(form.get("destino") ?? "proveedor");
+  let beneficiario = null;
+  if (destino.startsWith("cuenta:")) {
+    const bid = Number(destino.slice(7));
+    const bens = JSON.parse(String(form.get("beneficiariosJson") ?? "[]")) as Array<{ id: number; banco: string; numeroCuenta: string; titularNit: string; titularNombre: string }>;
+    const cuenta = bens.find((b) => b.id === bid);
+    if (cuenta) beneficiario = resolverBeneficiario({ opcion: "guardada", cuenta });
+  }
+
+  try {
+    await pagarAProveedor(proveedorId, { monto, metodoPago, fecha, cuentaOrigenId, beneficiario }, c.ctx);
+  } catch (e) {
+    if (e instanceof AbonoInvalido) return { error: e.message };
+    console.error("[pagar] error:", e);
+    return { error: "No se pudo registrar el pago." };
+  }
+  revalidatePath("/cuentas-pagar");
+  revalidatePath("/pagos-proveedor");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
