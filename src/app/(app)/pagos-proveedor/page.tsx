@@ -34,7 +34,9 @@ export default async function PagosProveedorPage({
   const columnas: Columna<Fila>[] = [
     { header: "Número", primary: true, cell: (f) => <span className="tabular font-medium">{f.pago.numero}</span> },
     { header: "Proveedor", cell: (f) => f.proveedor },
+    { header: "Beneficiario", cell: (f) => f.pago.beneficiarioNombre ?? f.proveedor },
     { header: "Fecha", cell: (f) => f.pago.fecha },
+    { header: "Origen", mobileHidden: true, cell: (f) => f.cuentaOrigen ?? "—" },
     { header: "Método", cell: (f) => METODO[f.pago.metodoPago] ?? f.pago.metodoPago },
     { header: "Valor", className: "text-right", cell: (f) => <span className="tabular font-medium">{money(f.pago.valor)}</span> },
   ];

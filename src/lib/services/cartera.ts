@@ -10,6 +10,7 @@ import {
   terceros,
   movimientosTesoreria,
   cuentasBeneficiario,
+  cuentasPropias,
 } from "@/lib/db/schema";
 import { movimientoDesdePago, type BeneficiarioSnapshot } from "@/lib/domain/tesoreria";
 import { registrarAuditoria } from "@/lib/audit";
@@ -48,9 +49,14 @@ export async function listarCuentasPorPagar(empresaId: number) {
 
 export async function listarPagos(empresaId: number) {
   return db
-    .select({ pago: pagosProveedor, proveedor: terceros.razonSocial })
+    .select({
+      pago: pagosProveedor,
+      proveedor: terceros.razonSocial,
+      cuentaOrigen: cuentasPropias.nombre,
+    })
     .from(pagosProveedor)
     .innerJoin(terceros, eq(pagosProveedor.proveedorId, terceros.id))
+    .leftJoin(cuentasPropias, eq(pagosProveedor.cuentaOrigenId, cuentasPropias.id))
     .where(eq(pagosProveedor.empresaId, empresaId))
     .orderBy(desc(pagosProveedor.createdAt));
 }
