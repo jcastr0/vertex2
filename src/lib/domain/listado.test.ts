@@ -62,3 +62,16 @@ describe("hrefPaginaFactory", () => {
     expect(hrefPaginaFactory("/bodegas", "")(1)).toBe("/bodegas");
   });
 });
+
+describe("filtrarPaginar con filtro extra", () => {
+  const items = [{ n: "a", activo: true }, { n: "b", activo: false }, { n: "c", activo: true }];
+  it("aplica el predicado además del texto", () => {
+    const r = filtrarPaginar(items, { q: "", page: 1, pageSize: 10, texto: (i) => i.n, filtro: (i) => i.activo });
+    expect(r.items.map((i) => i.n)).toEqual(["a", "c"]);
+    expect(r.total).toBe(2);
+  });
+  it("sin filtro se comporta como antes", () => {
+    const r = filtrarPaginar(items, { q: "b", page: 1, pageSize: 10, texto: (i) => i.n });
+    expect(r.items.map((i) => i.n)).toEqual(["b"]);
+  });
+});

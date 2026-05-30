@@ -6,6 +6,7 @@ export interface OpcionesListado<T> {
   page?: number;
   pageSize?: number;
   texto: (item: T) => string;
+  filtro?: (item: T) => boolean;
 }
 
 export interface ResultadoListado<T> {
@@ -17,10 +18,11 @@ export interface ResultadoListado<T> {
 
 export function filtrarPaginar<T>(
   items: T[],
-  { q, page = 1, pageSize = 10, texto }: OpcionesListado<T>,
+  { q, page = 1, pageSize = 10, texto, filtro }: OpcionesListado<T>,
 ): ResultadoListado<T> {
   const t = (q ?? "").trim().toLowerCase();
-  const filtrados = t ? items.filter((i) => texto(i).toLowerCase().includes(t)) : items;
+  const porTexto = t ? items.filter((i) => texto(i).toLowerCase().includes(t)) : items;
+  const filtrados = filtro ? porTexto.filter(filtro) : porTexto;
   const total = filtrados.length;
   const totalPaginas = Math.max(1, Math.ceil(total / pageSize));
   const pagina = Math.min(Math.max(1, page), totalPaginas);
