@@ -112,6 +112,7 @@ export async function crearNotaInventario(
         tipo: data.tipo,
         cantidad: String(data.cantidad),
         motivo: data.motivo,
+        proveedorId: data.proveedorId ?? null,
         usuarioId: ctx.usuarioId,
       })
       .returning();
