@@ -162,7 +162,11 @@ export class PedidoNoRecibible extends Error {}
  * Recibe el pedido al inventario: aplica costo promedio ponderado por producto,
  * genera movimientos de entrada y crea la cuenta por pagar. Todo transaccional.
  */
-export async function recibirPedido(id: number, ctx: Contexto): Promise<void> {
+export async function recibirPedido(
+  id: number,
+  ctx: Contexto,
+  recepciones?: Record<number, number>, // detalleId -> cantidad recibida (en la unidad de la línea)
+): Promise<void> {
   const pedido = await obtenerPedido(ctx.empresaId, id);
   if (!pedido) throw new PedidoNoRecibible("Pedido no encontrado.");
   if (!["borrador", "confirmado", "parcial"].includes(pedido.estado)) {
@@ -201,7 +205,8 @@ export async function recibirPedido(id: number, ctx: Contexto): Promise<void> {
   await db.transaction(async (tx) => {
     for (let i = 0; i < pedido.detalles.length; i++) {
       const d = pedido.detalles[i];
-      const cantidad = Number(d.cantidad);
+      const cantidad = recepciones ? (recepciones[d.id] ?? 0) : Number(d.cantidad);
+      if (cantidad <= 0) continue; // línea no recibida
       const esBase = d.unidadId === baseDe.get(d.productoId);
       const factor = esBase ? 1 : factorDe.get(`${d.productoId}:${d.unidadId}`) ?? 1;
       const cantidadBase = cantidadEnBase(cantidad, factor);
@@ -265,7 +270,14 @@ export async function recibirPedido(id: number, ctx: Contexto): Promise<void> {
         .where(eq(pedidoDetalles.id, d.id));
     }
 
-    // Cuenta por pagar
+    // Valor realmente recibido (líneas recibidas a su precio + costos adicionales si recepción total).
+    const totalRecibido =
+      pedido.detalles.reduce((acc, d) => {
+        const cant = recepciones ? (recepciones[d.id] ?? 0) : Number(d.cantidad);
+        return acc + cant * Number(d.precioUnitario);
+      }, 0) + (recepciones ? 0 : Number(pedido.costosAdicionales));
+    const valorCxP = recepciones ? totalRecibido : Number(pedido.total);
+
     const venc = new Date(pedido.fecha);
     venc.setDate(venc.getDate() + diasCredito);
     await tx.insert(cuentasPorPagar).values({
@@ -275,14 +287,15 @@ export async function recibirPedido(id: number, ctx: Contexto): Promise<void> {
       numeroFactura: pedido.numero,
       fechaFactura: pedido.fecha,
       fechaVencimiento: venc.toISOString().slice(0, 10),
-      valorTotal: pedido.total,
-      saldoPendiente: pedido.total,
+      valorTotal: String(valorCxP),
+      saldoPendiente: String(valorCxP),
     });
 
+    const completo = !recepciones || pedido.detalles.every((d) => (recepciones[d.id] ?? 0) >= Number(d.cantidad));
     await tx
       .update(pedidos)
       .set({
-        estado: "recibido",
+        estado: completo ? "recibido" : "parcial",
         fechaRecepcion: new Date(),
         usuarioRecibeId: ctx.usuarioId,
         updatedAt: new Date(),
@@ -296,10 +309,22 @@ export async function recibirPedido(id: number, ctx: Contexto): Promise<void> {
         tablaAfectada: "vx13",
         modelId: pedido.id,
         accion: "ACTUALIZAR",
-        registroNuevo: { estado: "recibido" },
+        registroNuevo: { estado: completo ? "recibido" : "parcial" },
         ipOrigen: ctx.ip,
       },
       tx,
     );
   });
+}
+
+/** Proveedor del último pedido que incluyó este producto (más reciente). */
+export async function ultimoProveedorDeProducto(empresaId: number, productoId: number): Promise<number | null> {
+  const [row] = await db
+    .select({ proveedorId: pedidos.proveedorId })
+    .from(pedidoDetalles)
+    .innerJoin(pedidos, eq(pedidoDetalles.pedidoId, pedidos.id))
+    .where(and(eq(pedidos.empresaId, empresaId), eq(pedidoDetalles.productoId, productoId)))
+    .orderBy(desc(pedidos.fechaRecepcion), desc(pedidos.id))
+    .limit(1);
+  return row?.proveedorId ?? null;
 }
