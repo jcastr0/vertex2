@@ -108,40 +108,44 @@ export function PedidoForm({
         title="Productos"
         description="Qué vas a comprar y a qué precio."
         aside={numItems > 0 ? <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{numItems} ítem{numItems !== 1 ? "s" : ""}</span> : undefined}
-        bodyClassName="space-y-3"
+        bodyClassName="p-0"
       >
-        {lineas.map((l, i) => {
-          const sub = (Number(l.cantidad) || 0) * (Number(l.precioUnitario) || 0);
-          return (
-            <div key={i} className="grid gap-3 rounded-lg border border-border bg-background p-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto] sm:items-end">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Producto</Label>
-                <SearchSelect value={l.productoId} onValueChange={(v) => setLinea(i, { productoId: v })} placeholder="Producto…" searchPlaceholder="Nombre o SKU…" options={productos.map((p) => ({ value: String(p.id), label: p.nombre, hint: `(${p.sku})` }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Unidad</Label>
+        {/* encabezado de columnas (desktop) */}
+        <div className="hidden grid-cols-[1fr_6rem_5.5rem_8rem_6rem_2.5rem] gap-3 border-b border-border bg-muted/30 px-4 py-2 text-xs font-medium text-muted-foreground sm:grid">
+          <span>Producto</span>
+          <span>Unidad</span>
+          <span className="text-center">Cantidad</span>
+          <span className="text-right">Precio unit.</span>
+          <span className="text-right">Subtotal</span>
+          <span />
+        </div>
+        <ul className="divide-y divide-border">
+          {lineas.map((l, i) => {
+            const sub = (Number(l.cantidad) || 0) * (Number(l.precioUnitario) || 0);
+            return (
+              <li key={i} className="grid grid-cols-2 gap-2.5 px-4 py-2.5 transition-colors hover:bg-muted/20 sm:grid-cols-[1fr_6rem_5.5rem_8rem_6rem_2.5rem] sm:items-center sm:gap-3">
+                <div className="col-span-2 sm:col-span-1">
+                  <SearchSelect value={l.productoId} onValueChange={(v) => setLinea(i, { productoId: v })} placeholder="Producto…" searchPlaceholder="Nombre o SKU…" options={productos.map((p) => ({ value: String(p.id), label: p.nombre, hint: `(${p.sku})` }))} />
+                </div>
                 <SearchSelect value={l.unidadId} onValueChange={(v) => setLinea(i, { unidadId: v })} placeholder="Unidad…" options={unidades.map((u) => ({ value: String(u.id), label: u.abreviatura }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Cantidad</Label>
-                <Input type="number" min="0" step="0.0001" value={l.cantidad} onChange={(e) => setLinea(i, { cantidad: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Precio unit.</Label>
-                <Input type="number" min="0" step="0.01" value={l.precioUnitario} onChange={(e) => setLinea(i, { precioUnitario: e.target.value })} />
-              </div>
-              <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
-                <span className="tabular text-sm font-medium">{money(sub)}</span>
-                <Button type="button" variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => setLineas((ls) => ls.filter((_, idx) => idx !== i))} disabled={lineas.length === 1}>
+                <Input type="number" min="0" step="0.0001" inputMode="decimal" aria-label="Cantidad" placeholder="Cant." className="text-center tabular" value={l.cantidad} onChange={(e) => setLinea(i, { cantidad: e.target.value })} />
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <Input type="number" min="0" step="0.01" inputMode="decimal" aria-label="Precio unitario" placeholder="Precio" className="pl-6 text-right tabular" value={l.precioUnitario} onChange={(e) => setLinea(i, { precioUnitario: e.target.value })} />
+                </div>
+                <span className="tabular text-right text-sm font-medium">{money(sub)}</span>
+                <Button type="button" variant="ghost" size="icon" className="size-8 justify-self-end text-muted-foreground hover:text-destructive" onClick={() => setLineas((ls) => ls.filter((_, idx) => idx !== i))} disabled={lineas.length === 1}>
                   <Trash2 className="size-4" />
                 </Button>
-              </div>
-            </div>
-          );
-        })}
-        <Button type="button" variant="outline" size="sm" onClick={() => setLineas((ls) => [...ls, { productoId: "", unidadId: "", cantidad: "", precioUnitario: "" }])}>
-          <Plus className="size-4" /> Agregar producto
-        </Button>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="px-4 py-3">
+          <Button type="button" variant="outline" size="sm" onClick={() => setLineas((ls) => [...ls, { productoId: "", unidadId: "", cantidad: "", precioUnitario: "" }])}>
+            <Plus className="size-4" /> Agregar producto
+          </Button>
+        </div>
       </FormSection>
 
       <FormSection title="Costos adicionales" description="Flete, transporte y otros que se prorratean al costo.">

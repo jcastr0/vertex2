@@ -44,7 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           empresas={listaEmpresas}
           empresaActivaId={empresaIdActiva}
         />
-        <main className="flex-1 overflow-y-auto bg-muted/30 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

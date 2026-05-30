@@ -23,7 +23,7 @@ export default async function NuevaFacturaPage() {
   bodegasActivas.sort((a, b) => Number(b.esPrincipal) - Number(a.esPrincipal));
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader title="Vender" description="Registra una venta en pocos pasos." />
       <FacturaForm
         hoy={hoy}
