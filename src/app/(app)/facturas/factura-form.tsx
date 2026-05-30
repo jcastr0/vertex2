@@ -1,22 +1,29 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import Link from "next/link";
-import { crearFacturaAction, type FacturaState } from "./actions";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { crearFacturaAction, preciosClienteAction, type FacturaState } from "./actions";
+import { Autocomplete, type OpcionAuto } from "@/components/ui/autocomplete";
+import { buscarProductos, agregarOIncrementar, precioSugerido, type LineaCarrito } from "@/lib/domain/venta";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SearchSelect } from "@/components/ui/search-select";
 import { cn } from "@/lib/utils";
-import { AlertCircle, Loader2, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { AlertCircle, Loader2, ShoppingBag, Trash2 } from "lucide-react";
 
 interface Cliente { id: number; nombre: string }
 interface Bodega { id: number; nombre: string }
 interface Prod { id: number; nombre: string; sku: string; unidadBaseId: number; unidadAbrev: string; precio: number }
-interface Linea { productoId: string; cantidad: string; precioUnitario: string }
 
 const money = (n: number) => "$" + n.toLocaleString("es-CO", { maximumFractionDigits: 2 });
+
+// Filtra opciones de Autocomplete reutilizando la lógica de dominio (prefijo>substring).
+function filtrarOpciones(opciones: OpcionAuto[], q: string): OpcionAuto[] {
+  const buscables = opciones.map((o) => ({ id: Number(o.value), nombre: o.label, sku: o.hint ?? "" }));
+  const encontrados = buscarProductos(buscables, q, 8);
+  return encontrados.map((b) => opciones.find((o) => Number(o.value) === b.id)!);
+}
 
 function Vender() {
   const { pending } = useFormStatus();
@@ -28,56 +35,55 @@ function Vender() {
   );
 }
 
-export function FacturaForm({
-  clientes,
-  bodegas,
-  productos,
-  hoy,
-}: {
-  clientes: Cliente[];
-  bodegas: Bodega[];
-  productos: Prod[];
-  hoy: string;
-}) {
+export function FacturaForm({ clientes, bodegas, productos, hoy }: { clientes: Cliente[]; bodegas: Bodega[]; productos: Prod[]; hoy: string }) {
   const [state, action] = useActionState<FacturaState, FormData>(crearFacturaAction, {});
+  const [clienteId, setClienteId] = useState("");
+  const [bodegaId, setBodegaId] = useState(bodegas[0] ? String(bodegas[0].id) : "");
   const [tipo, setTipo] = useState<"contado" | "credito">("contado");
-  const [lineas, setLineas] = useState<Linea[]>([{ productoId: "", cantidad: "1", precioUnitario: "" }]);
-  const prodPorId = useMemo(() => new Map(productos.map((p) => [String(p.id), p])), [productos]);
+  const [carrito, setCarrito] = useState<LineaCarrito[]>([]);
+  const [preciosCliente, setPreciosCliente] = useState<Record<number, number>>({});
+  const [, startTransition] = useTransition();
 
-  const total = useMemo(
-    () => lineas.reduce((a, l) => a + (Number(l.cantidad) || 0) * (Number(l.precioUnitario) || 0), 0),
-    [lineas],
+  const prodPorId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
+  const base = useMemo(() => Object.fromEntries(productos.map((p) => [p.id, p.precio])), [productos]);
+  const clienteNombre = useMemo(() => clientes.find((c) => String(c.id) === clienteId)?.nombre ?? "", [clientes, clienteId]);
+
+  const opcionesCliente = useMemo<OpcionAuto[]>(() => clientes.map((c) => ({ value: String(c.id), label: c.nombre })), [clientes]);
+  const opcionesProducto = useMemo<OpcionAuto[]>(
+    () => productos.map((p) => ({ value: String(p.id), label: p.nombre, hint: `(${p.sku})`, derecha: money(precioSugerido(p.id, { porCliente: preciosCliente, base })) })),
+    [productos, preciosCliente, base],
   );
 
+  function elegirCliente(value: string) {
+    setClienteId(value);
+    startTransition(async () => setPreciosCliente(await preciosClienteAction(Number(value))));
+  }
+  function agregarProducto(value: string) {
+    const id = Number(value);
+    setCarrito((c) => agregarOIncrementar(c, id, precioSugerido(id, { porCliente: preciosCliente, base })));
+  }
+  function setLinea(id: number, patch: Partial<LineaCarrito>) {
+    setCarrito((c) => c.map((l) => (l.productoId === id ? { ...l, ...patch } : l)));
+  }
+  function quitar(id: number) {
+    setCarrito((c) => c.filter((l) => l.productoId !== id));
+  }
+
+  const total = useMemo(() => carrito.reduce((a, l) => a + l.cantidad * l.precioUnitario, 0), [carrito]);
   const lineasJson = JSON.stringify(
-    lineas
-      .filter((l) => l.productoId && Number(l.cantidad) > 0)
+    carrito
+      .filter((l) => l.cantidad > 0)
       .map((l) => {
         const p = prodPorId.get(l.productoId)!;
-        return {
-          productoId: Number(l.productoId),
-          unidadId: p.unidadBaseId,
-          cantidad: Number(l.cantidad),
-          precioUnitario: Number(l.precioUnitario) || 0,
-        };
+        return { productoId: l.productoId, unidadId: p.unidadBaseId, cantidad: l.cantidad, precioUnitario: l.precioUnitario };
       }),
   );
-
-  function elegirProducto(i: number, productoId: string) {
-    const p = prodPorId.get(productoId);
-    setLineas((ls) =>
-      ls.map((l, idx) =>
-        idx === i ? { ...l, productoId, precioUnitario: p ? String(p.precio) : l.precioUnitario } : l,
-      ),
-    );
-  }
-  function setLinea(i: number, patch: Partial<Linea>) {
-    setLineas((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
-  }
 
   return (
     <form action={action} className="space-y-6 pb-28">
       <input type="hidden" name="lineasJson" value={lineasJson} />
+      <input type="hidden" name="clienteId" value={clienteId} />
+      <input type="hidden" name="bodegaId" value={bodegaId} />
       <input type="hidden" name="tipoVenta" value={tipo} />
       <input type="hidden" name="fecha" value={hoy} />
 
@@ -87,103 +93,70 @@ export function FacturaForm({
         </div>
       )}
 
-      {/* Cliente + tipo */}
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">
         <div className="space-y-2">
           <Label className="text-base">¿A quién le vendes?</Label>
-          <SearchSelect
-            name="clienteId"
-            placeholder="Elegir cliente…"
-            triggerClassName="h-12"
-            options={clientes.map((c) => ({ value: String(c.id), label: c.nombre }))}
-          />
+          <Autocomplete opciones={opcionesCliente} onSelect={elegirCliente} filtrar={filtrarOpciones} placeholder={clienteNombre || "Elegir cliente…"} inputClassName="h-12" />
         </div>
-
         <div className="space-y-2">
           <Label className="text-base">¿Cómo paga?</Label>
           <div className="grid grid-cols-2 gap-3">
             {(["contado", "credito"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTipo(t)}
-                className={cn(
-                  "h-12 rounded-lg border text-sm font-medium capitalize transition-colors",
-                  tipo === t
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-background text-muted-foreground hover:bg-muted",
-                )}
-              >
+              <button key={t} type="button" onClick={() => setTipo(t)} className={cn("h-12 rounded-lg border text-sm font-medium capitalize transition-colors", tipo === t ? "border-primary bg-primary/10 text-primary" : "border-border bg-background text-muted-foreground hover:bg-muted")}>
                 {t === "contado" ? "Contado" : "Crédito"}
               </button>
             ))}
           </div>
         </div>
-
         <div className="space-y-2">
           <Label className="text-sm text-muted-foreground">Bodega</Label>
-          <SearchSelect
-            name="bodegaId"
-            placeholder="Bodega…"
-            defaultValue={bodegas[0] ? String(bodegas[0].id) : undefined}
-            options={bodegas.map((b) => ({ value: String(b.id), label: b.nombre }))}
-          />
+          <select value={bodegaId} onChange={(e) => setBodegaId(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm">
+            {bodegas.map((b) => <option key={b.id} value={b.id}>{b.nombre}</option>)}
+          </select>
         </div>
       </div>
 
-      {/* Productos */}
       <div className="space-y-3">
         <Label className="text-base">¿Qué vendes?</Label>
-        {lineas.map((l, i) => {
-          const p = prodPorId.get(l.productoId);
-          const sub = (Number(l.cantidad) || 0) * (Number(l.precioUnitario) || 0);
-          return (
-            <div key={i} className="space-y-3 rounded-xl border border-border bg-card p-4">
-              <SearchSelect
-                value={l.productoId}
-                onValueChange={(v) => elegirProducto(i, v)}
-                placeholder="Buscar producto…"
-                searchPlaceholder="Nombre o SKU…"
-                triggerClassName="h-12"
-                options={productos.map((pr) => ({ value: String(pr.id), label: pr.nombre, hint: `(${pr.sku})` }))}
-              />
-              <div className="flex items-end gap-3">
-                <div className="flex-1 space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Cantidad {p ? `(${p.unidadAbrev})` : ""}</Label>
-                  <Input type="number" min="0" step="0.0001" inputMode="decimal" className="h-12 text-center text-lg" value={l.cantidad} onChange={(e) => setLinea(i, { cantidad: e.target.value })} />
+        <Autocomplete opciones={opcionesProducto} onSelect={agregarProducto} filtrar={filtrarOpciones} placeholder="Buscar producto…" limpiarAlSeleccionar inputClassName="h-12" />
+
+        {carrito.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">Busca un producto arriba para agregarlo.</p>
+        ) : (
+          carrito.map((l) => {
+            const p = prodPorId.get(l.productoId)!;
+            const sub = l.cantidad * l.precioUnitario;
+            return (
+              <div key={l.productoId} className="space-y-3 rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{p.nombre}</span>
+                  <Button type="button" variant="ghost" size="icon" className="size-9 text-destructive" onClick={() => quitar(l.productoId)}><Trash2 className="size-5" /></Button>
                 </div>
-                <div className="flex-1 space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Precio c/u</Label>
-                  <Input type="number" min="0" step="0.01" inputMode="decimal" className="h-12 text-lg" value={l.precioUnitario} onChange={(e) => setLinea(i, { precioUnitario: e.target.value })} />
+                <div className="flex items-end gap-3">
+                  <div className="flex-1 space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Cantidad ({p.unidadAbrev})</Label>
+                    <Input type="number" min="0" step="0.001" inputMode="decimal" className="h-12 text-center text-lg" value={l.cantidad} onChange={(e) => setLinea(l.productoId, { cantidad: e.target.valueAsNumber || 0 })} />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Precio c/u</Label>
+                    <Input type="number" min="0" step="0.01" inputMode="decimal" className="h-12 text-lg" value={l.precioUnitario} onChange={(e) => setLinea(l.productoId, { precioUnitario: e.target.valueAsNumber || 0 })} />
+                  </div>
                 </div>
-                <Button type="button" variant="ghost" size="icon" className="size-12 text-destructive" onClick={() => setLineas((ls) => ls.filter((_, idx) => idx !== i))} disabled={lineas.length === 1}>
-                  <Trash2 className="size-5" />
-                </Button>
+                <div className="text-right text-sm text-muted-foreground">Subtotal: <span className="tabular font-medium text-foreground">{money(sub)}</span></div>
               </div>
-              <div className="text-right text-sm text-muted-foreground">Subtotal: <span className="tabular font-medium text-foreground">{money(sub)}</span></div>
-            </div>
-          );
-        })}
-        <Button type="button" variant="outline" className="h-12 w-full" onClick={() => setLineas((ls) => [...ls, { productoId: "", cantidad: "1", precioUnitario: "" }])}>
-          <Plus className="size-4" /> Agregar otro producto
-        </Button>
+            );
+          })
+        )}
       </div>
 
-      {/* Barra de total fija */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-4 backdrop-blur md:left-64">
         <div className="mx-auto flex max-w-2xl items-center gap-4">
           <div className="flex-1">
             <div className="text-xs text-muted-foreground">Total a {tipo === "contado" ? "cobrar" : "crédito"}</div>
             <div className="tabular text-2xl font-bold">{money(total)}</div>
           </div>
-          <div className="w-44">
-            <Vender />
-          </div>
+          <div className="w-44"><Vender /></div>
         </div>
-      </div>
-
-      <div className="hidden">
-        <Link href="/facturas" className={buttonVariants({ variant: "outline" })}>Cancelar</Link>
       </div>
     </form>
   );

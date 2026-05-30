@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseFacturaForm } from "@/lib/validation/factura";
-import { crearFactura, VentaInvalida } from "@/lib/services/facturas";
+import { crearFactura, ultimoPrecioPorCliente, VentaInvalida } from "@/lib/services/facturas";
 
 export interface FacturaState {
   error?: string;
@@ -43,4 +43,10 @@ export async function crearFacturaAction(
   revalidatePath("/facturas");
   revalidatePath("/inventario");
   redirect(`/facturas/${nuevoId}`);
+}
+
+export async function preciosClienteAction(clienteId: number): Promise<Record<number, number>> {
+  const c = await contexto();
+  if (!c || !clienteId) return {};
+  return ultimoPrecioPorCliente(c.ctx.empresaId, clienteId);
 }
