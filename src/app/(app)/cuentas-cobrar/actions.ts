@@ -19,6 +19,9 @@ export async function registrarRecaudoAction(_prev: AbonoState, form: FormData):
   const parsed = parseAbonoForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
 
+  const cuentaDestinoId = Number(form.get("cuentaDestinoId")) || undefined;
+  if (!cuentaDestinoId) return { error: "Elige la cuenta destino." };
+
   try {
     await registrarRecaudo(
       parsed.data.cuentaId,
@@ -27,6 +30,7 @@ export async function registrarRecaudoAction(_prev: AbonoState, form: FormData):
         metodoPago: parsed.data.metodoPago,
         referencia: parsed.data.referencia,
         fecha: parsed.data.fecha,
+        cuentaDestinoId,
       },
       c.ctx,
     );

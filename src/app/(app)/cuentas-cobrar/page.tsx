@@ -10,6 +10,7 @@ import { type Columna } from "@/components/responsive-table";
 import { Badge } from "@/components/ui/badge";
 import { AbonoButton } from "@/components/abono-button";
 import { registrarRecaudoAction } from "./actions";
+import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
 import { HandCoins } from "lucide-react";
 
 export const metadata: Metadata = { title: "Cuentas por cobrar — Vertex" };
@@ -27,7 +28,10 @@ export default async function CuentasCobrarPage({
   const sesion = await requirePermiso("cuentas_cobrar.ver");
   const { empresaId } = await requireEmpresa();
   const { q = "", page: pageRaw } = await searchParams;
-  const todos = await listarCuentasPorCobrar(empresaId);
+  const [todos, cuentasDestino] = await Promise.all([
+    listarCuentasPorCobrar(empresaId),
+    cuentasPropiasActivas(empresaId),
+  ]);
   const hoy = new Date().toISOString().slice(0, 10);
   const puedeRecaudar = puede(sesion.rol, "recaudos.crear");
 
@@ -83,6 +87,7 @@ export default async function CuentasCobrarPage({
                     modalTitulo={`Recaudo de ${f.cliente}`}
                     confirmarLabel="Registrar recaudo"
                     action={registrarRecaudoAction}
+                    cuentasDestino={cuentasDestino}
                   />
                 ) : (
                   <Badge variant="default" className="font-normal">Pagada</Badge>

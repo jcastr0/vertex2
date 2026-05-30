@@ -35,9 +35,10 @@ interface Props {
   modalTitulo: string;
   confirmarLabel: string;
   action: (prev: State, form: FormData) => Promise<State>;
+  cuentasDestino?: { id: number; nombre: string }[];
 }
 
-export function AbonoButton({ cuentaId, saldo, hoy, triggerLabel, modalTitulo, confirmarLabel, action }: Props) {
+export function AbonoButton({ cuentaId, saldo, hoy, triggerLabel, modalTitulo, confirmarLabel, action, cuentasDestino }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<State, FormData>(action, {});
@@ -75,6 +76,11 @@ export function AbonoButton({ cuentaId, saldo, hoy, triggerLabel, modalTitulo, c
             <Field label="Referencia" hint="N° de comprobante, cheque, etc.">
               <Input name="referencia" maxLength={100} />
             </Field>
+            {cuentasDestino && (
+              <Field label="Cuenta destino (a dónde entra)" required>
+                <SearchSelect name="cuentaDestinoId" placeholder="Elige la cuenta" options={cuentasDestino.map((c) => ({ value: String(c.id), label: c.nombre }))} />
+              </Field>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
