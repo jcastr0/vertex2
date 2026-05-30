@@ -1,123 +1,111 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { listarCuentasPorPagar } from "@/lib/services/cartera";
-import { retencionesActivas } from "@/lib/services/retenciones";
+import { acreedoresPorProveedor } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
-import { beneficiariosActivos } from "@/lib/services/beneficiarios";
-import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
-import { estadoCartera } from "@/lib/domain/cartera";
+import { retencionesActivas } from "@/lib/services/retenciones";
 import { PageHeader } from "@/components/page-header";
-import { ListaFiltrable } from "@/components/lista-filtrable";
-import { type Columna } from "@/components/responsive-table";
-import { Badge } from "@/components/ui/badge";
-import { PagoProveedorButton } from "@/components/pago-proveedor-button";
-import { registrarPagoAction } from "./actions";
-import { Wallet } from "lucide-react";
+import { FiltroBar } from "@/components/ui/filtro-bar";
+import { PagarProveedor } from "./pagar-proveedor";
+import { Wallet, PartyPopper } from "lucide-react";
 
-export const metadata: Metadata = { title: "Cuentas por pagar — Vertex" };
-const PAGE_SIZE = 10;
+export const metadata: Metadata = { title: "Pagar — Vertex" };
+const money = (n: number) => "$" + n.toLocaleString("es-CO");
 
-type Fila = Awaited<ReturnType<typeof listarCuentasPorPagar>>[number];
-const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
-const VARIANTE = { pagada: "default", vencida: "destructive", pendiente: "secondary" } as const;
-
-export default async function CuentasPagarPage({
+export default async function PagarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; estado?: string; desde?: string; hasta?: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const sesion = await requirePermiso("cuentas_pagar.ver");
   const { empresaId } = await requireEmpresa();
-  const { q = "", page: pageRaw, estado, desde, hasta } = await searchParams;
-  const todos = await listarCuentasPorPagar(empresaId);
-  const retenciones = await retencionesActivas(empresaId);
+  const { q = "" } = await searchParams;
+
+  const [acreedores, cuentasOrigen, retenciones] = await Promise.all([
+    acreedoresPorProveedor(empresaId),
+    cuentasPropiasActivas(empresaId),
+    retencionesActivas(empresaId),
+  ]);
+
   const hoy = new Date().toISOString().slice(0, 10);
   const puedePagar = puede(sesion.rol, "pagos_proveedor.crear");
 
-  const filtros = [
-    { key: "estado", label: "Estado", tipo: "select" as const, opciones: [{ value: "pendiente", label: "Pendiente" }, { value: "vencida", label: "Vencida" }, { value: "pagada", label: "Pagada" }] },
-    { key: "desde", label: "Vence desde", tipo: "fecha" as const },
-    { key: "hasta", label: "Vence hasta", tipo: "fecha" as const },
-  ];
+  const t = q.trim().toLowerCase();
+  const lista = t
+    ? acreedores.filter((a) => a.proveedor.toLowerCase().includes(t))
+    : acreedores;
 
-  const filtro = (f: Fila) => {
-    const est = estadoCartera(Number(f.cuenta.saldoPendiente), f.cuenta.fechaVencimiento, hoy);
-    if (estado && est !== estado) return false;
-    if (desde && f.cuenta.fechaVencimiento < desde) return false;
-    if (hasta && f.cuenta.fechaVencimiento > hasta) return false;
-    return true;
-  };
-
-  const { items, total, page } = filtrarPaginar(todos, {
-    q,
-    page: parsePage(pageRaw),
-    pageSize: PAGE_SIZE,
-    texto: (f) => `${f.proveedor} ${f.cuenta.numeroFactura}`,
-    filtro,
-  });
-
-  const cuentasOrigen = await cuentasPropiasActivas(empresaId);
-  // Beneficiarios por proveedor (solo filas con saldo)
-  const proveedorIds = [...new Set(items.filter((f) => Number(f.cuenta.saldoPendiente) > 0).map((f) => f.cuenta.proveedorId))];
-  const benefPorProveedor = new Map<number, Awaited<ReturnType<typeof beneficiariosActivos>>>();
-  await Promise.all(proveedorIds.map(async (pid) => { benefPorProveedor.set(pid, await beneficiariosActivos(empresaId, pid)); }));
-
-  const columnas: Columna<Fila>[] = [
-    { header: "Proveedor", primary: true, cell: (f) => f.proveedor },
-    { header: "Factura", cell: (f) => <span className="tabular">{f.cuenta.numeroFactura}</span> },
-    {
-      header: "Vencimiento",
-      cell: (f) => {
-        const est = estadoCartera(Number(f.cuenta.saldoPendiente), f.cuenta.fechaVencimiento, hoy);
-        return (
-          <div className="flex items-center gap-2">
-            <span className="tabular">{f.cuenta.fechaVencimiento}</span>
-            <Badge variant={VARIANTE[est]} className="font-normal capitalize">{est}</Badge>
-          </div>
-        );
-      },
-    },
-    { header: "Saldo", className: "text-right", cell: (f) => <span className="tabular font-medium">{money(f.cuenta.saldoPendiente)}</span> },
-  ];
+  const totalGeneral = acreedores.reduce((acc, a) => acc + a.total, 0);
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <PageHeader title="Cuentas por pagar" description="Saldos pendientes con proveedores." />
-      <ListaFiltrable
-        base="/cuentas-pagar"
-        q={q}
-        page={page}
-        total={total}
-        pageSize={PAGE_SIZE}
-        items={items}
-        getKey={(f) => f.cuenta.id}
-        columns={columnas}
-        searchPlaceholder="Buscar por proveedor o factura…"
-        filtros={filtros}
-        hayDatos={todos.length > 0}
-        vacio={{ icon: Wallet, titulo: "Sin cuentas por pagar", texto: "Se generan al recibir pedidos a proveedores." }}
-        actions={
-          puedePagar
-            ? (f) =>
-                Number(f.cuenta.saldoPendiente) > 0 ? (
-                  <PagoProveedorButton
-                    cuentaId={f.cuenta.id}
-                    saldo={Number(f.cuenta.saldoPendiente)}
+    <div className="mx-auto max-w-2xl">
+      <PageHeader title="Pagar" description="¿A quién le debes?" />
+
+      {acreedores.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
+          <PartyPopper className="mb-3 size-9 text-primary/60" />
+          <p className="font-medium">No le debes a nadie</p>
+          <p className="text-sm text-muted-foreground">
+            Cuando recibas pedidos de proveedores, aquí verás a quién pagarle.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                <Wallet className="size-5" />
+              </span>
+              <div>
+                <p className="text-xs text-muted-foreground">Debes en total</p>
+                <p className="tabular text-2xl font-bold tracking-tight">{money(totalGeneral)}</p>
+              </div>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {acreedores.length} {acreedores.length === 1 ? "proveedor" : "proveedores"}
+            </span>
+          </div>
+
+          <div className="mb-3">
+            <FiltroBar placeholder="Buscar proveedor…" />
+          </div>
+
+          {lista.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+              Ningún proveedor coincide con &ldquo;{q}&rdquo;.
+            </p>
+          ) : (
+            <div className="space-y-2.5">
+              {lista.map((a) =>
+                puedePagar ? (
+                  <PagarProveedor
+                    key={a.proveedorId}
+                    proveedorId={a.proveedorId}
+                    proveedor={a.proveedor}
+                    total={a.total}
+                    vencido={a.venceMin < hoy}
+                    facturaElectronica={a.facturaElectronica ?? false}
                     hoy={hoy}
-                    proveedor={f.proveedor}
-                    facturaElectronica={f.facturaElectronica ?? false}
-                    retenciones={retenciones}
-                    action={registrarPagoAction}
                     cuentasOrigen={cuentasOrigen}
-                    beneficiarios={benefPorProveedor.get(f.cuenta.proveedorId) ?? []}
+                    retenciones={retenciones}
                   />
                 ) : (
-                  <Badge variant="default" className="font-normal">Pagada</Badge>
-                )
-            : undefined
-        }
-      />
+                  <div
+                    key={a.proveedorId}
+                    className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
+                  >
+                    <span
+                      className={`size-2.5 shrink-0 rounded-full ${a.venceMin < hoy ? "bg-destructive" : "bg-primary/40"}`}
+                    />
+                    <span className="min-w-0 flex-1 truncate font-medium">{a.proveedor}</span>
+                    <span className="tabular text-lg font-bold">{money(a.total)}</span>
+                  </div>
+                ),
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
