@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormSection } from "@/components/ui/form-section";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 interface Opcion {
@@ -43,7 +44,7 @@ export function CategoriaForm({ categoria, opcionesPadre }: Props) {
   const opciones = opcionesPadre.filter((o) => o.id !== categoria?.id);
 
   return (
-    <form action={action} className="max-w-xl space-y-6">
+    <form action={action} className="max-w-xl space-y-5">
       {categoria && <input type="hidden" name="id" value={categoria.id} />}
 
       {state.error && (
@@ -56,30 +57,34 @@ export function CategoriaForm({ categoria, opcionesPadre }: Props) {
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="nombre">Nombre</Label>
-        <Input id="nombre" name="nombre" defaultValue={categoria?.nombre} required maxLength={100} />
-      </div>
+      <FormSection title="Datos de la categoría">
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="nombre">Nombre</Label>
+            <Input id="nombre" name="nombre" defaultValue={categoria?.nombre} required maxLength={100} />
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="descripcion">Descripción</Label>
-        <Textarea id="descripcion" name="descripcion" defaultValue={categoria?.descripcion ?? ""} rows={2} />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="descripcion">Descripción</Label>
+            <Textarea id="descripcion" name="descripcion" defaultValue={categoria?.descripcion ?? ""} rows={2} />
+          </div>
 
-      <div className="space-y-2">
-        <Label>Categoría padre (opcional)</Label>
-        <Select name="padreId" defaultValue={categoria?.padreId ? String(categoria.padreId) : SIN_PADRE}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value={SIN_PADRE}>— Sin padre (raíz) —</SelectItem>
-            {opciones.map((o) => (
-              <SelectItem key={o.id} value={String(o.id)}>
-                {o.nombre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          <div className="space-y-2">
+            <Label>Categoría padre (opcional)</Label>
+            <Select name="padreId" defaultValue={categoria?.padreId ? String(categoria.padreId) : SIN_PADRE}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SIN_PADRE}>— Sin padre (raíz) —</SelectItem>
+                {opciones.map((o) => (
+                  <SelectItem key={o.id} value={String(o.id)}>
+                    {o.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </FormSection>
 
       <div className="flex gap-3">
         <Guardar />

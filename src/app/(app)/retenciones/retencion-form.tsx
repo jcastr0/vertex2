@@ -8,6 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { FormSection } from "@/components/ui/form-section";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 interface Props {
@@ -37,7 +38,7 @@ export function RetencionForm({ retencion }: Props) {
   const [activa, setActiva] = useState(retencion?.activa ?? true);
 
   return (
-    <form action={action} className="max-w-xl space-y-6">
+    <form action={action} className="max-w-xl space-y-5">
       {retencion && <input type="hidden" name="id" value={retencion.id} />}
       <input type="hidden" name="aplicaTodas" value={String(aplicaTodas)} />
       <input type="hidden" name="activa" value={String(activa)} />
@@ -52,69 +53,76 @@ export function RetencionForm({ retencion }: Props) {
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="nombre">Nombre</Label>
-        <Input
-          id="nombre"
-          name="nombre"
-          defaultValue={retencion?.nombre}
-          required
-          maxLength={100}
-          placeholder="Ej. Retefuente compras"
-        />
-      </div>
+      <FormSection
+        title="Datos de la retención"
+        description="Se descuenta en pagos a proveedores con factura electrónica."
+      >
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="nombre">Nombre</Label>
+            <Input
+              id="nombre"
+              name="nombre"
+              defaultValue={retencion?.nombre}
+              required
+              maxLength={100}
+              placeholder="Ej. Retefuente compras"
+            />
+          </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="porcentaje">Porcentaje (%)</Label>
-          <Input
-            id="porcentaje"
-            name="porcentaje"
-            type="number"
-            step="0.001"
-            min="0"
-            max="100"
-            defaultValue={retencion?.porcentaje ?? ""}
-            required
-            placeholder="2.5"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="baseMinima">Base mínima ($)</Label>
-          <Input
-            id="baseMinima"
-            name="baseMinima"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={retencion?.baseMinima ?? "0"}
-            placeholder="0"
-          />
-          <p className="text-xs text-muted-foreground">Solo aplica cuando el pago iguala o supera este monto.</p>
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="porcentaje">Porcentaje (%)</Label>
+              <Input
+                id="porcentaje"
+                name="porcentaje"
+                type="number"
+                step="0.001"
+                min="0"
+                max="100"
+                defaultValue={retencion?.porcentaje ?? ""}
+                required
+                placeholder="2.5"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="baseMinima">Base mínima ($)</Label>
+              <Input
+                id="baseMinima"
+                name="baseMinima"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={retencion?.baseMinima ?? "0"}
+                placeholder="0"
+              />
+              <p className="text-xs text-muted-foreground">Solo aplica cuando el pago iguala o supera este monto.</p>
+            </div>
+          </div>
 
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
-        <div>
-          <Label className="cursor-pointer" onClick={() => setAplicaTodas((v) => !v)}>
-            Aplica a todas las facturas electrónicas
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            Se descuenta en cada pago a proveedores con factura electrónica.
-          </p>
-        </div>
-        <Switch checked={aplicaTodas} onCheckedChange={setAplicaTodas} />
-      </div>
+          <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+            <div>
+              <Label className="cursor-pointer" onClick={() => setAplicaTodas((v) => !v)}>
+                Aplica a todas las facturas electrónicas
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Se descuenta en cada pago a proveedores con factura electrónica.
+              </p>
+            </div>
+            <Switch checked={aplicaTodas} onCheckedChange={setAplicaTodas} />
+          </div>
 
-      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
-        <div>
-          <Label className="cursor-pointer" onClick={() => setActiva((v) => !v)}>
-            Activa
-          </Label>
-          <p className="text-xs text-muted-foreground">Las retenciones inactivas no se aplican en los pagos.</p>
+          <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+            <div>
+              <Label className="cursor-pointer" onClick={() => setActiva((v) => !v)}>
+                Activa
+              </Label>
+              <p className="text-xs text-muted-foreground">Las retenciones inactivas no se aplican en los pagos.</p>
+            </div>
+            <Switch checked={activa} onCheckedChange={setActiva} />
+          </div>
         </div>
-        <Switch checked={activa} onCheckedChange={setActiva} />
-      </div>
+      </FormSection>
 
       <div className="flex gap-3">
         <Guardar />
