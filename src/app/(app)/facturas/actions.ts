@@ -48,5 +48,11 @@ export async function crearFacturaAction(
 export async function preciosClienteAction(clienteId: number): Promise<Record<number, number>> {
   const c = await contexto();
   if (!c || !clienteId) return {};
-  return ultimoPrecioPorCliente(c.ctx.empresaId, clienteId);
+  try {
+    return await ultimoPrecioPorCliente(c.ctx.empresaId, clienteId);
+  } catch (e) {
+    // No bloquear la selección del cliente si fallara la consulta de precios.
+    console.error("[facturas] error al cargar precios por cliente:", e);
+    return {};
+  }
 }

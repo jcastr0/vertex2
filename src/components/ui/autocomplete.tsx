@@ -32,7 +32,10 @@ export function Autocomplete({ opciones, onSelect, filtrar, placeholder = "Busca
 
   function elegir(value: string) {
     onSelect(value);
+    // Modo "buscar y disparar" (productos): se limpia para el siguiente.
+    // Modo "seleccionar valor" (cliente): refleja el nombre elegido.
     if (limpiarAlSeleccionar) setQ("");
+    else setQ(opciones.find((o) => o.value === value)?.label ?? "");
     setAbierto(false);
     setActivo(0);
   }
