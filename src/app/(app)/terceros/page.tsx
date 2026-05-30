@@ -110,6 +110,7 @@ export default async function TercerosPage({
         items={items}
         getKey={(t) => t.id}
         rowClassName={(t) => (t.activo ? "" : "opacity-60")}
+        rowHref={(t) => `/terceros/${t.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por nombre, código o identificación…"
         hayDatos={todos.length > 0}

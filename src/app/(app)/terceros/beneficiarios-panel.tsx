@@ -1,16 +1,27 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { agregarBeneficiarioAction, quitarBeneficiarioAction, type BeneficiarioState } from "./beneficiarios-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { SearchSelect } from "@/components/ui/search-select";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 
 interface Cuenta { id: number; banco: string; tipo: string; numeroCuenta: string; titularNit: string; titularNombre: string }
 interface Props { terceroId: number; cuentas: Cuenta[] }
+
+function AgregarBtn() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="outline" disabled={pending}>
+      {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+      Agregar cuenta
+    </Button>
+  );
+}
 
 export function BeneficiariosPanel({ terceroId, cuentas }: Props) {
   const router = useRouter();
@@ -44,7 +55,7 @@ export function BeneficiariosPanel({ terceroId, cuentas }: Props) {
         <Field label="N° de cuenta" required><Input name="numeroCuenta" maxLength={50} required /></Field>
         <Field label="NIT titular" required><Input name="titularNit" maxLength={50} required /></Field>
         <Field label="Nombre titular" required><Input name="titularNombre" maxLength={200} required /></Field>
-        <div className="sm:col-span-2"><Button type="submit" variant="outline">Agregar cuenta</Button></div>
+        <div className="sm:col-span-2"><AgregarBtn /></div>
       </form>
     </section>
   );

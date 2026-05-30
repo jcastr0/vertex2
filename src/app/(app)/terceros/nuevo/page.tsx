@@ -11,7 +11,7 @@ export default async function NuevoTerceroPage() {
   const { empresaId } = await requireEmpresa();
   const recaudadores = await listarRecaudadores(empresaId);
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader title="Nuevo tercero" description="Registra un proveedor o cliente." />
       <TerceroForm recaudadores={recaudadores} />
     </div>

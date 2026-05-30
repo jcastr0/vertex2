@@ -26,7 +26,7 @@ export default async function EditarTerceroPage({
     : [];
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader title="Editar tercero" description={t.razonSocial} />
       <TerceroForm
         recaudadores={recaudadores}

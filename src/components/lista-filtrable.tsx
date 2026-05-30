@@ -17,6 +17,7 @@ interface Props<T> {
   getKey: (row: T) => string | number;
   actions?: (row: T) => ReactNode;
   rowClassName?: (row: T) => string;
+  rowHref?: (row: T) => string;
   searchPlaceholder: string;
   filtros?: FiltroDef[];
   /** ¿Hay datos antes de filtrar? (distingue "sin datos" de "sin resultados"). */
@@ -36,6 +37,7 @@ export function ListaFiltrable<T>({
   getKey,
   actions,
   rowClassName,
+  rowHref,
   searchPlaceholder,
   filtros,
   hayDatos,
@@ -68,6 +70,7 @@ export function ListaFiltrable<T>({
           getKey={getKey}
           actions={actions}
           rowClassName={rowClassName}
+          rowHref={rowHref}
         />
       )}
       <Pagination total={total} page={page} pageSize={pageSize} hrefForPage={hrefPaginaFactory(base, q)} />
