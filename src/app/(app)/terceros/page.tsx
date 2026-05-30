@@ -24,18 +24,31 @@ const ETIQUETA_TIPO: Record<string, string> = {
 export default async function TercerosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; tipo?: string; activo?: string }>;
 }) {
   const sesion = await requirePermiso("terceros.ver");
   const { empresaId } = await requireEmpresa();
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, tipo, activo } = await searchParams;
   const todos = await listarTerceros(empresaId);
+
+  const filtros = [
+    { key: "tipo", label: "Tipo", tipo: "select" as const, opciones: [{ value: "cliente", label: "Cliente" }, { value: "proveedor", label: "Proveedor" }, { value: "ambos", label: "Ambos" }] },
+    { key: "activo", label: "Estado", tipo: "select" as const, opciones: [{ value: "1", label: "Activos" }, { value: "0", label: "Inactivos" }] },
+  ];
+
+  const filtro = (t: Tercero) => {
+    if (tipo && t.tipo !== tipo) return false;
+    if (activo === "1" && !t.activo) return false;
+    if (activo === "0" && t.activo) return false;
+    return true;
+  };
 
   const { items, total, page } = filtrarPaginar(todos, {
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (t) => `${t.codigo} ${t.razonSocial} ${t.nombreComercial ?? ""} ${t.identificacion}`,
+    filtro,
   });
 
   const puedeCrear = puede(sesion.rol, "terceros.crear");
@@ -91,6 +104,7 @@ export default async function TercerosPage({
         base="/terceros"
         q={q}
         page={page}
+        filtros={filtros}
         total={total}
         pageSize={PAGE_SIZE}
         items={items}
