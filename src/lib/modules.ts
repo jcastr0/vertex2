@@ -26,6 +26,7 @@ import {
   BookOpen,
   Route,
   Percent,
+  Landmark,
 } from "lucide-react";
 import type { Modulo } from "./auth/roles";
 
@@ -84,6 +85,7 @@ export const NAV: GrupoNav[] = [
       { modulo: "cuentas_pagar", label: "Cuentas por pagar", href: "/cuentas-pagar", icon: Wallet, listo: true },
       { modulo: "pagos_proveedor", label: "Pagos a proveedor", href: "/pagos-proveedor", icon: Wallet, listo: true },
       { modulo: "retenciones", label: "Retenciones", href: "/retenciones", icon: Percent, listo: true },
+      { modulo: "tesoreria", label: "Tesorería", href: "/tesoreria", icon: Landmark, listo: true },
     ],
   },
   {
