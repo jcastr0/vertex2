@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchSelect } from "@/components/ui/search-select";
+import { FormSection } from "@/components/ui/form-section";
 import { DIAS_COBRO } from "@/lib/domain/ruta-recaudo";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -75,7 +76,7 @@ export function TerceroForm({
   const [fe, setFe] = useState(tercero?.requiereFacturaElectronica ?? false);
 
   return (
-    <form action={action} className="max-w-3xl space-y-6">
+    <form action={action} className="max-w-3xl space-y-5">
       {tercero && <input type="hidden" name="id" value={tercero.id} />}
       <input type="hidden" name="requiereFacturaElectronica" value={fe ? "true" : "false"} />
 
@@ -89,122 +90,158 @@ export function TerceroForm({
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Campo label="Tipo">
-          <Select name="tipo" defaultValue={tercero?.tipo ?? "proveedor"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="proveedor">Proveedor</SelectItem>
-              <SelectItem value="cliente">Cliente</SelectItem>
-              <SelectItem value="ambos">Ambos</SelectItem>
-            </SelectContent>
-          </Select>
-        </Campo>
-        <Campo label="Código">
-          <Input name="codigo" defaultValue={tercero?.codigo} required maxLength={50} />
-        </Campo>
-        <Campo label="Tipo de persona">
-          <Select name="tipoPersona" defaultValue={tercero?.tipoPersona ?? "juridica"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="juridica">Jurídica</SelectItem>
-              <SelectItem value="natural">Natural</SelectItem>
-            </SelectContent>
-          </Select>
-        </Campo>
-      </div>
+      <FormSection
+        title="Identificación"
+        description="Tipo de tercero, identificación legal y razón social."
+      >
+        <div className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-3">
+            <Campo label="Tipo">
+              <Select name="tipo" defaultValue={tercero?.tipo ?? "proveedor"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="proveedor">Proveedor</SelectItem>
+                  <SelectItem value="cliente">Cliente</SelectItem>
+                  <SelectItem value="ambos">Ambos</SelectItem>
+                </SelectContent>
+              </Select>
+            </Campo>
+            <Campo label="Código">
+              <Input name="codigo" defaultValue={tercero?.codigo} required maxLength={50} />
+            </Campo>
+            <Campo label="Tipo de persona">
+              <Select name="tipoPersona" defaultValue={tercero?.tipoPersona ?? "juridica"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="juridica">Jurídica</SelectItem>
+                  <SelectItem value="natural">Natural</SelectItem>
+                </SelectContent>
+              </Select>
+            </Campo>
+          </div>
 
-      <Campo label="Razón social">
-        <Input name="razonSocial" defaultValue={tercero?.razonSocial} required maxLength={200} />
-      </Campo>
-      <Campo label="Nombre comercial">
-        <Input name="nombreComercial" defaultValue={tercero?.nombreComercial ?? ""} maxLength={200} />
-      </Campo>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Campo label="Tipo de identificación">
+              <Select name="tipoIdentificacion" defaultValue={tercero?.tipoIdentificacion ?? "NIT"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NIT">NIT</SelectItem>
+                  <SelectItem value="CC">Cédula</SelectItem>
+                  <SelectItem value="CE">Cédula extranjería</SelectItem>
+                  <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
+                  <SelectItem value="OTRO">Otro</SelectItem>
+                </SelectContent>
+              </Select>
+            </Campo>
+            <Campo label="Identificación">
+              <Input name="identificacion" defaultValue={tercero?.identificacion} required maxLength={50} />
+            </Campo>
+          </div>
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Campo label="Tipo de identificación">
-          <Select name="tipoIdentificacion" defaultValue={tercero?.tipoIdentificacion ?? "NIT"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="NIT">NIT</SelectItem>
-              <SelectItem value="CC">Cédula</SelectItem>
-              <SelectItem value="CE">Cédula extranjería</SelectItem>
-              <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
-              <SelectItem value="OTRO">Otro</SelectItem>
-            </SelectContent>
-          </Select>
-        </Campo>
-        <Campo label="Identificación">
-          <Input name="identificacion" defaultValue={tercero?.identificacion} required maxLength={50} />
-        </Campo>
-        <Campo label="Email">
-          <Input name="email" type="email" defaultValue={tercero?.email ?? ""} maxLength={100} />
-        </Campo>
-      </div>
+          <Campo label="Razón social">
+            <Input name="razonSocial" defaultValue={tercero?.razonSocial} required maxLength={200} />
+          </Campo>
+          <Campo label="Nombre comercial">
+            <Input name="nombreComercial" defaultValue={tercero?.nombreComercial ?? ""} maxLength={200} />
+          </Campo>
+        </div>
+      </FormSection>
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Campo label="Teléfono">
-          <Input name="telefono" defaultValue={tercero?.telefono ?? ""} maxLength={20} />
-        </Campo>
-        <Campo label="Celular">
-          <Input name="celular" defaultValue={tercero?.celular ?? ""} maxLength={20} />
-        </Campo>
-        <Campo label="Ciudad">
-          <Input name="ciudad" defaultValue={tercero?.ciudad ?? ""} maxLength={100} />
-        </Campo>
-      </div>
+      <FormSection
+        title="Contacto"
+        description="Medios de comunicación del tercero."
+      >
+        <div className="grid gap-5 sm:grid-cols-3">
+          <Campo label="Email">
+            <Input name="email" type="email" defaultValue={tercero?.email ?? ""} maxLength={100} />
+          </Campo>
+          <Campo label="Teléfono">
+            <Input name="telefono" defaultValue={tercero?.telefono ?? ""} maxLength={20} />
+          </Campo>
+          <Campo label="Celular">
+            <Input name="celular" defaultValue={tercero?.celular ?? ""} maxLength={20} />
+          </Campo>
+        </div>
+      </FormSection>
 
-      <Campo label="Dirección">
-        <Input name="direccion" defaultValue={tercero?.direccion ?? ""} maxLength={500} />
-      </Campo>
+      <FormSection
+        title="Ubicación"
+        description="Dirección física y ciudad del tercero."
+      >
+        <div className="space-y-5">
+          <Campo label="Dirección">
+            <Input name="direccion" defaultValue={tercero?.direccion ?? ""} maxLength={500} />
+          </Campo>
+          <Campo label="Ciudad">
+            <Input name="ciudad" defaultValue={tercero?.ciudad ?? ""} maxLength={100} />
+          </Campo>
+        </div>
+      </FormSection>
 
-      <div className="grid gap-5 sm:grid-cols-4">
-        <Campo label="Días crédito proveedor">
-          <Input name="diasCreditoProveedor" type="number" min={0} defaultValue={tercero?.diasCreditoProveedor ?? 0} />
-        </Campo>
-        <Campo label="Días crédito cliente">
-          <Input name="diasCreditoCliente" type="number" min={0} defaultValue={tercero?.diasCreditoCliente ?? 0} />
-        </Campo>
-        <Campo label="Cupo de crédito">
-          <Input name="cupoCredito" type="number" min={0} step="0.01" defaultValue={tercero?.cupoCredito ?? "0"} />
-        </Campo>
-        <Campo label="Condiciones de pago">
-          <Input name="condicionesPago" defaultValue={tercero?.condicionesPago ?? ""} maxLength={100} />
-        </Campo>
-      </div>
+      <FormSection
+        title="Condiciones comerciales"
+        description="Plazos de crédito, cupo y facturación electrónica."
+      >
+        <div className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-4">
+            <Campo label="Días crédito proveedor">
+              <Input name="diasCreditoProveedor" type="number" min={0} defaultValue={tercero?.diasCreditoProveedor ?? 0} />
+            </Campo>
+            <Campo label="Días crédito cliente">
+              <Input name="diasCreditoCliente" type="number" min={0} defaultValue={tercero?.diasCreditoCliente ?? 0} />
+            </Campo>
+            <Campo label="Cupo de crédito">
+              <Input name="cupoCredito" type="number" min={0} step="0.01" defaultValue={tercero?.cupoCredito ?? "0"} />
+            </Campo>
+            <Campo label="Condiciones de pago">
+              <Input name="condicionesPago" defaultValue={tercero?.condicionesPago ?? ""} maxLength={100} />
+            </Campo>
+          </div>
 
-      <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 px-4 py-3">
-        <Switch id="fe" checked={fe} onCheckedChange={setFe} />
-        <Label htmlFor="fe" className="cursor-pointer">
-          Requiere factura electrónica
-        </Label>
-      </div>
+          <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 px-4 py-3">
+            <Switch id="fe" checked={fe} onCheckedChange={setFe} />
+            <Label htmlFor="fe" className="cursor-pointer">
+              Requiere factura electrónica
+            </Label>
+          </div>
+        </div>
+      </FormSection>
 
-      <div className="grid gap-5 rounded-md border border-border bg-muted/20 p-4 sm:grid-cols-2">
-        <Campo label="Recaudador asignado">
-          <SearchSelect
-            name="recaudadorId"
-            placeholder="Sin asignar"
-            defaultValue={tercero?.recaudadorId ? String(tercero.recaudadorId) : undefined}
-            options={recaudadores.map((r) => ({ value: String(r.id), label: r.nombre }))}
-          />
-        </Campo>
-        <Campo label="Día de cobro">
-          <Select name="diaCobro" defaultValue={tercero?.diaCobro ? String(tercero.diaCobro) : "0"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">— Sin día fijo —</SelectItem>
-              {DIAS_COBRO.map((d) => (
-                <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Campo>
-      </div>
+      <FormSection
+        title="Recaudo"
+        description="Recaudador asignado y día fijo de cobro."
+      >
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Campo label="Recaudador asignado">
+            <SearchSelect
+              name="recaudadorId"
+              placeholder="Sin asignar"
+              defaultValue={tercero?.recaudadorId ? String(tercero.recaudadorId) : undefined}
+              options={recaudadores.map((r) => ({ value: String(r.id), label: r.nombre }))}
+            />
+          </Campo>
+          <Campo label="Día de cobro">
+            <Select name="diaCobro" defaultValue={tercero?.diaCobro ? String(tercero.diaCobro) : "0"}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">— Sin día fijo —</SelectItem>
+                {DIAS_COBRO.map((d) => (
+                  <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Campo>
+        </div>
+      </FormSection>
 
-      <Campo label="Observaciones">
-        <Textarea name="observaciones" defaultValue={tercero?.observaciones ?? ""} rows={3} />
-      </Campo>
+      <FormSection
+        title="Observaciones"
+        description="Notas internas sobre este tercero."
+      >
+        <Campo label="Observaciones">
+          <Textarea name="observaciones" defaultValue={tercero?.observaciones ?? ""} rows={3} />
+        </Campo>
+      </FormSection>
 
       <div className="flex gap-3">
         <Guardar />

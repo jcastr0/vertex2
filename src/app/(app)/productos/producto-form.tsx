@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormSection } from "@/components/ui/form-section";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 interface Opcion { id: number; nombre: string }
@@ -61,7 +62,7 @@ export function ProductoForm({ producto, categorias, unidades }: Props) {
   const [state, action] = useActionState<ProductoState, FormData>(guardarProductoAction, {});
 
   return (
-    <form action={action} className="max-w-3xl space-y-6">
+    <form action={action} className="max-w-3xl space-y-5">
       {producto && <input type="hidden" name="id" value={producto.id} />}
 
       {state.error && (
@@ -74,68 +75,80 @@ export function ProductoForm({ producto, categorias, unidades }: Props) {
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-3">
-        <Campo label="SKU">
-          <Input name="sku" defaultValue={producto?.sku} required maxLength={50} />
-        </Campo>
-        <div className="space-y-2 sm:col-span-2">
-          <Label>Nombre</Label>
-          <Input name="nombre" defaultValue={producto?.nombre} required maxLength={200} />
+      <FormSection
+        title="Datos del producto"
+        description="Identificación, clasificación y descripción del producto."
+      >
+        <div className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-3">
+            <Campo label="SKU">
+              <Input name="sku" defaultValue={producto?.sku} required maxLength={50} />
+            </Campo>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Nombre</Label>
+              <Input name="nombre" defaultValue={producto?.nombre} required maxLength={200} />
+            </div>
+          </div>
+
+          <Campo label="Descripción">
+            <Textarea name="descripcion" defaultValue={producto?.descripcion ?? ""} rows={2} />
+          </Campo>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Campo label="Categoría">
+              <Select name="categoriaId" defaultValue={producto?.categoriaId ? String(producto.categoriaId) : SIN_CAT}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SIN_CAT}>— Sin categoría —</SelectItem>
+                  {categorias.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Campo>
+            <Campo label="Unidad base (de inventario)">
+              <Select name="unidadBaseId" defaultValue={producto ? String(producto.unidadBaseId) : undefined}>
+                <SelectTrigger><SelectValue placeholder="Selecciona…" /></SelectTrigger>
+                <SelectContent>
+                  {unidades.map((u) => (
+                    <SelectItem key={u.id} value={String(u.id)}>
+                      {u.nombre} ({u.abreviatura})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Campo>
+          </div>
         </div>
-      </div>
+      </FormSection>
 
-      <Campo label="Descripción">
-        <Textarea name="descripcion" defaultValue={producto?.descripcion ?? ""} rows={2} />
-      </Campo>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Campo label="Categoría">
-          <Select name="categoriaId" defaultValue={producto?.categoriaId ? String(producto.categoriaId) : SIN_CAT}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value={SIN_CAT}>— Sin categoría —</SelectItem>
-              {categorias.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>{c.nombre}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Campo>
-        <Campo label="Unidad base (de inventario)">
-          <Select name="unidadBaseId" defaultValue={producto ? String(producto.unidadBaseId) : undefined}>
-            <SelectTrigger><SelectValue placeholder="Selecciona…" /></SelectTrigger>
-            <SelectContent>
-              {unidades.map((u) => (
-                <SelectItem key={u.id} value={String(u.id)}>
-                  {u.nombre} ({u.abreviatura})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Campo>
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-4">
-        <Campo label="Precio compra sugerido">
-          <Input name="precioCompraSugerido" type="number" min={0} step="0.01" defaultValue={producto?.precioCompraSugerido ?? ""} />
-        </Campo>
-        <Campo label="Stock mínimo">
-          <Input name="stockMinimo" type="number" min={0} step="0.0001" defaultValue={producto?.stockMinimo ?? "0"} />
-        </Campo>
-        <Campo label="Stock máximo">
-          <Input name="stockMaximo" type="number" min={0} step="0.0001" defaultValue={producto?.stockMaximo ?? ""} />
-        </Campo>
-        <Campo label="Clasificación ABC">
-          <Select name="clasificacionAbc" defaultValue={producto?.clasificacionAbc || "none"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">—</SelectItem>
-              <SelectItem value="A">A</SelectItem>
-              <SelectItem value="B">B</SelectItem>
-              <SelectItem value="C">C</SelectItem>
-            </SelectContent>
-          </Select>
-        </Campo>
-      </div>
+      <FormSection
+        title="Inventario y precios"
+        description="Precio de compra sugerido, niveles de stock y clasificación ABC."
+      >
+        <div className="grid gap-5 sm:grid-cols-4">
+          <Campo label="Precio compra sugerido">
+            <Input name="precioCompraSugerido" type="number" min={0} step="0.01" defaultValue={producto?.precioCompraSugerido ?? ""} />
+          </Campo>
+          <Campo label="Stock mínimo">
+            <Input name="stockMinimo" type="number" min={0} step="0.0001" defaultValue={producto?.stockMinimo ?? "0"} />
+          </Campo>
+          <Campo label="Stock máximo">
+            <Input name="stockMaximo" type="number" min={0} step="0.0001" defaultValue={producto?.stockMaximo ?? ""} />
+          </Campo>
+          <Campo label="Clasificación ABC">
+            <Select name="clasificacionAbc" defaultValue={producto?.clasificacionAbc || "none"}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">—</SelectItem>
+                <SelectItem value="A">A</SelectItem>
+                <SelectItem value="B">B</SelectItem>
+                <SelectItem value="C">C</SelectItem>
+              </SelectContent>
+            </Select>
+          </Campo>
+        </div>
+      </FormSection>
 
       <div className="flex gap-3">
         <Guardar nuevo={!producto} />
