@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { REPORTES } from "@/lib/reportes/registry";
 import { kpis, stockBajo, cxcVencidas, novedadesPorProveedor, type FilaStockBajo, type FilaVencida } from "@/lib/services/reportes";
 import { rangoMes } from "@/lib/domain/periodo";
 import { PageHeader } from "@/components/page-header";
@@ -63,6 +65,16 @@ export default async function ReportesPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <PageHeader title="Reportes" description={`Indicadores del periodo ${desde} a ${hasta}.`} />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {REPORTES.map((r) => (
+          <Link key={r.slug} href={`/reportes/${r.slug}`} className="group rounded-2xl border border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-md">
+            <span className="mb-3 flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><r.icon className="size-5" /></span>
+            <h3 className="font-semibold tracking-tight">{r.titulo}</h3>
+            <p className="text-sm text-muted-foreground">{r.desc}</p>
+          </Link>
+        ))}
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {tarjetas.map((t) => (
