@@ -335,7 +335,7 @@ export async function anularFactura(facturaId: number, motivo: string, ctx: Cont
   let saldoPend = Number(f.total);
   let cxcId: number | null = null;
   if (f.tipoVenta === "credito") {
-    const [cxc] = await db.select().from(cuentasPorCobrar).where(eq(cuentasPorCobrar.facturaId, facturaId)).limit(1);
+    const [cxc] = await db.select().from(cuentasPorCobrar).where(and(eq(cuentasPorCobrar.empresaId, ctx.empresaId), eq(cuentasPorCobrar.facturaId, facturaId))).limit(1);
     if (cxc) { saldoPend = Number(cxc.saldoPendiente); cxcId = cxc.id; }
   }
   const chk = puedeAnular(f.estado, saldoPend, Number(f.total), f.tipoVenta);
@@ -344,6 +344,9 @@ export async function anularFactura(facturaId: number, motivo: string, ctx: Cont
   const detalles = await db.select().from(facturaDetalles).where(eq(facturaDetalles.facturaId, facturaId));
 
   await db.transaction(async (tx) => {
+    // Re-chequeo dentro de la transacción (evita doble anulación por carrera).
+    const [actual] = await tx.select({ estado: facturas.estado }).from(facturas).where(eq(facturas.id, f.id)).limit(1);
+    if (actual?.estado !== "emitida") throw new AnulacionInvalida("La factura ya no está emitida.");
     // 1) Devolver stock
     for (const d of detalles) {
       const [inv] = await tx.select().from(inventario)
@@ -355,7 +358,7 @@ export async function anularFactura(facturaId: number, motivo: string, ctx: Cont
         await tx.insert(movimientosInventario).values({
           empresaId: ctx.empresaId, bodegaId: f.bodegaId, productoId: d.productoId,
           tipo: "entrada", cantidad: String(d.cantidadBase), costoUnitario: String(d.costoUnitario),
-          referencia: `ANULA ${f.numero}`, usuarioId: ctx.usuarioId,
+          referencia: `ANULA ${f.numero}`, facturaId: f.id, usuarioId: ctx.usuarioId,
         });
       }
     }
