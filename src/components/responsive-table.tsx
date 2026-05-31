@@ -64,7 +64,7 @@ export function ResponsiveTable<T>({ items, columns, getKey, actions, rowClassNa
             {items.map((row) => (
               <TableRow key={getKey(row)} className={cn(rowHref && "relative cursor-pointer hover:bg-muted/40", rowClassName?.(row))}>
                 {columns.map((c, idx) => (
-                  <TableCell key={c.header} className={cn(c.className, rowHref && idx === 0 && "relative")}>
+                  <TableCell key={c.header} className={c.className}>
                     {rowHref && idx === 0 ? (
                       <Link href={rowHref(row)} className="after:absolute after:inset-0 after:content-['']">
                         {c.cell(row)}
