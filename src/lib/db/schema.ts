@@ -76,6 +76,7 @@ export const empresas = pgTable("vx04", {
   pais: varchar("pais", { length: 100 }).default("Colombia"),
   logoUrl: varchar("logo_url", { length: 500 }),
   temaColor: varchar("tema_color", { length: 20 }),
+  paletaTema: varchar("paleta_tema", { length: 40 }),
   activa: boolean("activa").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

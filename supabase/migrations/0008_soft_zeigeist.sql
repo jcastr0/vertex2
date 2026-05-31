@@ -1,0 +1,1 @@
+ALTER TABLE "vx04" ADD COLUMN "paleta_tema" varchar(40);

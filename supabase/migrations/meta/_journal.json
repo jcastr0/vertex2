@@ -57,6 +57,13 @@
       "when": 1780199966547,
       "tag": "0007_tiresome_serpent_society",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780250895873,
+      "tag": "0008_soft_zeigeist",
+      "breakpoints": true
     }
   ]
 }
