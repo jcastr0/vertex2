@@ -56,6 +56,24 @@ export async function listarPedidos(empresaId: number) {
     .orderBy(desc(pedidos.createdAt));
 }
 
+export interface PedidoProveedor {
+  id: number;
+  numero: string;
+  fecha: string;
+  estado: string;
+  total: number;
+}
+
+/** Pedidos/compras de un proveedor específico (más recientes primero). */
+export async function pedidosDeProveedor(empresaId: number, proveedorId: number): Promise<PedidoProveedor[]> {
+  const rows = await db
+    .select({ id: pedidos.id, numero: pedidos.numero, fecha: pedidos.fecha, estado: pedidos.estado, total: pedidos.total })
+    .from(pedidos)
+    .where(and(eq(pedidos.empresaId, empresaId), eq(pedidos.proveedorId, proveedorId)))
+    .orderBy(desc(pedidos.fecha), desc(pedidos.id));
+  return rows.map((r) => ({ ...r, total: Number(r.total) }));
+}
+
 export async function obtenerPedido(empresaId: number, id: number) {
   const [p] = await db
     .select()

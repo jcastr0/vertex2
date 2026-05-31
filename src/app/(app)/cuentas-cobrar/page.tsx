@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { deudoresPorCliente } from "@/lib/services/cartera";
+import { deudoresPorCliente, cuentasPorCobrarAbiertasPorCliente } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
 import { PageHeader } from "@/components/page-header";
 import { FiltroBar } from "@/components/ui/filtro-bar";
@@ -19,9 +19,10 @@ export default async function CobrarPage({
   const sesion = await requirePermiso("cuentas_cobrar.ver");
   const { empresaId } = await requireEmpresa();
   const { q = "" } = await searchParams;
-  const [deudores, cuentasDestino] = await Promise.all([
+  const [deudores, cuentasDestino, docsPorCliente] = await Promise.all([
     deudoresPorCliente(empresaId),
     cuentasPropiasActivas(empresaId),
+    cuentasPorCobrarAbiertasPorCliente(empresaId),
   ]);
   const hoy = new Date().toISOString().slice(0, 10);
   const puedeCobrar = puede(sesion.rol, "recaudos.crear");
@@ -75,6 +76,7 @@ export default async function CobrarPage({
                     vencido={d.venceMin < hoy}
                     hoy={hoy}
                     cuentasDestino={cuentasDestino}
+                    docs={docsPorCliente[d.clienteId] ?? []}
                   />
                 ) : (
                   <div key={d.clienteId} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">

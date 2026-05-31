@@ -11,6 +11,7 @@ import {
   movimientosTesoreria,
   cuentasBeneficiario,
   cuentasPropias,
+  facturas,
 } from "@/lib/db/schema";
 import { movimientoDesdePago, type BeneficiarioSnapshot } from "@/lib/domain/tesoreria";
 import { registrarAuditoria } from "@/lib/audit";
@@ -449,4 +450,71 @@ export async function pagarAProveedor(
     );
   });
   return aplicado;
+}
+
+export interface DocAbierto {
+  id: number;
+  numero: string;
+  fecha: string;
+  vence: string;
+  total: number;
+  saldo: number;
+}
+
+/** Facturas con saldo pendiente de UN cliente (las que componen su deuda). */
+export async function cuentasPorCobrarDe(empresaId: number, clienteId: number): Promise<DocAbierto[]> {
+  const rows = await db
+    .select({
+      id: cuentasPorCobrar.id,
+      numero: facturas.numero,
+      fecha: cuentasPorCobrar.fechaFactura,
+      vence: cuentasPorCobrar.fechaVencimiento,
+      total: cuentasPorCobrar.valorTotal,
+      saldo: cuentasPorCobrar.saldoPendiente,
+    })
+    .from(cuentasPorCobrar)
+    .innerJoin(facturas, eq(cuentasPorCobrar.facturaId, facturas.id))
+    .where(and(eq(cuentasPorCobrar.empresaId, empresaId), eq(cuentasPorCobrar.clienteId, clienteId), gt(cuentasPorCobrar.saldoPendiente, "0")))
+    .orderBy(asc(cuentasPorCobrar.fechaVencimiento));
+  return rows.map((r) => ({ ...r, total: Number(r.total), saldo: Number(r.saldo) }));
+}
+
+/** Documentos con saldo pendiente de UN proveedor (lo que le debes). */
+export async function cuentasPorPagarDe(empresaId: number, proveedorId: number): Promise<DocAbierto[]> {
+  const rows = await db
+    .select({
+      id: cuentasPorPagar.id,
+      numero: cuentasPorPagar.numeroFactura,
+      fecha: cuentasPorPagar.fechaFactura,
+      vence: cuentasPorPagar.fechaVencimiento,
+      total: cuentasPorPagar.valorTotal,
+      saldo: cuentasPorPagar.saldoPendiente,
+    })
+    .from(cuentasPorPagar)
+    .where(and(eq(cuentasPorPagar.empresaId, empresaId), eq(cuentasPorPagar.proveedorId, proveedorId), gt(cuentasPorPagar.saldoPendiente, "0")))
+    .orderBy(asc(cuentasPorPagar.fechaVencimiento));
+  return rows.map((r) => ({ ...r, total: Number(r.total), saldo: Number(r.saldo) }));
+}
+
+/** Todos los documentos abiertos por cobrar, agrupados por cliente (sin N+1). */
+export async function cuentasPorCobrarAbiertasPorCliente(empresaId: number): Promise<Record<number, DocAbierto[]>> {
+  const rows = await db
+    .select({
+      clienteId: cuentasPorCobrar.clienteId,
+      id: cuentasPorCobrar.id,
+      numero: facturas.numero,
+      fecha: cuentasPorCobrar.fechaFactura,
+      vence: cuentasPorCobrar.fechaVencimiento,
+      total: cuentasPorCobrar.valorTotal,
+      saldo: cuentasPorCobrar.saldoPendiente,
+    })
+    .from(cuentasPorCobrar)
+    .innerJoin(facturas, eq(cuentasPorCobrar.facturaId, facturas.id))
+    .where(and(eq(cuentasPorCobrar.empresaId, empresaId), gt(cuentasPorCobrar.saldoPendiente, "0")))
+    .orderBy(asc(cuentasPorCobrar.fechaVencimiento));
+  const porCliente: Record<number, DocAbierto[]> = {};
+  for (const r of rows) {
+    (porCliente[r.clienteId] ??= []).push({ id: r.id, numero: r.numero, fecha: r.fecha, vence: r.vence, total: Number(r.total), saldo: Number(r.saldo) });
+  }
+  return porCliente;
 }

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, desc, count, inArray } from "drizzle-orm";
+import { and, eq, ne, desc, count, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   facturas,
@@ -48,6 +48,43 @@ export async function listarFacturas(empresaId: number) {
     .innerJoin(terceros, eq(facturas.clienteId, terceros.id))
     .where(eq(facturas.empresaId, empresaId))
     .orderBy(desc(facturas.createdAt));
+}
+
+export interface FacturaCliente {
+  id: number;
+  numero: string;
+  fecha: string;
+  tipoVenta: string;
+  total: number;
+  saldo: number;
+  esElectronica: boolean;
+}
+
+/** Facturas de un cliente con su saldo pendiente (0 si es de contado o ya pagada). */
+export async function facturasDeCliente(empresaId: number, clienteId: number): Promise<FacturaCliente[]> {
+  const rows = await db
+    .select({
+      id: facturas.id,
+      numero: facturas.numero,
+      fecha: facturas.fecha,
+      tipoVenta: facturas.tipoVenta,
+      total: facturas.total,
+      esElectronica: facturas.esElectronica,
+      saldo: cuentasPorCobrar.saldoPendiente,
+    })
+    .from(facturas)
+    .leftJoin(cuentasPorCobrar, eq(cuentasPorCobrar.facturaId, facturas.id))
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId), ne(facturas.estado, "cancelada")))
+    .orderBy(desc(facturas.fecha), desc(facturas.id));
+  return rows.map((r) => ({
+    id: r.id,
+    numero: r.numero,
+    fecha: r.fecha,
+    tipoVenta: r.tipoVenta,
+    total: Number(r.total),
+    saldo: Number(r.saldo ?? 0),
+    esElectronica: r.esElectronica,
+  }));
 }
 
 export async function obtenerFactura(empresaId: number, id: number) {

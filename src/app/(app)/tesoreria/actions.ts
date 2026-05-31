@@ -7,6 +7,7 @@ import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseCuentaPropiaForm } from "@/lib/validation/cuenta-propia";
 import { parseMovimientoForm } from "@/lib/validation/movimiento-tesoreria";
 import { crearCuentaPropia, actualizarCuentaPropia, registrarMovimientoManual } from "@/lib/services/tesoreria";
+import { crearBanco, cambiarEstadoBanco, TIPOS_BANCO, type TipoBanco } from "@/lib/services/bancos";
 
 export interface TesoreriaState {
   error?: string;
@@ -52,4 +53,41 @@ export async function registrarMovimientoAction(_prev: MovimientoState, form: Fo
   revalidatePath("/tesoreria");
   revalidatePath(`/tesoreria/${parsed.data.cuentaPropiaId}`);
   return { ok: true };
+}
+
+export interface BancoState {
+  error?: string;
+  ok?: boolean;
+}
+
+export async function crearBancoAction(_prev: BancoState, form: FormData): Promise<BancoState> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "tesoreria.crear")) return { error: "No tienes permiso para agregar bancos." };
+  const nombre = String(form.get("nombre") || "").trim();
+  const tipoRaw = String(form.get("tipo") || "banco");
+  const tipo: TipoBanco = (TIPOS_BANCO as readonly string[]).includes(tipoRaw) ? (tipoRaw as TipoBanco) : "banco";
+  if (nombre.length < 2) return { error: "Escribe el nombre del banco." };
+  try {
+    await crearBanco({ nombre, tipo }, c.ctx);
+  } catch (e) {
+    console.error("[bancos] error al crear:", e);
+    return { error: "Ocurrió un error al agregar el banco." };
+  }
+  revalidatePath("/tesoreria");
+  return { ok: true };
+}
+
+export async function toggleBancoAction(id: number, activo: boolean): Promise<{ error?: string }> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "tesoreria.editar")) return { error: "No tienes permiso." };
+  try {
+    await cambiarEstadoBanco(id, activo, c.ctx);
+  } catch (e) {
+    console.error("[bancos] error al cambiar estado:", e);
+    return { error: "No se pudo actualizar el banco." };
+  }
+  revalidatePath("/tesoreria");
+  return {};
 }
