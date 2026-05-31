@@ -12,6 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:seed:base": "tsx src/lib/db/seed-base.ts",
     "db:seed": "tsx src/lib/db/seed.ts",
     "db:seed:demo": "tsx src/lib/db/seed-demo.ts",
     "db:seed:ruta": "tsx src/lib/db/seed-ruta.ts",
