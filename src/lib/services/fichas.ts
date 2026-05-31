@@ -1,8 +1,12 @@
 import "server-only";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { inventario, productos, bodegas, unidadesMedida, movimientosInventario } from "@/lib/db/schema";
+import {
+  inventario, productos, bodegas, unidadesMedida, movimientosInventario,
+  facturas, facturaDetalles, pedidos, pedidoDetalles, notasInventario,
+} from "@/lib/db/schema";
 import { obtenerBodega, type Bodega } from "./bodegas";
+import { obtenerProducto, type Producto } from "./productos";
 
 /** Resumen de inventario de una bodega a partir de las existencias de sus productos. Puro. */
 export function resumenInventarioBodega(
@@ -75,5 +79,84 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
       id: m.id, fecha: m.fecha, tipo: m.tipo, productoNombre: m.productoNombre,
       cantidad: Number(m.cantidad ?? 0), referencia: m.referencia,
     })),
+  };
+}
+
+const u30 = sql`now() - interval '30 days'`;
+
+export interface KpiPeriodo { total: number; ultimos30: number }
+export interface FichaProductoExistencia { bodegaId: number; bodegaNombre: string; existencia: number; valor: number }
+export interface FichaProductoMerma { id: number; fecha: Date; bodegaNombre: string; cantidad: number; motivo: string }
+export interface FichaProducto {
+  producto: Producto;
+  vendidoCantidad: KpiPeriodo; vendidoMonto: KpiPeriodo; compradoCantidad: KpiPeriodo; mermaCantidad: KpiPeriodo;
+  stockTotal: number;
+  existencias: FichaProductoExistencia[];
+  pedidosDistintos: number; cantidadRecibida: number;
+  mermas: FichaProductoMerma[];
+}
+
+export async function fichaProducto(empresaId: number, productoId: number): Promise<FichaProducto | null> {
+  const producto = await obtenerProducto(empresaId, productoId);
+  if (!producto) return null;
+
+  const [venta] = await db
+    .select({
+      cantTotal: sql<string>`coalesce(sum(${facturaDetalles.cantidadBase}), 0)`,
+      cant30: sql<string>`coalesce(sum(case when ${facturas.fecha} >= ${u30} then ${facturaDetalles.cantidadBase} else 0 end), 0)`,
+      montoTotal: sql<string>`coalesce(sum(${facturaDetalles.subtotal}), 0)`,
+      monto30: sql<string>`coalesce(sum(case when ${facturas.fecha} >= ${u30} then ${facturaDetalles.subtotal} else 0 end), 0)`,
+    })
+    .from(facturaDetalles)
+    .innerJoin(facturas, eq(facturaDetalles.facturaId, facturas.id))
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturaDetalles.productoId, productoId), eq(facturas.estado, "emitida")));
+
+  const [compra] = await db
+    .select({
+      cantTotal: sql<string>`coalesce(sum(${pedidoDetalles.cantidad}), 0)`,
+      cant30: sql<string>`coalesce(sum(case when ${pedidos.fecha} >= ${u30} then ${pedidoDetalles.cantidad} else 0 end), 0)`,
+      recibida: sql<string>`coalesce(sum(${pedidoDetalles.cantidadRecibida}), 0)`,
+      pedidos: sql<string>`count(distinct ${pedidoDetalles.pedidoId})`,
+    })
+    .from(pedidoDetalles)
+    .innerJoin(pedidos, eq(pedidoDetalles.pedidoId, pedidos.id))
+    .where(and(eq(pedidos.empresaId, empresaId), eq(pedidoDetalles.productoId, productoId)));
+
+  const [merma] = await db
+    .select({
+      total: sql<string>`coalesce(sum(${notasInventario.cantidad}), 0)`,
+      u30: sql<string>`coalesce(sum(case when ${notasInventario.fecha} >= ${u30} then ${notasInventario.cantidad} else 0 end), 0)`,
+    })
+    .from(notasInventario)
+    .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida")));
+
+  const exist = await db
+    .select({ bodegaId: inventario.bodegaId, bodegaNombre: bodegas.nombre, existencia: inventario.cantidadActual, valor: inventario.valorTotal })
+    .from(inventario)
+    .innerJoin(bodegas, eq(inventario.bodegaId, bodegas.id))
+    .where(and(eq(inventario.empresaId, empresaId), eq(inventario.productoId, productoId)))
+    .orderBy(desc(inventario.cantidadActual));
+
+  const mermasDet = await db
+    .select({ id: notasInventario.id, fecha: notasInventario.fecha, bodegaNombre: bodegas.nombre, cantidad: notasInventario.cantidad, motivo: notasInventario.motivo })
+    .from(notasInventario)
+    .innerJoin(bodegas, eq(notasInventario.bodegaId, bodegas.id))
+    .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida")))
+    .orderBy(desc(notasInventario.fecha))
+    .limit(5);
+
+  const existencias = exist.map((x) => ({ bodegaId: x.bodegaId, bodegaNombre: x.bodegaNombre, existencia: Number(x.existencia ?? 0), valor: Number(x.valor ?? 0) }));
+
+  return {
+    producto,
+    vendidoCantidad: { total: Number(venta.cantTotal), ultimos30: Number(venta.cant30) },
+    vendidoMonto: { total: Number(venta.montoTotal), ultimos30: Number(venta.monto30) },
+    compradoCantidad: { total: Number(compra.cantTotal), ultimos30: Number(compra.cant30) },
+    mermaCantidad: { total: Number(merma.total), ultimos30: Number(merma.u30) },
+    stockTotal: existencias.reduce((s, x) => s + x.existencia, 0),
+    existencias,
+    pedidosDistintos: Number(compra.pedidos),
+    cantidadRecibida: Number(compra.recibida),
+    mermas: mermasDet.map((m) => ({ id: m.id, fecha: m.fecha, bodegaNombre: m.bodegaNombre, cantidad: Number(m.cantidad ?? 0), motivo: m.motivo })),
   };
 }
