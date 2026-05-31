@@ -87,10 +87,16 @@ export function MatrizPermisos({
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-xs">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Módulo</th>
+              <th className="sticky left-0 z-10 bg-muted/40 px-3 py-2 text-left font-medium">Módulo</th>
               {ACCIONES.map((a) => (
                 <th key={a} className="px-2 py-2 text-center font-medium">
-                  <button type="button" className="hover:text-primary" onClick={() => toggleCol(a)}>
+                  <button
+                    type="button"
+                    className="underline-offset-2 hover:text-primary hover:underline"
+                    aria-label={`Activar o desactivar ${ACC_LABEL[a]} en todos los módulos`}
+                    title={`Activar/desactivar ${ACC_LABEL[a]} en todos`}
+                    onClick={() => toggleCol(a)}
+                  >
                     {ACC_LABEL[a]}
                   </button>
                 </th>
@@ -100,10 +106,12 @@ export function MatrizPermisos({
           <tbody className="divide-y divide-border">
             {MODULOS.map((m) => (
               <tr key={m} className="hover:bg-muted/20">
-                <td className="px-3 py-2">
+                <td className="sticky left-0 z-10 bg-background px-3 py-2">
                   <button
                     type="button"
-                    className="text-left font-medium hover:text-primary"
+                    className="text-left font-medium underline-offset-2 hover:text-primary hover:underline"
+                    aria-label={`Activar o desactivar todos los permisos de ${MODULO_LABEL[m]}`}
+                    title={`Activar/desactivar toda la fila ${MODULO_LABEL[m]}`}
                     onClick={() => toggleFila(m)}
                   >
                     {MODULO_LABEL[m]}

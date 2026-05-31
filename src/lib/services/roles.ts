@@ -30,10 +30,19 @@ export async function crearRol(
   ctx: Contexto,
 ): Promise<number> {
   if (!permisosValidos(permisos)) throw new RolInvalido("Hay permisos inválidos.");
-  const [creado] = await db
-    .insert(roles)
-    .values({ nombre, descripcion: `Rol ${nombre}`, permisos })
-    .returning();
+  let creado: Rol;
+  try {
+    [creado] = await db
+      .insert(roles)
+      .values({ nombre, descripcion: `Rol ${nombre}`, permisos })
+      .returning();
+  } catch (e) {
+    // 23505 = unique_violation (nombre de rol duplicado)
+    if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "23505") {
+      throw new RolInvalido("Ya existe un rol con ese nombre.");
+    }
+    throw e;
+  }
   await registrarAuditoria({
     empresaId: ctx.empresaId,
     usuarioId: ctx.usuarioId,
