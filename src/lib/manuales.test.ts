@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { MANUALES, getManual } from "./manuales";
+import { MODULOS } from "./auth/roles";
 
 describe("getManual", () => {
   it("devuelve el manual por slug", () => {
@@ -8,9 +9,42 @@ describe("getManual", () => {
   it("devuelve null si no existe", () => {
     expect(getManual("inexistente")).toBeNull();
   });
-  it("todos los manuales tienen slug único y contenido", () => {
+});
+
+describe("catálogo de manuales", () => {
+  it("slugs únicos", () => {
     const slugs = MANUALES.map((m) => m.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
-    for (const m of MANUALES) expect(m.contenido.length).toBeGreaterThan(20);
+  });
+  it("cada manual tiene módulo válido, metadatos y contenido con encabezado", () => {
+    for (const m of MANUALES) {
+      expect(MODULOS).toContain(m.modulo);
+      expect(m.titulo.length).toBeGreaterThan(0);
+      expect(m.descripcion.length).toBeGreaterThan(0);
+      expect(m.contenido.trimStart().startsWith("# ")).toBe(true);
+      expect(m.contenido.length).toBeGreaterThan(50);
+    }
+  });
+  it("existen los manuales narrativos nuevos", () => {
+    for (const slug of ["ciclo-negocio", "recaudo", "pagar-proveedor", "retenciones"]) {
+      expect(getManual(slug), `falta el manual ${slug}`).not.toBeNull();
+    }
+  });
+  it("el manual de recaudo documenta las DOS formas (computador y celular)", () => {
+    const c = getManual("recaudo")!.contenido.toLowerCase();
+    expect(c).toMatch(/computador|escritorio/);
+    expect(c).toMatch(/celular|m[oó]vil/);
+  });
+  it("'vender' incluye la sección de factura electrónica", () => {
+    expect(getManual("vender")!.contenido.toLowerCase()).toContain("electrónica");
+  });
+  it("no hay enlaces internos a manuales inexistentes", () => {
+    const slugs = new Set(MANUALES.map((m) => m.slug));
+    for (const m of MANUALES) {
+      const refs = [...m.contenido.matchAll(/\]\(\/manuales\/([a-z0-9-]+)\)/g)].map((x) => x[1]);
+      for (const ref of refs) {
+        expect(slugs.has(ref), `${m.slug} enlaza a /manuales/${ref} que no existe`).toBe(true);
+      }
+    }
   });
 });
