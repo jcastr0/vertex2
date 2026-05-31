@@ -101,6 +101,7 @@ export default async function ProductosPage({
         filtros={filtros}
         items={items}
         getKey={(p) => p.id}
+        rowHref={(p) => `/productos/${p.id}`}
         rowClassName={(p) => (p.activo ? "" : "opacity-60")}
         columns={columnas}
         searchPlaceholder="Buscar producto o SKU…"
