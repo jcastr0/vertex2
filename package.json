@@ -14,7 +14,8 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/lib/db/seed.ts",
     "db:seed:demo": "tsx src/lib/db/seed-demo.ts",
-    "db:seed:ruta": "tsx src/lib/db/seed-ruta.ts"
+    "db:seed:ruta": "tsx src/lib/db/seed-ruta.ts",
+    "db:seed:empresas": "tsx src/lib/db/seed-empresas.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
