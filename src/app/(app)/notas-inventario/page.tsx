@@ -24,7 +24,7 @@ export default async function NotasInventarioPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const sesion = await requirePermiso("notas_inventario.ver");
+  await requirePermiso("notas_inventario.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;

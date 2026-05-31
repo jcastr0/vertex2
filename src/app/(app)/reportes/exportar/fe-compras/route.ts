@@ -5,7 +5,7 @@ import { comprasElectronicasCsv } from "@/lib/services/export-fe";
 import { csvResponse } from "@/lib/csv";
 
 export async function GET(req: Request) {
-  const { sesion, empresaId } = await requireEmpresa();
+  const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   if (!puede(permisos, "reportes.ver")) return new Response("No autorizado", { status: 403 });
   const url = new URL(req.url);

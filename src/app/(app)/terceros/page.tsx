@@ -27,7 +27,7 @@ export default async function TercerosPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string; tipo?: string; activo?: string }>;
 }) {
-  const sesion = await requirePermiso("terceros.ver");
+  await requirePermiso("terceros.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw, tipo, activo } = await searchParams;

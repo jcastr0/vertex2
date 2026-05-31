@@ -13,7 +13,7 @@ import { ArrowLeft } from "lucide-react";
 export const metadata: Metadata = { title: "Manual — Vertex" };
 
 export default async function ManualPage({ params }: { params: Promise<{ slug: string }> }) {
-  const sesion = await requirePermiso("manuales.ver");
+  await requirePermiso("manuales.ver");
   const permisos = await getPermisos();
   const { slug } = await params;
   const manual = getManual(slug);

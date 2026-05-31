@@ -17,7 +17,7 @@ export default async function CobrarPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const sesion = await requirePermiso("cuentas_cobrar.ver");
+  await requirePermiso("cuentas_cobrar.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "" } = await searchParams;

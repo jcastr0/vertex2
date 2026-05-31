@@ -22,7 +22,7 @@ export default async function InventarioPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const sesion = await requirePermiso("inventario.ver");
+  await requirePermiso("inventario.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;

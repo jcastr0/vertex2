@@ -23,7 +23,7 @@ type Fila = Awaited<ReturnType<typeof listarCuentasPropias>>[number];
 const TIPO_LABEL: Record<string, string> = { ahorros: "Ahorros", corriente: "Corriente", caja: "Caja" };
 
 export default async function TesoreriaPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
-  const sesion = await requirePermiso("tesoreria.ver");
+  await requirePermiso("tesoreria.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;

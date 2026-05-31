@@ -30,7 +30,7 @@ export default async function PedidosPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const sesion = await requirePermiso("pedidos.ver");
+  await requirePermiso("pedidos.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;

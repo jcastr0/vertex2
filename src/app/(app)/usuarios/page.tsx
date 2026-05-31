@@ -21,7 +21,7 @@ export default async function UsuariosPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const sesion = await requirePermiso("usuarios.ver");
+  await requirePermiso("usuarios.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;

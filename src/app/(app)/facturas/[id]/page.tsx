@@ -26,7 +26,7 @@ export const metadata: Metadata = { title: "Factura — Vertex" };
 const money = (s: string | number) => "$" + Number(s).toLocaleString("es-CO");
 
 export default async function FacturaDetallePage({ params }: { params: Promise<{ id: string }> }) {
-  const sesion = await requirePermiso("facturas.ver");
+  await requirePermiso("facturas.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;

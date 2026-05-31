@@ -29,7 +29,7 @@ export default async function TrasladosPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const sesion = await requirePermiso("traslados.ver");
+  await requirePermiso("traslados.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;

@@ -70,7 +70,7 @@ function Tarjeta({
 }
 
 export default async function TerceroPage({ params }: { params: Promise<{ id: string }> }) {
-  const sesion = await requirePermiso("terceros.ver");
+  await requirePermiso("terceros.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;

@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const metadata: Metadata = { title: "Manuales — Vertex" };
 
 export default async function ManualesPage() {
-  const sesion = await requirePermiso("manuales.ver");
+  await requirePermiso("manuales.ver");
   const permisos = await getPermisos();
   const visibles = MANUALES.filter((m) => puede(permisos, `${m.modulo}.ver` as Permiso));
 

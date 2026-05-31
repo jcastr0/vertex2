@@ -27,7 +27,7 @@ const ORIGEN_LABEL: Record<string, string> = {
 };
 
 export default async function ExtractoPage({ params }: { params: Promise<{ id: string }> }) {
-  const sesion = await requirePermiso("tesoreria.ver");
+  await requirePermiso("tesoreria.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;

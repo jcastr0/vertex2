@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ROLES, puede, MODULOS, MODULO_LABEL, type Permiso } from "./roles";
+import { ROLES, puede, MODULOS, MODULO_LABEL } from "./roles";
 
 describe("puede (por lista de permisos)", () => {
   it("true si la lista incluye el permiso exacto", () => {

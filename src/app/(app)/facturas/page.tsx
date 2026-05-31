@@ -23,7 +23,7 @@ export default async function FacturasPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string; tipoVenta?: string; estado?: string; desde?: string; hasta?: string }>;
 }) {
-  const sesion = await requirePermiso("facturas.ver");
+  await requirePermiso("facturas.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw, tipoVenta, estado, desde, hasta } = await searchParams;

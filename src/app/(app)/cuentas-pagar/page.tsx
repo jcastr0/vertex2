@@ -18,7 +18,7 @@ export default async function PagarPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const sesion = await requirePermiso("cuentas_pagar.ver");
+  await requirePermiso("cuentas_pagar.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "" } = await searchParams;

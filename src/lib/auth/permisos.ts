@@ -22,7 +22,7 @@ export const getPermisos = cache(async (): Promise<string[]> => {
     .from(rolesTabla)
     .where(eq(rolesTabla.nombre, sesion.rol))
     .limit(1);
-  if (r?.permisos && r.permisos.length) return r.permisos;
+  if (r) return r.permisos ?? [];
   const fallback = ROLES[sesion.rol];
   return fallback ? [...fallback] : [];
 });

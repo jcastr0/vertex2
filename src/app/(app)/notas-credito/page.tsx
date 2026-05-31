@@ -22,7 +22,7 @@ export default async function NotasCreditoPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const sesion = await requirePermiso("notas_credito.ver");
+  await requirePermiso("notas_credito.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;

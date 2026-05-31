@@ -21,7 +21,7 @@ export default async function EmpresasPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const sesion = await requirePermiso("empresas.ver");
+  await requirePermiso("empresas.ver");
   const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const todas = await listarEmpresas();

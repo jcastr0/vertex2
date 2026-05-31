@@ -22,7 +22,7 @@ export default async function ProductosPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string; categoria?: string; estado?: string }>;
 }) {
-  const sesion = await requirePermiso("productos.ver");
+  await requirePermiso("productos.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { q = "", page: pageRaw, categoria, estado } = await searchParams;

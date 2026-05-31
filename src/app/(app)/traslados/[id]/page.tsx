@@ -15,7 +15,7 @@ import { ArrowRight } from "lucide-react";
 export const metadata: Metadata = { title: "Traslado — Vertex" };
 
 export default async function TrasladoDetallePage({ params }: { params: Promise<{ id: string }> }) {
-  const sesion = await requirePermiso("traslados.ver");
+  await requirePermiso("traslados.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;

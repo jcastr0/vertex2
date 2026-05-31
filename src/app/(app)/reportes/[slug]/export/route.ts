@@ -6,7 +6,7 @@ import { toCsv, csvResponse } from "@/lib/csv";
 import { construirXlsx, xlsxResponse } from "@/lib/xlsx";
 
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
-  const { sesion, empresaId } = await requireEmpresa();
+  const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   if (!puede(permisos, "reportes.ver")) return new Response("No autorizado", { status: 403 });
   const { slug } = await params;

@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "Pedido — Vertex" };
 const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
 
 export default async function PedidoDetallePage({ params }: { params: Promise<{ id: string }> }) {
-  const sesion = await requirePermiso("pedidos.ver");
+  await requirePermiso("pedidos.ver");
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;
