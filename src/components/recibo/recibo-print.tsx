@@ -51,7 +51,10 @@ export function ReciboPrint({ datos }: { datos: DatosReciboVenta }) {
         <Button type="button" variant="outline" size="sm" onClick={() => window.print()}><Printer className="size-4" /> Imprimir</Button>
         {btDisponible && <Button type="button" variant="outline" size="sm" onClick={imprimirBluetooth}><Bluetooth className="size-4" /> Imprimir directo</Button>}
       </div>
-      <Recibo datos={datos} formato={formato} />
+      {/* En móvil el formato carta (≈148mm) excede el ancho: permitir scroll sin romper el layout */}
+      <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 print:mx-0 print:overflow-visible print:px-0">
+        <Recibo datos={datos} formato={formato} />
+      </div>
     </div>
   );
 }

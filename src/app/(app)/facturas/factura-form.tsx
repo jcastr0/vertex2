@@ -300,7 +300,7 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
                       {/* stepper de cantidad */}
                       <div className="flex h-10 items-center rounded-lg border border-border bg-background">
                         <button type="button" onClick={() => sumar(l.productoId, -1)} className="flex size-9 items-center justify-center rounded-l-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="Restar uno"><Minus className="size-3.5" /></button>
