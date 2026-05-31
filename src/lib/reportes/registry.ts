@@ -1,11 +1,12 @@
 // src/lib/reportes/registry.ts
 import "server-only";
-import { TrendingUp, HandCoins, Boxes, Route } from "lucide-react";
+import { TrendingUp, HandCoins, Boxes, Route, ShoppingBag } from "lucide-react";
 import type { ReporteDef, FiltroSpec } from "./tipos";
 import { cargarVentas, filtrosVentas } from "@/lib/services/reportes/ventas";
 import { cargarCarteraCobrar, filtrosCartera } from "@/lib/services/reportes/cartera-cobrar";
 import { cargarInventario, filtrosInventario } from "@/lib/services/reportes/inventario";
 import { cargarRecaudo, filtrosRecaudo } from "@/lib/services/reportes/recaudo";
+import { cargarCompras, filtrosCompras } from "@/lib/services/reportes/compras";
 
 export const REPORTES: ReporteDef[] = [
   {
@@ -66,6 +67,19 @@ export const REPORTES: ReporteDef[] = [
       { key: "recaudador", label: "Recaudador", tipo: "select", opciones: await filtrosRecaudo(empresaId) },
     ],
     cargar: cargarRecaudo,
+  },
+  {
+    slug: "compras", titulo: "Compras", desc: "Compras por proveedor, evolución y costos.", grupo: "Comercial", icon: ShoppingBag,
+    charts: [
+      { tipo: "linea", titulo: "Compras por día", serie: "porDia", formato: "money", ancho: "full" },
+      { tipo: "barras", titulo: "Top proveedores", serie: "topProveedores", formato: "money" },
+      { tipo: "barras", titulo: "Costos adicionales", serie: "costos", formato: "money" },
+    ],
+    filtros: async (empresaId): Promise<FiltroSpec[]> => [
+      { key: "desde", label: "Desde", tipo: "fecha" }, { key: "hasta", label: "Hasta", tipo: "fecha" },
+      { key: "proveedor", label: "Proveedor", tipo: "select", opciones: await filtrosCompras(empresaId) },
+    ],
+    cargar: cargarCompras,
   },
 ];
 
