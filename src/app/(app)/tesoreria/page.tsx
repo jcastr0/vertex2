@@ -13,7 +13,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CuentaRowActions } from "./cuenta-row-actions";
 import { BancosPanel } from "./bancos-panel";
-import { Plus, Landmark } from "lucide-react";
+import { Plus, Landmark, Calculator } from "lucide-react";
 
 export const metadata: Metadata = { title: "Tesorería — Vertex" };
 const PAGE_SIZE = 10;
@@ -41,6 +41,9 @@ export default async function TesoreriaPage({ searchParams }: { searchParams: Pr
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader title="Tesorería" description="Cuentas propias, su saldo en vivo y el catálogo de bancos.">
+        <Link href="/tesoreria/cierre" className={buttonVariants({ variant: "outline" })}>
+          <Calculator className="size-4" /> Cierre de caja
+        </Link>
         {puedeCrear && (
           <Link href="/tesoreria/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nueva cuenta
