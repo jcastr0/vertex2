@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { acreedoresPorProveedor, cuentasPorPagarAbiertasPorProveedor } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
@@ -19,6 +20,7 @@ export default async function PagarPage({
 }) {
   const sesion = await requirePermiso("cuentas_pagar.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "" } = await searchParams;
 
   const [acreedores, cuentasOrigen, retenciones, docsPorProveedor] = await Promise.all([
@@ -29,7 +31,7 @@ export default async function PagarPage({
   ]);
 
   const hoy = new Date().toISOString().slice(0, 10);
-  const puedePagar = puede(sesion.rol, "pagos_proveedor.crear");
+  const puedePagar = puede(permisos, "pagos_proveedor.crear");
 
   const t = q.trim().toLowerCase();
   const lista = t

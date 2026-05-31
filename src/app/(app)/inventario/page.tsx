@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarInventario, type FilaInventario } from "@/lib/services/inventario";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -23,6 +24,7 @@ export default async function InventarioPage({
 }) {
   const sesion = await requirePermiso("inventario.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const todos = await listarInventario(empresaId);
 
@@ -52,7 +54,7 @@ export default async function InventarioPage({
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Inventario" description="Existencias por bodega, valorizadas a costo promedio.">
-        {puede(sesion.rol, "notas_inventario.crear") && (
+        {puede(permisos, "notas_inventario.crear") && (
           <Link href="/notas-inventario/nueva" className={buttonVariants({ variant: "outline" })}>
             <SlidersHorizontal className="size-4" /> Ajustar (merma/sobrante)
           </Link>

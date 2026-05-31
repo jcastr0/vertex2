@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarCuentasPropias } from "@/lib/services/tesoreria";
 import { listarBancosAdmin } from "@/lib/services/bancos";
@@ -24,11 +25,12 @@ const TIPO_LABEL: Record<string, string> = { ahorros: "Ahorros", corriente: "Cor
 export default async function TesoreriaPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const sesion = await requirePermiso("tesoreria.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const [todas, bancos] = await Promise.all([listarCuentasPropias(empresaId), listarBancosAdmin()]);
   const { items, total, page } = filtrarPaginar(todas, { q, page: parsePage(pageRaw), pageSize: PAGE_SIZE, texto: (c) => `${c.nombre} ${c.banco ?? ""}` });
-  const puedeCrear = puede(sesion.rol, "tesoreria.crear");
-  const puedeEditar = puede(sesion.rol, "tesoreria.editar");
+  const puedeCrear = puede(permisos, "tesoreria.crear");
+  const puedeEditar = puede(permisos, "tesoreria.editar");
 
   const columnas: Columna<Fila>[] = [
     { header: "Cuenta", primary: true, cell: (c) => c.nombre },

@@ -1,4 +1,5 @@
 import { requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { getReporte, filtrosConDefaults } from "@/lib/reportes/registry";
 import { toCsv, csvResponse } from "@/lib/csv";
@@ -6,7 +7,8 @@ import { construirXlsx, xlsxResponse } from "@/lib/xlsx";
 
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { sesion, empresaId } = await requireEmpresa();
-  if (!puede(sesion.rol, "reportes.ver")) return new Response("No autorizado", { status: 403 });
+  const permisos = await getPermisos();
+  if (!puede(permisos, "reportes.ver")) return new Response("No autorizado", { status: 403 });
   const { slug } = await params;
   const rep = getReporte(slug);
   if (!rep) return new Response("Reporte no encontrado", { status: 404 });

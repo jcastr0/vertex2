@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { deudoresPorCliente, cuentasPorCobrarAbiertasPorCliente } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
@@ -18,6 +19,7 @@ export default async function CobrarPage({
 }) {
   const sesion = await requirePermiso("cuentas_cobrar.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "" } = await searchParams;
   const [deudores, cuentasDestino, docsPorCliente] = await Promise.all([
     deudoresPorCliente(empresaId),
@@ -25,7 +27,7 @@ export default async function CobrarPage({
     cuentasPorCobrarAbiertasPorCliente(empresaId),
   ]);
   const hoy = new Date().toISOString().slice(0, 10);
-  const puedeCobrar = puede(sesion.rol, "recaudos.crear");
+  const puedeCobrar = puede(permisos, "recaudos.crear");
 
   const t = q.trim().toLowerCase();
   const lista = t ? deudores.filter((d) => d.cliente.toLowerCase().includes(t)) : deudores;

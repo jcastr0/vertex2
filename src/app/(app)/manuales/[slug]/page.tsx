@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { requirePermiso } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede, type Permiso } from "@/lib/auth/roles";
 import { getManual } from "@/lib/manuales";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,10 +14,11 @@ export const metadata: Metadata = { title: "Manual — Vertex" };
 
 export default async function ManualPage({ params }: { params: Promise<{ slug: string }> }) {
   const sesion = await requirePermiso("manuales.ver");
+  const permisos = await getPermisos();
   const { slug } = await params;
   const manual = getManual(slug);
   if (!manual) notFound();
-  if (!puede(sesion.rol, `${manual.modulo}.ver` as Permiso)) redirect("/manuales");
+  if (!puede(permisos, `${manual.modulo}.ver` as Permiso)) redirect("/manuales");
 
   return (
     <div className="mx-auto max-w-3xl">

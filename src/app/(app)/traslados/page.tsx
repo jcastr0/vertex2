@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarTraslados } from "@/lib/services/traslados";
 import { listarBodegas } from "@/lib/services/bodegas";
@@ -30,10 +31,11 @@ export default async function TrasladosPage({
 }) {
   const sesion = await requirePermiso("traslados.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const [todos, bodegas] = await Promise.all([listarTraslados(empresaId), listarBodegas(empresaId)]);
   const bodPorId = new Map(bodegas.map((b) => [b.id, b.nombre]));
-  const puedeCrear = puede(sesion.rol, "traslados.crear");
+  const puedeCrear = puede(permisos, "traslados.crear");
 
   const { items, total, page } = filtrarPaginar(todos, {
     q,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarProductos, listarUnidadesMedida, type Producto } from "@/lib/services/productos";
 import { listarCategorias } from "@/lib/services/categorias";
@@ -23,6 +24,7 @@ export default async function ProductosPage({
 }) {
   const sesion = await requirePermiso("productos.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw, categoria, estado } = await searchParams;
 
   const [todos, categorias, unidades] = await Promise.all([
@@ -53,9 +55,9 @@ export default async function ProductosPage({
     filtro,
   });
 
-  const puedeCrear = puede(sesion.rol, "productos.crear");
-  const puedeEditar = puede(sesion.rol, "productos.editar");
-  const puedeEliminar = puede(sesion.rol, "productos.eliminar");
+  const puedeCrear = puede(permisos, "productos.crear");
+  const puedeEditar = puede(permisos, "productos.editar");
+  const puedeEliminar = puede(permisos, "productos.eliminar");
 
   const columnas: Columna<Producto>[] = [
     {

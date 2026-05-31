@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { obtenerFactura } from "@/lib/services/facturas";
 import { obtenerTercero } from "@/lib/services/terceros";
@@ -27,6 +28,7 @@ const money = (s: string | number) => "$" + Number(s).toLocaleString("es-CO");
 export default async function FacturaDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const sesion = await requirePermiso("facturas.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { id } = await params;
   const factura = await obtenerFactura(empresaId, Number(id));
   if (!factura) notFound();
@@ -40,8 +42,8 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
   const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
   const hoy = new Date().toISOString().slice(0, 10);
   const saldo = cxc?.saldo ?? 0;
-  const puedeCobrar = puede(sesion.rol, "recaudos.crear");
-  const puedeAnular = puede(sesion.rol, "facturas.eliminar");
+  const puedeCobrar = puede(permisos, "recaudos.crear");
+  const puedeAnular = puede(permisos, "facturas.eliminar");
 
   const [emp] = await db.select({ nombre: empresas.nombre, nit: empresas.nit }).from(empresas).where(eq(empresas.id, empresaId));
   const datosRecibo = {

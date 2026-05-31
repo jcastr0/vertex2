@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede, type Permiso } from "@/lib/auth/roles";
 import { MANUALES } from "@/lib/manuales";
 import { PageHeader } from "@/components/page-header";
@@ -10,7 +11,8 @@ export const metadata: Metadata = { title: "Manuales — Vertex" };
 
 export default async function ManualesPage() {
   const sesion = await requirePermiso("manuales.ver");
-  const visibles = MANUALES.filter((m) => puede(sesion.rol, `${m.modulo}.ver` as Permiso));
+  const permisos = await getPermisos();
+  const visibles = MANUALES.filter((m) => puede(permisos, `${m.modulo}.ver` as Permiso));
 
   return (
     <div className="mx-auto max-w-5xl">

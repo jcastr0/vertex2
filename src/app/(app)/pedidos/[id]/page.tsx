@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { obtenerPedido } from "@/lib/services/pedidos";
 import { obtenerTercero } from "@/lib/services/terceros";
@@ -23,6 +24,7 @@ const money = (s: string) => "$" + Number(s).toLocaleString("es-CO");
 export default async function PedidoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const sesion = await requirePermiso("pedidos.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { id } = await params;
   const pedido = await obtenerPedido(empresaId, Number(id));
   if (!pedido) notFound();
@@ -110,7 +112,7 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
               </p>
             )}
           </div>
-          {puede(sesion.rol, "pagos_proveedor.crear") && (
+          {puede(permisos, "pagos_proveedor.crear") && (
             cxp.facturaRegistrada ? (
               cxp.saldo > 0 && (
                 <Link href="/cuentas-pagar" className={buttonVariants({ variant: "outline", size: "sm" })}>
@@ -132,7 +134,7 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      {puede(sesion.rol, "pedidos.editar") && (
+      {puede(permisos, "pedidos.editar") && (
         <PedidoAcciones
           id={pedido.id}
           estado={pedido.estado}

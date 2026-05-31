@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSesion } from "@/lib/auth/cookies";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede, type Permiso } from "@/lib/auth/roles";
 import { grupoPorSlug } from "@/lib/modules";
 import { ArrowRight } from "lucide-react";
@@ -13,9 +13,8 @@ export default async function GrupoPage({ params }: { params: Promise<{ slug: st
   const grupo = grupoPorSlug(slug);
   if (!grupo) notFound();
 
-  const sesion = await getSesion();
-  const rol = sesion?.rol ?? null;
-  const items = grupo.items.filter((it) => it.listo && puede(rol, `${it.modulo}.ver` as Permiso));
+  const permisos = await getPermisos();
+  const items = grupo.items.filter((it) => it.listo && puede(permisos, `${it.modulo}.ver` as Permiso));
   if (items.length === 0) notFound();
 
   const GrupoIcon = grupo.icon;

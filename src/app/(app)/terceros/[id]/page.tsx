@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { obtenerTercero } from "@/lib/services/terceros";
 import { listarRecaudadores } from "@/lib/services/usuarios";
@@ -71,6 +72,7 @@ function Tarjeta({
 export default async function TerceroPage({ params }: { params: Promise<{ id: string }> }) {
   const sesion = await requirePermiso("terceros.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { id } = await params;
   const t = await obtenerTercero(empresaId, Number(id));
   if (!t) notFound();
@@ -81,7 +83,7 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
   const recaudador = recaudadores.find((r) => r.id === t.recaudadorId)?.nombre ?? null;
   const beneficiarios = esProveedor ? (await listarBeneficiarios(empresaId, t.id)).filter((b) => b.activa) : [];
   const bancos = esProveedor ? await listarBancos() : [];
-  const puedeEditar = puede(sesion.rol, "terceros.editar");
+  const puedeEditar = puede(permisos, "terceros.editar");
 
   const hoy = new Date().toISOString().slice(0, 10);
   const desdeMes = hoy.slice(0, 8) + "01";

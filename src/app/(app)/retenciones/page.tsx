@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarRetenciones, type Retencion } from "@/lib/services/retenciones";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -23,6 +24,7 @@ export default async function RetencionesPage({
 }) {
   const sesion = await requirePermiso("retenciones.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const todas = await listarRetenciones(empresaId);
 
@@ -33,9 +35,9 @@ export default async function RetencionesPage({
     texto: (r) => r.nombre,
   });
 
-  const puedeCrear = puede(sesion.rol, "retenciones.crear");
-  const puedeEditar = puede(sesion.rol, "retenciones.editar");
-  const puedeEliminar = puede(sesion.rol, "retenciones.eliminar");
+  const puedeCrear = puede(permisos, "retenciones.crear");
+  const puedeEditar = puede(permisos, "retenciones.editar");
+  const puedeEliminar = puede(permisos, "retenciones.eliminar");
 
   const columnas: Columna<Retencion>[] = [
     { header: "Nombre", primary: true, cell: (r) => r.nombre },

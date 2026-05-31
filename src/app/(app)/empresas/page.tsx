@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarEmpresas, type Empresa } from "@/lib/services/empresas";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -21,10 +22,11 @@ export default async function EmpresasPage({
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   const sesion = await requirePermiso("empresas.ver");
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const todas = await listarEmpresas();
-  const puedeCrear = puede(sesion.rol, "empresas.crear");
-  const puedeEditar = puede(sesion.rol, "empresas.editar");
+  const puedeCrear = puede(permisos, "empresas.crear");
+  const puedeEditar = puede(permisos, "empresas.editar");
 
   const { items, total, page } = filtrarPaginar(todas, {
     q,

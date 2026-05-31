@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarRecaudadores } from "@/lib/services/usuarios";
 import { rutaDelRecaudador } from "@/lib/services/ruta-recaudo";
@@ -23,9 +24,10 @@ export default async function RutaRecaudoPage({
 }) {
   const sesion = await requirePermiso("ruta_recaudo.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { recaudador: recParam } = await searchParams;
 
-  const puedeElegir = puede(sesion.rol, "usuarios.ver");
+  const puedeElegir = puede(permisos, "usuarios.ver");
   const recaudadores = puedeElegir ? await listarRecaudadores(empresaId) : [];
 
   const recaudadorId = puedeElegir
@@ -47,7 +49,7 @@ export default async function RutaRecaudoPage({
       <PageHeader title="Ruta de recaudo" description={`${hoyLabel} — a quién cobrar hoy.`}>
         <div className="flex flex-wrap items-center gap-2">
           {puedeElegir && <RecaudadorPicker recaudadores={recaudadores} actual={recaudadorId} />}
-          {puede(sesion.rol, "ruta_recaudo.editar") && (
+          {puede(permisos, "ruta_recaudo.editar") && (
             <Link href="/ruta-recaudo/asignar" className={buttonVariants({ variant: "outline", size: "sm" })}>
               <CalendarCog className="size-4" /> Programar ruta
             </Link>

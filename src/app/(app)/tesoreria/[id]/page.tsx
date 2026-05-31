@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { obtenerCuentaPropia, extractoCuenta, cuentasPropiasActivas } from "@/lib/services/tesoreria";
 import { PageHeader } from "@/components/page-header";
@@ -28,6 +29,7 @@ const ORIGEN_LABEL: Record<string, string> = {
 export default async function ExtractoPage({ params }: { params: Promise<{ id: string }> }) {
   const sesion = await requirePermiso("tesoreria.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { id } = await params;
   const cuentaId = Number(id);
   const cuenta = await obtenerCuentaPropia(empresaId, cuentaId);
@@ -38,7 +40,7 @@ export default async function ExtractoPage({ params }: { params: Promise<{ id: s
     .filter((c) => c.id !== cuentaId)
     .map((c) => ({ id: c.id, nombre: c.nombre }));
   const hoy = new Date().toISOString().slice(0, 10);
-  const puedeCrear = puede(sesion.rol, "tesoreria.crear");
+  const puedeCrear = puede(permisos, "tesoreria.crear");
 
   type Mov = (typeof movimientos)[number];
   const columnas: Columna<Mov>[] = [

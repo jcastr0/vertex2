@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarTerceros, type Tercero } from "@/lib/services/terceros";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -28,6 +29,7 @@ export default async function TercerosPage({
 }) {
   const sesion = await requirePermiso("terceros.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw, tipo, activo } = await searchParams;
   const todos = await listarTerceros(empresaId);
 
@@ -51,9 +53,9 @@ export default async function TercerosPage({
     filtro,
   });
 
-  const puedeCrear = puede(sesion.rol, "terceros.crear");
-  const puedeEditar = puede(sesion.rol, "terceros.editar");
-  const puedeEliminar = puede(sesion.rol, "terceros.eliminar");
+  const puedeCrear = puede(permisos, "terceros.crear");
+  const puedeEditar = puede(permisos, "terceros.editar");
+  const puedeEliminar = puede(permisos, "terceros.eliminar");
 
   const columnas: Columna<Tercero>[] = [
     {

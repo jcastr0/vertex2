@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarFacturas } from "@/lib/services/facturas";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -24,9 +25,10 @@ export default async function FacturasPage({
 }) {
   const sesion = await requirePermiso("facturas.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw, tipoVenta, estado, desde, hasta } = await searchParams;
   const todos = await listarFacturas(empresaId);
-  const puedeCrear = puede(sesion.rol, "facturas.crear");
+  const puedeCrear = puede(permisos, "facturas.crear");
 
   const filtros = [
     {

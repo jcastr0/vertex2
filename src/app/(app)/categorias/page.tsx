@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarCategorias, type Categoria } from "@/lib/services/categorias";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -22,6 +23,7 @@ export default async function CategoriasPage({
 }) {
   const sesion = await requirePermiso("categorias.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const todas = await listarCategorias(empresaId);
   const nombrePorId = new Map(todas.map((c) => [c.id, c.nombre]));
@@ -33,9 +35,9 @@ export default async function CategoriasPage({
     texto: (c) => c.nombre,
   });
 
-  const puedeCrear = puede(sesion.rol, "categorias.crear");
-  const puedeEditar = puede(sesion.rol, "categorias.editar");
-  const puedeEliminar = puede(sesion.rol, "categorias.eliminar");
+  const puedeCrear = puede(permisos, "categorias.crear");
+  const puedeEditar = puede(permisos, "categorias.editar");
+  const puedeEliminar = puede(permisos, "categorias.eliminar");
 
   const columnas: Columna<Categoria>[] = [
     { header: "Nombre", primary: true, cell: (c) => c.nombre },

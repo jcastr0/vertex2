@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarNotasCredito } from "@/lib/services/devoluciones";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -23,6 +24,7 @@ export default async function NotasCreditoPage({
 }) {
   const sesion = await requirePermiso("notas_credito.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const todos = await listarNotasCredito(empresaId);
 
@@ -44,7 +46,7 @@ export default async function NotasCreditoPage({
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Notas crédito" description="Por devolución, o manuales (descuento/corrección).">
-        {puede(sesion.rol, "notas_credito.crear") && (
+        {puede(permisos, "notas_credito.crear") && (
           <Link href="/notas-credito/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nueva nota crédito
           </Link>

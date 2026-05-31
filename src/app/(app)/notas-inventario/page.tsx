@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarNotasInventario } from "@/lib/services/notas-inventario";
 import { TIPOS_NOTA, esEntrada } from "@/lib/domain/nota-inventario";
@@ -25,9 +26,10 @@ export default async function NotasInventarioPage({
 }) {
   const sesion = await requirePermiso("notas_inventario.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { q = "", page: pageRaw } = await searchParams;
   const todos = await listarNotasInventario(empresaId);
-  const puedeCrear = puede(sesion.rol, "notas_inventario.crear");
+  const puedeCrear = puede(permisos, "notas_inventario.crear");
 
   const { items, total, page } = filtrarPaginar(todos, {
     q,

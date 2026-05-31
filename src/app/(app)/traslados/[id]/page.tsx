@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { obtenerTraslado } from "@/lib/services/traslados";
 import { obtenerBodega } from "@/lib/services/bodegas";
@@ -16,6 +17,7 @@ export const metadata: Metadata = { title: "Traslado — Vertex" };
 export default async function TrasladoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const sesion = await requirePermiso("traslados.ver");
   const { empresaId } = await requireEmpresa();
+  const permisos = await getPermisos();
   const { id } = await params;
   const traslado = await obtenerTraslado(empresaId, Number(id));
   if (!traslado) notFound();
@@ -61,7 +63,7 @@ export default async function TrasladoDetallePage({ params }: { params: Promise<
 
       {traslado.observaciones && <p className="text-sm text-muted-foreground">{traslado.observaciones}</p>}
 
-      {puede(sesion.rol, "traslados.editar") && (
+      {puede(permisos, "traslados.editar") && (
         <TrasladoAcciones id={traslado.id} estado={traslado.estado} />
       )}
     </div>
