@@ -1,6 +1,6 @@
 // src/lib/reportes/registry.ts
 import "server-only";
-import { TrendingUp, HandCoins, Boxes, Route, ShoppingBag, Wallet } from "lucide-react";
+import { TrendingUp, HandCoins, Boxes, Route, ShoppingBag, Wallet, Landmark } from "lucide-react";
 import type { ReporteDef, FiltroSpec } from "./tipos";
 import { cargarVentas, filtrosVentas } from "@/lib/services/reportes/ventas";
 import { cargarCarteraCobrar, filtrosCartera } from "@/lib/services/reportes/cartera-cobrar";
@@ -8,6 +8,7 @@ import { cargarInventario, filtrosInventario } from "@/lib/services/reportes/inv
 import { cargarRecaudo, filtrosRecaudo } from "@/lib/services/reportes/recaudo";
 import { cargarCompras, filtrosCompras } from "@/lib/services/reportes/compras";
 import { cargarCarteraPagar, filtrosCarteraPagar } from "@/lib/services/reportes/cartera-pagar";
+import { cargarFlujoCaja, filtrosFlujoCaja } from "@/lib/services/reportes/flujo-caja";
 
 export const REPORTES: ReporteDef[] = [
   {
@@ -94,6 +95,19 @@ export const REPORTES: ReporteDef[] = [
       { key: "proveedor", label: "Proveedor", tipo: "select", opciones: await filtrosCarteraPagar(empresaId) },
     ],
     cargar: cargarCarteraPagar,
+  },
+  {
+    slug: "flujo-caja", titulo: "Flujo de caja", desc: "Entradas vs salidas y neto por cuenta.", grupo: "Tesorería", icon: Landmark,
+    charts: [
+      { tipo: "linea", titulo: "Flujo neto por día", serie: "flujoDia", formato: "money", ancho: "full" },
+      { tipo: "torta", titulo: "Entradas vs salidas", serie: "entradasVsSalidas", formato: "money" },
+      { tipo: "barras", titulo: "Neto por cuenta", serie: "netoPorCuenta", formato: "money" },
+    ],
+    filtros: async (empresaId): Promise<FiltroSpec[]> => [
+      { key: "desde", label: "Desde", tipo: "fecha" }, { key: "hasta", label: "Hasta", tipo: "fecha" },
+      { key: "cuenta", label: "Cuenta", tipo: "select", opciones: await filtrosFlujoCaja(empresaId) },
+    ],
+    cargar: cargarFlujoCaja,
   },
 ];
 
