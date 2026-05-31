@@ -28,7 +28,7 @@ export async function guardarProductoAction(
   const idRaw = form.get("id");
   const editando = idRaw ? Number(idRaw) : null;
   const permiso: Permiso = editando ? "productos.editar" : "productos.crear";
-  if (!puede(c.rol, permiso)) return { error: "No tienes permiso para esta acción." };
+  if (!puede(c.permisos, permiso)) return { error: "No tienes permiso para esta acción." };
 
   const parsed = parseProductoForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
@@ -55,7 +55,7 @@ export async function guardarProductoAction(
 export async function cambiarEstadoProductoAction(id: number, activo: boolean): Promise<void> {
   const c = await contexto();
   if (!c) return;
-  if (!puede(c.rol, activo ? "productos.editar" : "productos.eliminar")) return;
+  if (!puede(c.permisos, activo ? "productos.editar" : "productos.eliminar")) return;
   await cambiarEstadoProducto(id, activo, c.ctx);
   revalidatePath("/productos");
 }
@@ -66,7 +66,7 @@ export async function agregarUnidadAction(
 ): Promise<ProductoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "productos.editar")) return { error: "Sin permiso." };
+  if (!puede(c.permisos, "productos.editar")) return { error: "Sin permiso." };
 
   const productoId = Number(form.get("productoId"));
   const parsed = parseProductoUnidadForm(form);
@@ -90,7 +90,7 @@ export async function eliminarUnidadAction(
 ): Promise<void> {
   const c = await contexto();
   if (!c) return;
-  if (!puede(c.rol, "productos.editar")) return;
+  if (!puede(c.permisos, "productos.editar")) return;
   await eliminarUnidadProducto(productoUnidadId, productoId, c.ctx);
   revalidatePath(`/productos/${productoId}/editar`);
 }

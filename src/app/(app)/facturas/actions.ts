@@ -19,7 +19,7 @@ export async function crearFacturaAction(
 ): Promise<FacturaState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "facturas.crear")) return { error: "No tienes permiso para vender." };
+  if (!puede(c.permisos, "facturas.crear")) return { error: "No tienes permiso para vender." };
 
   const parsed = parseFacturaForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
@@ -74,7 +74,7 @@ export async function abonarFacturaAction(
 ): Promise<AbonoFacturaState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "recaudos.crear")) return { error: "No tienes permiso para cobrar." };
+  if (!puede(c.permisos, "recaudos.crear")) return { error: "No tienes permiso para cobrar." };
   const valor = Number(form.get("valor"));
   const cuentaDestinoId = Number(form.get("cuentaDestinoId")) || undefined;
   if (!cuentaDestinoId) return { error: "Elige a dónde entró el dinero." };
@@ -108,7 +108,7 @@ export async function crearClienteRapidoAction(
 ): Promise<{ ok: true; id: number; nombre: string; requiereFE: boolean } | { ok: false; error: string }> {
   const c = await contexto();
   if (!c) return { ok: false, error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "terceros.crear")) return { ok: false, error: "No tienes permiso para crear clientes." };
+  if (!puede(c.permisos, "terceros.crear")) return { ok: false, error: "No tienes permiso para crear clientes." };
   const n = nombre.trim();
   if (n.length < 2) return { ok: false, error: "Escribe el nombre del cliente." };
   try {
@@ -157,7 +157,7 @@ export interface AnularState { error?: string; ok?: boolean }
 export async function anularFacturaAction(facturaId: number, _prev: AnularState, form: FormData): Promise<AnularState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "facturas.eliminar")) return { error: "No tienes permiso para anular." };
+  if (!puede(c.permisos, "facturas.eliminar")) return { error: "No tienes permiso para anular." };
   const motivo = String(form.get("motivo") || "").trim();
   if (motivo.length < 3) return { error: "Escribe el motivo de la anulación." };
   try {

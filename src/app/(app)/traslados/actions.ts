@@ -19,7 +19,7 @@ export interface TrasladoState {
 export async function crearTrasladoAction(_prev: TrasladoState, form: FormData): Promise<TrasladoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "traslados.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "traslados.crear")) return { error: "No tienes permiso." };
 
   const parsed = parseTrasladoForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
@@ -37,7 +37,7 @@ export async function crearTrasladoAction(_prev: TrasladoState, form: FormData):
 
 export async function enviarTrasladoAction(id: number): Promise<{ error?: string }> {
   const c = await contexto();
-  if (!c || !puede(c.rol, "traslados.editar")) return { error: "Sin permiso." };
+  if (!c || !puede(c.permisos, "traslados.editar")) return { error: "Sin permiso." };
   try {
     await enviarTraslado(id, c.ctx);
   } catch (e) {
@@ -51,7 +51,7 @@ export async function enviarTrasladoAction(id: number): Promise<{ error?: string
 
 export async function recibirTrasladoAction(id: number): Promise<{ error?: string }> {
   const c = await contexto();
-  if (!c || !puede(c.rol, "traslados.editar")) return { error: "Sin permiso." };
+  if (!c || !puede(c.permisos, "traslados.editar")) return { error: "Sin permiso." };
   try {
     await recibirTraslado(id, c.ctx);
   } catch (e) {

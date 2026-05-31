@@ -22,7 +22,7 @@ export interface AsignarState {
 export async function asignarRecaudoAction(_prev: AsignarState, form: FormData): Promise<AsignarState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "ruta_recaudo.editar")) return { error: "No tienes permiso para programar la ruta." };
+  if (!puede(c.permisos, "ruta_recaudo.editar")) return { error: "No tienes permiso para programar la ruta." };
 
   let clienteIds: number[] = [];
   try {
@@ -49,7 +49,7 @@ export async function asignarRecaudoAction(_prev: AsignarState, form: FormData):
 export async function recaudarRutaAction(_prev: RutaState, form: FormData): Promise<RutaState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "recaudos.crear")) return { error: "No tienes permiso para recaudar." };
+  if (!puede(c.permisos, "recaudos.crear")) return { error: "No tienes permiso para recaudar." };
 
   const clienteId = Number(form.get("clienteId"));
   const recaudadorId = Number(form.get("recaudadorId"));
@@ -74,7 +74,7 @@ export async function recaudarRutaAction(_prev: RutaState, form: FormData): Prom
 export async function marcarVisitaAction(_prev: RutaState, form: FormData): Promise<RutaState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "recaudos.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "recaudos.crear")) return { error: "No tienes permiso." };
 
   const clienteId = Number(form.get("clienteId"));
   const recaudadorId = Number(form.get("recaudadorId"));

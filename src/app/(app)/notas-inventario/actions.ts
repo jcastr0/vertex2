@@ -15,7 +15,7 @@ export interface NotaState {
 export async function crearNotaAction(_prev: NotaState, form: FormData): Promise<NotaState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "notas_inventario.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "notas_inventario.crear")) return { error: "No tienes permiso." };
 
   const parsed = parseNotaInventarioForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };

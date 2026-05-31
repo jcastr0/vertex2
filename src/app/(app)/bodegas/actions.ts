@@ -26,7 +26,7 @@ export async function guardarBodegaAction(
   const idRaw = form.get("id");
   const editando = idRaw ? Number(idRaw) : null;
   const permiso: Permiso = editando ? "bodegas.editar" : "bodegas.crear";
-  if (!puede(c.rol, permiso)) return { error: "No tienes permiso para esta acción." };
+  if (!puede(c.permisos, permiso)) return { error: "No tienes permiso para esta acción." };
 
   const parsed = parseBodegaForm(form);
   if (!parsed.success) {
@@ -52,7 +52,7 @@ export async function guardarBodegaAction(
 export async function cambiarEstadoBodegaAction(id: number, activo: boolean): Promise<void> {
   const c = await contexto();
   if (!c) return;
-  if (!puede(c.rol, activo ? "bodegas.editar" : "bodegas.eliminar")) return;
+  if (!puede(c.permisos, activo ? "bodegas.editar" : "bodegas.eliminar")) return;
   await cambiarEstadoBodega(id, activo, c.ctx);
   revalidatePath("/bodegas");
 }

@@ -10,7 +10,7 @@ export interface CierreState { error?: string }
 export async function registrarCierreAction(_prev: CierreState, form: FormData): Promise<CierreState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "tesoreria.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "tesoreria.crear")) return { error: "No tienes permiso." };
   const fecha = String(form.get("fecha") || new Date().toISOString().slice(0, 10));
   const observaciones = String(form.get("observaciones") || "") || null;
   let conteos: { cuentaId: number; montoContado?: number }[] = [];

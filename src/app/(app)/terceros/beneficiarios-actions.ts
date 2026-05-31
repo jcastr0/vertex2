@@ -12,7 +12,7 @@ export interface BeneficiarioState { error?: string; ok?: boolean }
 export async function agregarBeneficiarioAction(terceroId: number, _prev: BeneficiarioState, form: FormData): Promise<BeneficiarioState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "terceros.editar")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "terceros.editar")) return { error: "No tienes permiso." };
 
   // El titular es el mismo proveedor (propia) salvo que sea otra persona/empresa.
   const esPropia = form.get("esPropia") !== "false";
@@ -45,7 +45,7 @@ export async function agregarBeneficiarioAction(terceroId: number, _prev: Benefi
 export async function quitarBeneficiarioAction(terceroId: number, id: number): Promise<void> {
   const c = await contexto();
   if (!c) return;
-  if (!puede(c.rol, "terceros.editar")) return;
+  if (!puede(c.permisos, "terceros.editar")) return;
   await cambiarEstadoBeneficiario(id, false, c.ctx);
   revalidatePath(`/terceros/${terceroId}`);
   revalidatePath(`/terceros/${terceroId}/editar`);

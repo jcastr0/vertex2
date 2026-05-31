@@ -25,7 +25,7 @@ export async function guardarRetencionAction(
   const idRaw = form.get("id");
   const editando = idRaw ? Number(idRaw) : null;
   const permiso: Permiso = editando ? "retenciones.editar" : "retenciones.crear";
-  if (!puede(c.rol, permiso)) return { error: "No tienes permiso para esta acción." };
+  if (!puede(c.permisos, permiso)) return { error: "No tienes permiso para esta acción." };
 
   const parsed = parseRetencionForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
@@ -45,7 +45,7 @@ export async function guardarRetencionAction(
 export async function cambiarEstadoRetencionAction(id: number, activa: boolean): Promise<void> {
   const c = await contexto();
   if (!c) return;
-  if (!puede(c.rol, activa ? "retenciones.editar" : "retenciones.eliminar")) return;
+  if (!puede(c.permisos, activa ? "retenciones.editar" : "retenciones.eliminar")) return;
   await cambiarEstadoRetencion(id, activa, c.ctx);
   revalidatePath("/retenciones");
 }

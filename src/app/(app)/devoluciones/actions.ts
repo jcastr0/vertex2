@@ -17,7 +17,7 @@ export async function crearDevolucionAction(
 ): Promise<DevolucionState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "devoluciones.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "devoluciones.crear")) return { error: "No tienes permiso." };
 
   const parsed = parseDevolucionForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };

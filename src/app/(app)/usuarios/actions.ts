@@ -17,7 +17,7 @@ export async function guardarUsuarioAction(_prev: UsuarioState, form: FormData):
   const idRaw = form.get("id");
   const editando = idRaw ? Number(idRaw) : null;
   const permiso: Permiso = editando ? "usuarios.editar" : "usuarios.crear";
-  if (!puede(c.rol, permiso)) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, permiso)) return { error: "No tienes permiso." };
 
   const parsed = parseUsuarioForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
@@ -36,7 +36,7 @@ export async function guardarUsuarioAction(_prev: UsuarioState, form: FormData):
 
 export async function cambiarEstadoUsuarioAction(id: number, activo: boolean): Promise<void> {
   const c = await contexto();
-  if (!c || !puede(c.rol, "usuarios.editar")) return;
+  if (!c || !puede(c.permisos, "usuarios.editar")) return;
   await cambiarEstadoUsuario(id, activo, c.ctx);
   revalidatePath("/usuarios");
 }

@@ -25,7 +25,7 @@ export async function guardarCategoriaAction(
   const idRaw = form.get("id");
   const editando = idRaw ? Number(idRaw) : null;
   const permiso: Permiso = editando ? "categorias.editar" : "categorias.crear";
-  if (!puede(c.rol, permiso)) return { error: "No tienes permiso para esta acción." };
+  if (!puede(c.permisos, permiso)) return { error: "No tienes permiso para esta acción." };
 
   const parsed = parseCategoriaForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
@@ -45,7 +45,7 @@ export async function guardarCategoriaAction(
 export async function cambiarEstadoCategoriaAction(id: number, activo: boolean): Promise<void> {
   const c = await contexto();
   if (!c) return;
-  if (!puede(c.rol, activo ? "categorias.editar" : "categorias.eliminar")) return;
+  if (!puede(c.permisos, activo ? "categorias.editar" : "categorias.eliminar")) return;
   await cambiarEstadoCategoria(id, activo, c.ctx);
   revalidatePath("/categorias");
 }

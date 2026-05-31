@@ -19,7 +19,7 @@ export async function guardarCuentaAction(_prev: TesoreriaState, form: FormData)
   const idRaw = form.get("id");
   const editando = idRaw ? Number(idRaw) : null;
   const permiso: Permiso = editando ? "tesoreria.editar" : "tesoreria.crear";
-  if (!puede(c.rol, permiso)) return { error: "No tienes permiso para esta acción." };
+  if (!puede(c.permisos, permiso)) return { error: "No tienes permiso para esta acción." };
   const parsed = parseCuentaPropiaForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   try {
@@ -41,7 +41,7 @@ export interface MovimientoState {
 export async function registrarMovimientoAction(_prev: MovimientoState, form: FormData): Promise<MovimientoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "tesoreria.crear")) return { error: "No tienes permiso para esta acción." };
+  if (!puede(c.permisos, "tesoreria.crear")) return { error: "No tienes permiso para esta acción." };
   const parsed = parseMovimientoForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   try {
@@ -63,7 +63,7 @@ export interface BancoState {
 export async function crearBancoAction(_prev: BancoState, form: FormData): Promise<BancoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "tesoreria.crear")) return { error: "No tienes permiso para agregar bancos." };
+  if (!puede(c.permisos, "tesoreria.crear")) return { error: "No tienes permiso para agregar bancos." };
   const nombre = String(form.get("nombre") || "").trim();
   const tipoRaw = String(form.get("tipo") || "banco");
   const tipo: TipoBanco = (TIPOS_BANCO as readonly string[]).includes(tipoRaw) ? (tipoRaw as TipoBanco) : "banco";
@@ -81,7 +81,7 @@ export async function crearBancoAction(_prev: BancoState, form: FormData): Promi
 export async function toggleBancoAction(id: number, activo: boolean): Promise<{ error?: string }> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "tesoreria.editar")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "tesoreria.editar")) return { error: "No tienes permiso." };
   try {
     await cambiarEstadoBanco(id, activo, c.ctx);
   } catch (e) {

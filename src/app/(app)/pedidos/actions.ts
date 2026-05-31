@@ -22,7 +22,7 @@ export async function crearPedidoAction(
 ): Promise<PedidoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "pedidos.crear")) return { error: "No tienes permiso para crear pedidos." };
+  if (!puede(c.permisos, "pedidos.crear")) return { error: "No tienes permiso para crear pedidos." };
 
   const parsed = parsePedidoForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
@@ -51,14 +51,14 @@ export async function crearPedidoAction(
 
 export async function confirmarPedidoAction(id: number): Promise<void> {
   const c = await contexto();
-  if (!c || !puede(c.rol, "pedidos.editar")) return;
+  if (!c || !puede(c.permisos, "pedidos.editar")) return;
   await confirmarPedido(id, c.ctx);
   revalidatePath(`/pedidos/${id}`);
 }
 
 export async function recibirPedidoAction(id: number): Promise<{ error?: string }> {
   const c = await contexto();
-  if (!c || !puede(c.rol, "pedidos.editar")) return { error: "Sin permiso." };
+  if (!c || !puede(c.permisos, "pedidos.editar")) return { error: "Sin permiso." };
   try {
     await recibirPedido(id, c.ctx);
   } catch (e) {
@@ -77,7 +77,7 @@ export async function recibirParcialAction(
 ): Promise<{ error?: string }> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "pedidos.editar")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "pedidos.editar")) return { error: "No tienes permiso." };
   try {
     await recibirPedido(id, c.ctx, recepciones);
   } catch (e) {

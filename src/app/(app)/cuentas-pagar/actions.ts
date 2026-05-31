@@ -16,7 +16,7 @@ export interface AbonoState {
 export async function registrarPagoAction(_prev: AbonoState, form: FormData): Promise<AbonoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
 
   const cuentaOrigenId = Number(form.get("cuentaOrigenId"));
   if (!cuentaOrigenId) return { error: "Elige la cuenta de origen." };
@@ -74,7 +74,7 @@ export interface FacturaProvState { error?: string; ok?: boolean }
 export async function registrarFacturaProveedorAction(cuentaPorPagarId: number, _prev: FacturaProvState, form: FormData): Promise<FacturaProvState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
   const numeroFactura = String(form.get("numeroFactura") || "").trim();
   const fechaFactura = String(form.get("fechaFactura") || "").trim();
   const fechaVencimiento = String(form.get("fechaVencimiento") || "").trim();
@@ -106,7 +106,7 @@ export async function beneficiariosProveedorAction(proveedorId: number) {
 export async function pagarProveedorAction(proveedorId: number, _prev: PagoState, form: FormData): Promise<PagoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
 
   const monto = Number(form.get("monto"));
   if (!monto || monto <= 0) return { error: "Escribe cuánto le pagaste." };

@@ -26,7 +26,7 @@ export async function guardarTerceroAction(
   const idRaw = form.get("id");
   const editando = idRaw ? Number(idRaw) : null;
   const permiso: Permiso = editando ? "terceros.editar" : "terceros.crear";
-  if (!puede(c.rol, permiso)) return { error: "No tienes permiso para esta acción." };
+  if (!puede(c.permisos, permiso)) return { error: "No tienes permiso para esta acción." };
 
   const parsed = parseTerceroForm(form);
   if (!parsed.success) {
@@ -49,7 +49,7 @@ export async function guardarTerceroAction(
 export async function cambiarEstadoTerceroAction(id: number, activo: boolean): Promise<void> {
   const c = await contexto();
   if (!c) return;
-  if (!puede(c.rol, activo ? "terceros.editar" : "terceros.eliminar")) return;
+  if (!puede(c.permisos, activo ? "terceros.editar" : "terceros.eliminar")) return;
   await cambiarEstadoTercero(id, activo, c.ctx);
   revalidatePath("/terceros");
 }

@@ -15,7 +15,7 @@ export interface AbonoState {
 export async function cobrarClienteAction(clienteId: number, _prev: AbonoState, form: FormData): Promise<AbonoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "recaudos.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "recaudos.crear")) return { error: "No tienes permiso." };
 
   const monto = Number(form.get("monto"));
   if (!monto || monto <= 0) return { error: "Escribe cuánto te pagó." };
@@ -40,7 +40,7 @@ export async function cobrarClienteAction(clienteId: number, _prev: AbonoState, 
 export async function registrarRecaudoAction(_prev: AbonoState, form: FormData): Promise<AbonoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "recaudos.crear")) return { error: "No tienes permiso." };
+  if (!puede(c.permisos, "recaudos.crear")) return { error: "No tienes permiso." };
 
   const parsed = parseAbonoForm(form);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };

@@ -20,7 +20,7 @@ export async function facturasConSaldoAction(clienteId: number) {
 export async function guardarNotaCreditoAction(_prev: NotaCreditoState, form: FormData): Promise<NotaCreditoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
-  if (!puede(c.rol, "notas_credito.crear")) return { error: "No tienes permiso para crear notas crédito." };
+  if (!puede(c.permisos, "notas_credito.crear")) return { error: "No tienes permiso para crear notas crédito." };
 
   const clienteId = Number(form.get("clienteId"));
   const facturaId = Number(form.get("facturaId"));
