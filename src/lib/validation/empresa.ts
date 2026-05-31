@@ -1,6 +1,8 @@
 import { z } from "zod";
+import { PALETAS } from "@/lib/temas/paletas";
 
 const opc = (max: number) => z.string().trim().max(max).optional().or(z.literal(""));
+const PALETA_KEYS = PALETAS.map((p) => p.key) as [string, ...string[]];
 
 export const empresaSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(150),
@@ -11,7 +13,7 @@ export const empresaSchema = z.object({
   direccion: opc(255),
   ciudad: opc(100),
   pais: opc(100),
-  paletaTema: z.string().trim().max(40).optional().or(z.literal("")),
+  paletaTema: z.enum(PALETA_KEYS).optional().or(z.literal("")),
 });
 
 export type EmpresaInput = z.infer<typeof empresaSchema>;
