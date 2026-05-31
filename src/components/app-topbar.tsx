@@ -21,6 +21,7 @@ interface Props {
   nombre: string;
   email: string;
   rol: string | null;
+  permisos: string[];
   empresa: string | null;
   empresas: { id: number; nombre: string }[];
   empresaActivaId: number | null;
@@ -64,13 +65,13 @@ function iniciales(nombre: string) {
     .toUpperCase();
 }
 
-export function AppTopbar({ nombre, email, rol, empresa, empresas, empresaActivaId }: Props) {
+export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, empresaActivaId }: Props) {
   const pathname = usePathname();
   const esSuperadmin = empresas.length > 0;
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-        <MobileNav rol={rol} />
+        <MobileNav permisos={permisos} />
         <Breadcrumb pathname={pathname} />
         {rol && (
           <Badge variant="secondary" className="hidden font-normal sm:inline-flex">

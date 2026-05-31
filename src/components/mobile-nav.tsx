@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/s
 import { SidebarNav } from "./app-sidebar";
 import { Button } from "@/components/ui/button";
 
-export function MobileNav({ rol }: { rol: string | null }) {
+export function MobileNav({ permisos }: { permisos: string[] }) {
   const [open, setOpen] = useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -16,7 +16,7 @@ export function MobileNav({ rol }: { rol: string | null }) {
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
         <SheetTitle className="sr-only">Navegación</SheetTitle>
-        <SidebarNav rol={rol} onNavigate={() => setOpen(false)} />
+        <SidebarNav permisos={permisos} onNavigate={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   );

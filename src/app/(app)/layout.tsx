@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { getSesion } from "@/lib/auth/cookies";
+import { getPermisos } from "@/lib/auth/permisos";
 import { empresaActivaId, listarEmpresas } from "@/lib/auth/empresa";
 import { db } from "@/lib/db";
 import { empresas } from "@/lib/db/schema";
@@ -13,6 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const sesion = await getSesion();
   if (!sesion) redirect("/login");
 
+  const permisos = await getPermisos();
   const empresaIdActiva = await empresaActivaId(sesion);
 
   let empresaNombre: string | null = null;
@@ -40,12 +42,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-svh overflow-hidden">
       {css && <style id="tema-empresa" dangerouslySetInnerHTML={{ __html: css }} />}
-      <AppSidebar rol={sesion.rol} />
+      <AppSidebar permisos={permisos} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar
           nombre={sesion.nombre}
           email={sesion.email}
           rol={sesion.rol}
+          permisos={permisos}
           empresa={empresaNombre}
           empresas={listaEmpresas}
           empresaActivaId={empresaIdActiva}

@@ -18,12 +18,12 @@ const KEY_GRP = "vx_sidebar_grupos";
  * Reutilizable en el aside (escritorio) y el drawer (móvil).
  */
 export function SidebarNav({
-  rol,
+  permisos,
   onNavigate,
   colapsado = false,
   onToggleColapsar,
 }: {
-  rol: string | null;
+  permisos: string[];
   onNavigate?: () => void;
   colapsado?: boolean;
   onToggleColapsar?: () => void;
@@ -33,7 +33,7 @@ export function SidebarNav({
 
   const grupos = NAV.map((g) => ({
     ...g,
-    items: g.items.filter((it) => puede(rol, `${it.modulo}.ver` as Permiso)),
+    items: g.items.filter((it) => puede(permisos, `${it.modulo}.ver` as Permiso)),
   })).filter((g) => g.items.length > 0);
 
   // Acordeón: el grupo activo abre por defecto; el usuario puede togglear (persistido).
@@ -225,7 +225,7 @@ export function SidebarNav({
 }
 
 /** Sidebar fijo en escritorio (oculto en móvil), con colapso persistente. */
-export function AppSidebar({ rol }: { rol: string | null }) {
+export function AppSidebar({ permisos }: { permisos: string[] }) {
   const [colapsado, setColapsado] = useState(false);
   useEffect(() => {
     setColapsado(localStorage.getItem(KEY_COL) === "1");
@@ -248,7 +248,7 @@ export function AppSidebar({ rol }: { rol: string | null }) {
         colapsado ? "w-[4.5rem]" : "w-64",
       )}
     >
-      <SidebarNav rol={rol} colapsado={colapsado} onToggleColapsar={toggle} />
+      <SidebarNav permisos={permisos} colapsado={colapsado} onToggleColapsar={toggle} />
     </aside>
   );
 }
