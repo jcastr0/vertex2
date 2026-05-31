@@ -636,6 +636,8 @@ export const facturas = pgTable("vx21",
     estado: varchar("estado", { length: 20 }).notNull().default("borrador"),
     esElectronica: boolean("es_electronica").notNull().default(false),
     observaciones: text("observaciones"),
+    motivoAnulacion: text("motivo_anulacion"),
+    anuladaEn: timestamp("anulada_en", { withTimezone: true }),
     usuarioId: bigint("usuario_id", { mode: "number" })
       .notNull()
       .references(() => usuarios.id),
@@ -1022,4 +1024,37 @@ export const movimientosTesoreria = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("vx35_cuenta_fecha_idx").on(t.empresaId, t.cuentaPropiaId, t.fecha)],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx37 — Cierres de caja (arqueo diario)
+// ──────────────────────────────────────────────────────────────────────────
+export const cierres = pgTable(
+  "vx37",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" }).notNull().references(() => empresas.id),
+    fecha: date("fecha").notNull(),
+    usuarioId: bigint("usuario_id", { mode: "number" }).notNull().references(() => usuarios.id),
+    observaciones: text("observaciones"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("vx37_empresa_fecha_uq").on(t.empresaId, t.fecha)],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx38 — Detalle de cierre por cuenta
+// ──────────────────────────────────────────────────────────────────────────
+export const cierreCuentas = pgTable(
+  "vx38",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    cierreId: bigint("cierre_id", { mode: "number" }).notNull().references(() => cierres.id, { onDelete: "cascade" }),
+    cuentaPropiaId: bigint("cuenta_propia_id", { mode: "number" }).notNull().references(() => cuentasPropias.id),
+    tipo: varchar("tipo", { length: 10 }).notNull(),
+    saldoEsperado: money("saldo_esperado").notNull(),
+    montoContado: money("monto_contado"),
+    diferencia: money("diferencia").notNull().default("0"),
+  },
+  (t) => [index("vx38_cierre_idx").on(t.cierreId)],
 );

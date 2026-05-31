@@ -64,6 +64,13 @@
       "when": 1780250895873,
       "tag": "0008_soft_zeigeist",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1780256631289,
+      "tag": "0009_lovely_abomination",
+      "breakpoints": true
     }
   ]
 }
