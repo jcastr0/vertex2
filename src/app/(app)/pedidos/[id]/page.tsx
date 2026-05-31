@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PedidoAcciones } from "./pedido-acciones";
-import { HandCoins, ArrowRight } from "lucide-react";
+import { RegistrarFacturaProveedor } from "../../cuentas-pagar/registrar-factura";
+import { HandCoins, ArrowRight, FileText, AlertCircle } from "lucide-react";
 
 export const metadata: Metadata = { title: "Pedido — Vertex" };
 
@@ -99,12 +100,34 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
             <p className="tabular text-lg font-bold tracking-tight">
               {cxp.saldo > 0 ? money(String(cxp.saldo)) : money(String(cxp.total))}
             </p>
-            {cxp.saldo > 0 && <p className="text-xs text-muted-foreground">Vence {cxp.vence}</p>}
+            {cxp.facturaRegistrada ? (
+              <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <FileText className="size-3.5" /> Factura {cxp.numero} · {cxp.esElectronica ? "electrónica" : "normal"} · vence {cxp.vence}
+              </p>
+            ) : (
+              <p className="mt-0.5 flex items-center gap-1.5 text-xs text-amber-600">
+                <AlertCircle className="size-3.5" /> Falta registrar la factura del proveedor
+              </p>
+            )}
           </div>
-          {cxp.saldo > 0 && puede(sesion.rol, "pagos_proveedor.crear") && (
-            <Link href="/cuentas-pagar" className={buttonVariants({ variant: "outline", size: "sm" })}>
-              Ir a pagar <ArrowRight className="size-4" />
-            </Link>
+          {puede(sesion.rol, "pagos_proveedor.crear") && (
+            cxp.facturaRegistrada ? (
+              cxp.saldo > 0 && (
+                <Link href="/cuentas-pagar" className={buttonVariants({ variant: "outline", size: "sm" })}>
+                  Ir a pagar <ArrowRight className="size-4" />
+                </Link>
+              )
+            ) : (
+              <RegistrarFacturaProveedor
+                cxpId={cxp.id}
+                numeroSugerido={cxp.numero}
+                vencimientoSugerido={cxp.vence}
+                hoy={cxp.fecha}
+                feSugerida={prov?.requiereFacturaElectronica ?? false}
+                triggerLabel="Registrar factura del proveedor"
+                variant="default"
+              />
+            )
           )}
         </div>
       )}

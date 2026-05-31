@@ -11,17 +11,20 @@ import { Field } from "@/components/ui/field";
 import { SearchSelect } from "@/components/ui/search-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { METODOS_PAGO } from "@/lib/domain/cartera";
+import { distribuirFIFO } from "@/lib/domain/cobro";
 import { calcularRetenciones, type RetencionConfig } from "@/lib/domain/retenciones";
 import { PagarDoc } from "./pagar-doc";
-import { AlertCircle, Loader2, ChevronDown, Wallet } from "lucide-react";
+import { RegistrarFacturaProveedor } from "./registrar-factura";
+import { AlertCircle, Loader2, ChevronDown, Wallet, FileText } from "lucide-react";
 
-interface Doc { id: number; numero: string; fecha: string; vence: string; total: number; saldo: number }
+interface Doc { id: number; numero: string; fecha: string; vence: string; total: number; saldo: number; esElectronica?: boolean; facturaRegistrada?: boolean }
 interface Props {
   proveedorId: number;
   proveedor: string;
   total: number;
   vencido: boolean;
   facturaElectronica: boolean;
+  docsSinFactura: number;
   hoy: string;
   cuentasOrigen: { id: number; nombre: string }[];
   retenciones: RetencionConfig[];
@@ -55,6 +58,7 @@ export function PagarProveedor({
   total,
   vencido,
   facturaElectronica,
+  docsSinFactura,
   hoy,
   cuentasOrigen,
   retenciones,
@@ -83,11 +87,18 @@ export function PagarProveedor({
     }
   }, [state.ok, router]);
 
-  const ret = useMemo(
-    () => calcularRetenciones(Number.isFinite(monto) ? monto : 0, retenciones, facturaElectronica),
-    [monto, retenciones, facturaElectronica],
-  );
-  const neto = Math.max(0, (Number.isFinite(monto) ? monto : 0) - ret.total);
+  // La retención se calcula por documento (según la F.E. de cada compra) sobre
+  // el reparto FIFO del monto.
+  const retTotal = useMemo(() => {
+    const m = Number.isFinite(monto) ? monto : 0;
+    const alloc = distribuirFIFO(docs.map((d) => ({ id: d.id, saldo: d.saldo })), m);
+    return alloc.reduce((acc, a) => {
+      const fe = docs.find((d) => d.id === a.id)?.esElectronica ?? false;
+      return acc + calcularRetenciones(a.abono, retenciones, fe).total;
+    }, 0);
+  }, [monto, retenciones, docs]);
+  const neto = Math.max(0, (Number.isFinite(monto) ? monto : 0) - retTotal);
+  const bloqueado = docsSinFactura > 0;
 
   const beneficiarioOpciones = [
     { value: "proveedor", label: `Al proveedor (${proveedor})` },
@@ -110,12 +121,16 @@ export function PagarProveedor({
             <span className={`size-2.5 shrink-0 rounded-full ${vencido ? "bg-destructive" : "bg-primary/40"}`} title={vencido ? "Vencido" : "Al día"} />
             <span className="min-w-0 flex-1">
               <span className="block truncate font-medium">{proveedor}</span>
-              <span className="text-sm text-muted-foreground">{docs.length} {docs.length === 1 ? "factura" : "facturas"}{facturaElectronica ? " · F.E." : ""}{vencido ? " · tiene vencido" : ""}</span>
+              <span className="text-sm text-muted-foreground">
+                {docs.length} {docs.length === 1 ? "factura" : "facturas"}
+                {docsSinFactura > 0 ? ` · ${docsSinFactura} sin factura` : ""}
+                {vencido ? " · tiene vencido" : ""}
+              </span>
             </span>
             <span className="tabular text-lg font-bold tracking-tight">{money(total)}</span>
             <ChevronDown className={`size-5 shrink-0 text-muted-foreground transition-transform ${abierto ? "rotate-180" : ""}`} />
           </button>
-          <Button type="button" size="sm" onClick={() => setOpen(true)} className="shrink-0">
+          <Button type="button" size="sm" onClick={() => setOpen(true)} className="shrink-0" disabled={bloqueado} title={bloqueado ? "Registra las facturas del proveedor primero" : undefined}>
             <Wallet className="size-4" /> Pagar
           </Button>
         </div>
@@ -127,18 +142,33 @@ export function PagarProveedor({
                 <span className="min-w-0 flex-1 truncate">
                   <span className="font-medium">{d.numero}</span>
                   <span className="text-muted-foreground"> · {fmtFecha(d.fecha)}</span>
+                  {d.facturaRegistrada && (
+                    <span className="ml-1.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <FileText className="size-3" /> {d.esElectronica ? "electrónica" : "normal"}
+                    </span>
+                  )}
                 </span>
                 <span className={`hidden shrink-0 text-xs sm:inline ${d.vence < hoy ? "font-medium text-destructive" : "text-muted-foreground"}`}>vence {fmtFecha(d.vence)}</span>
                 <span className="tabular w-20 shrink-0 text-right font-medium sm:w-24">{money(d.saldo)}</span>
-                <PagarDoc
-                  cxpId={d.id}
-                  numero={d.numero}
-                  saldo={d.saldo}
-                  hoy={hoy}
-                  facturaElectronica={facturaElectronica}
-                  cuentasOrigen={cuentasOrigen}
-                  retenciones={retenciones}
-                />
+                {d.facturaRegistrada ? (
+                  <PagarDoc
+                    cxpId={d.id}
+                    numero={d.numero}
+                    saldo={d.saldo}
+                    hoy={hoy}
+                    facturaElectronica={!!d.esElectronica}
+                    cuentasOrigen={cuentasOrigen}
+                    retenciones={retenciones}
+                  />
+                ) : (
+                  <RegistrarFacturaProveedor
+                    cxpId={d.id}
+                    numeroSugerido={d.numero}
+                    vencimientoSugerido={d.vence}
+                    hoy={d.fecha}
+                    feSugerida={facturaElectronica}
+                  />
+                )}
               </li>
             ))}
           </ul>
@@ -211,30 +241,18 @@ export function PagarProveedor({
           {/* Hidden field so pagarProveedorAction can resolve the beneficiary */}
           <input type="hidden" name="beneficiariosJson" value={JSON.stringify(beneficiarios)} />
 
-          {/* Retención breakdown — only for FE suppliers */}
-          {facturaElectronica && ret.detalle.length > 0 && (
+          {/* Retención total (calculada por documento según la F.E. de cada compra) */}
+          {retTotal > 0 && (
             <div className="rounded-lg border bg-muted/40 p-3 text-sm">
-              <p className="mb-2 font-medium">Retenciones aplicadas</p>
-              <ul className="space-y-1">
-                {ret.detalle.map((d) => (
-                  <li key={d.retencionId} className="flex justify-between text-muted-foreground">
-                    <span>
-                      {d.nombre} ({d.porcentaje}%)
-                    </span>
-                    <span className="tabular">− {money(d.valor)}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Retenciones (facturas electrónicas)</span>
+                <span className="tabular">− {money(retTotal)}</span>
+              </div>
               <div className="mt-2 flex justify-between border-t pt-2 font-medium">
                 <span>Neto a desembolsar</span>
                 <span className="tabular">{money(neto)}</span>
               </div>
             </div>
-          )}
-          {facturaElectronica && ret.detalle.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              Proveedor con factura electrónica: no hay retenciones aplicables a este valor.
-            </p>
           )}
 
           <div className="flex gap-2 pt-1">

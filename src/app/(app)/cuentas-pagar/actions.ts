@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseAbonoForm } from "@/lib/validation/abono";
-import { registrarPago, pagarAProveedor, AbonoInvalido } from "@/lib/services/cartera";
+import { registrarPago, pagarAProveedor, registrarFacturaProveedor, AbonoInvalido } from "@/lib/services/cartera";
 import { beneficiariosActivos } from "@/lib/services/beneficiarios";
 import { resolverBeneficiario } from "@/lib/domain/tesoreria";
 
@@ -65,6 +65,31 @@ export async function registrarPagoAction(_prev: AbonoState, form: FormData): Pr
   }
   revalidatePath("/cuentas-pagar");
   revalidatePath("/pagos-proveedor");
+  return { ok: true };
+}
+
+export interface FacturaProvState { error?: string; ok?: boolean }
+
+/** Registra la factura del proveedor sobre una cuenta por pagar. */
+export async function registrarFacturaProveedorAction(cuentaPorPagarId: number, _prev: FacturaProvState, form: FormData): Promise<FacturaProvState> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "pagos_proveedor.crear")) return { error: "No tienes permiso." };
+  const numeroFactura = String(form.get("numeroFactura") || "").trim();
+  const fechaFactura = String(form.get("fechaFactura") || "").trim();
+  const fechaVencimiento = String(form.get("fechaVencimiento") || "").trim();
+  const esElectronica = String(form.get("esElectronica") || "") === "1";
+  if (!numeroFactura) return { error: "Escribe el número de la factura del proveedor." };
+  if (!fechaFactura || !fechaVencimiento) return { error: "Completa las fechas." };
+  try {
+    await registrarFacturaProveedor(cuentaPorPagarId, { numeroFactura, fechaFactura, fechaVencimiento, esElectronica }, c.ctx);
+  } catch (e) {
+    if (e instanceof AbonoInvalido) return { error: e.message };
+    console.error("[factura-proveedor] error:", e);
+    return { error: "No se pudo registrar la factura." };
+  }
+  revalidatePath("/cuentas-pagar");
+  revalidatePath("/pedidos");
   return { ok: true };
 }
 

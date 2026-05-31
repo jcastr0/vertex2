@@ -86,6 +86,7 @@ export default async function PagarPage({
                     total={a.total}
                     vencido={a.venceMin < hoy}
                     facturaElectronica={a.facturaElectronica ?? false}
+                    docsSinFactura={a.docsSinFactura}
                     hoy={hoy}
                     cuentasOrigen={cuentasOrigen}
                     retenciones={retenciones}

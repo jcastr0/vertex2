@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, ne, gte, lte, asc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { facturas, terceros, pagosProveedor, pagoRetenciones, retenciones } from "@/lib/db/schema";
+import { facturas, terceros, pagosProveedor, pagoRetenciones, retenciones, cuentasPorPagar } from "@/lib/db/schema";
 import { toCsv } from "@/lib/csv";
 
 const docCompleto = (tipo: string | null, id: string | null, dv: string | null) =>
@@ -74,11 +74,12 @@ export async function comprasElectronicasCsv(empresaId: number, desde: string, h
     })
     .from(pagosProveedor)
     .innerJoin(terceros, eq(pagosProveedor.proveedorId, terceros.id))
+    .innerJoin(cuentasPorPagar, eq(pagosProveedor.cuentaPorPagarId, cuentasPorPagar.id))
     .leftJoin(pagoRetenciones, eq(pagoRetenciones.pagoId, pagosProveedor.id))
     .leftJoin(retenciones, eq(pagoRetenciones.retencionId, retenciones.id))
     .where(and(
       eq(pagosProveedor.empresaId, empresaId),
-      eq(terceros.requiereFacturaElectronica, true),
+      eq(cuentasPorPagar.esElectronica, true),
       ne(pagosProveedor.estado, "anulado"),
       gte(pagosProveedor.fecha, desde),
       lte(pagosProveedor.fecha, hasta),

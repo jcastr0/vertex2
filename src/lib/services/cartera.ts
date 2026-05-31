@@ -75,15 +75,17 @@ export async function registrarPago(
     .where(eq(pagosProveedor.empresaId, ctx.empresaId));
   const numero = formatearNumero("PAG", Number(c) + 1);
 
-  // Retenciones: solo aplican a proveedores con factura electrónica.
-  const [prov] = await db
-    .select({ fe: terceros.requiereFacturaElectronica })
+  // La factura del proveedor debe estar registrada; la retención usa la F.E. de
+  // esa compra (no un flag fijo del proveedor).
+  const [cxpInfo] = await db
+    .select({ fe: cuentasPorPagar.esElectronica, registrada: cuentasPorPagar.facturaRegistrada })
     .from(cuentasPorPagar)
-    .innerJoin(terceros, eq(cuentasPorPagar.proveedorId, terceros.id))
     .where(and(eq(cuentasPorPagar.empresaId, ctx.empresaId), eq(cuentasPorPagar.id, cuentaPorPagarId)))
     .limit(1);
+  if (!cxpInfo) throw new AbonoInvalido("Cuenta por pagar no encontrada.");
+  if (!cxpInfo.registrada) throw new AbonoInvalido("Registra primero la factura del proveedor.");
   const config = await retencionesActivas(ctx.empresaId);
-  const ret = calcularRetenciones(datos.valor, config, prov?.fe ?? false);
+  const ret = calcularRetenciones(datos.valor, config, cxpInfo.fe);
 
   await db.transaction(async (tx) => {
     const [cxp] = await tx
@@ -177,6 +179,40 @@ export async function registrarPago(
         registroNuevo: pago,
         ipOrigen: ctx.ip,
       },
+      tx,
+    );
+  });
+}
+
+/**
+ * Registra la factura del proveedor sobre una cuenta por pagar: número real,
+ * fechas y si te la cobró electrónica. Habilita el pago de ese documento.
+ */
+export async function registrarFacturaProveedor(
+  cuentaPorPagarId: number,
+  datos: { numeroFactura: string; fechaFactura: string; fechaVencimiento: string; esElectronica: boolean },
+  ctx: Contexto,
+): Promise<void> {
+  const [cxp] = await db
+    .select()
+    .from(cuentasPorPagar)
+    .where(and(eq(cuentasPorPagar.empresaId, ctx.empresaId), eq(cuentasPorPagar.id, cuentaPorPagarId)))
+    .limit(1);
+  if (!cxp) throw new AbonoInvalido("Cuenta por pagar no encontrada.");
+  await db.transaction(async (tx) => {
+    await tx
+      .update(cuentasPorPagar)
+      .set({
+        numeroFactura: datos.numeroFactura,
+        fechaFactura: datos.fechaFactura,
+        fechaVencimiento: datos.fechaVencimiento,
+        esElectronica: datos.esElectronica,
+        facturaRegistrada: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(cuentasPorPagar.id, cuentaPorPagarId));
+    await registrarAuditoria(
+      { empresaId: ctx.empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx26", modelId: cuentaPorPagarId, accion: "ACTUALIZAR", registroAnterior: cxp, registroNuevo: { ...datos, facturaRegistrada: true }, ipOrigen: ctx.ip },
       tx,
     );
   });
@@ -340,6 +376,7 @@ export async function acreedoresPorProveedor(empresaId: number) {
       total: sql<string>`sum(${cuentasPorPagar.saldoPendiente})`,
       venceMin: sql<string>`min(${cuentasPorPagar.fechaVencimiento})`,
       docs: count(),
+      docsSinFactura: sql<string>`sum(case when ${cuentasPorPagar.facturaRegistrada} = false then 1 else 0 end)`,
     })
     .from(cuentasPorPagar)
     .innerJoin(terceros, eq(cuentasPorPagar.proveedorId, terceros.id))
@@ -353,6 +390,7 @@ export async function acreedoresPorProveedor(empresaId: number) {
     total: Number(r.total),
     venceMin: r.venceMin,
     docs: Number(r.docs),
+    docsSinFactura: Number(r.docsSinFactura),
   }));
 }
 
@@ -364,30 +402,31 @@ export async function pagarAProveedor(
 ): Promise<number> {
   if (datos.monto <= 0) throw new AbonoInvalido("El valor debe ser mayor a 0.");
 
-  const [prov] = await db
-    .select({ fe: terceros.requiereFacturaElectronica })
-    .from(terceros)
-    .where(eq(terceros.id, proveedorId))
-    .limit(1);
   const config = await retencionesActivas(ctx.empresaId);
-  const ret = calcularRetenciones(datos.monto, config, prov?.fe ?? false);
 
+  // Solo documentos con factura del proveedor registrada (obligatorio para pagar).
   const abiertas = await db
-    .select({ id: cuentasPorPagar.id, saldo: cuentasPorPagar.saldoPendiente })
+    .select({ id: cuentasPorPagar.id, saldo: cuentasPorPagar.saldoPendiente, fe: cuentasPorPagar.esElectronica, registrada: cuentasPorPagar.facturaRegistrada })
     .from(cuentasPorPagar)
     .where(and(eq(cuentasPorPagar.empresaId, ctx.empresaId), eq(cuentasPorPagar.proveedorId, proveedorId), gt(cuentasPorPagar.saldoPendiente, "0")))
     .orderBy(asc(cuentasPorPagar.fechaVencimiento), asc(cuentasPorPagar.id));
-  const aplic = distribuirFIFO(abiertas.map((a) => ({ id: a.id, saldo: Number(a.saldo) })), datos.monto);
+  const registradas = abiertas.filter((a) => a.registrada);
+  if (registradas.length === 0) throw new AbonoInvalido("Registra la factura del proveedor antes de pagar.");
+  const feDe = new Map(registradas.map((a) => [a.id, a.fe]));
+  const aplic = distribuirFIFO(registradas.map((a) => ({ id: a.id, saldo: Number(a.saldo) })), datos.monto);
   if (aplic.length === 0) throw new AbonoInvalido("Este proveedor no tiene deudas pendientes.");
 
   const [{ c }] = await db.select({ c: count() }).from(pagosProveedor).where(eq(pagosProveedor.empresaId, ctx.empresaId));
 
   let aplicado = 0;
+  let retencionGlobal = 0;
   await db.transaction(async (tx) => {
     for (let i = 0; i < aplic.length; i++) {
       const a = aplic[i];
       const numero = formatearNumero("PAG", Number(c) + 1 + i);
-      const esPrimero = i === 0;
+      // Retención por documento, según la F.E. de esa compra.
+      const ret = calcularRetenciones(a.abono, config, feDe.get(a.id) ?? false);
+      retencionGlobal += ret.total;
       const [pago] = await tx
         .insert(pagosProveedor)
         .values({
@@ -397,7 +436,7 @@ export async function pagarAProveedor(
           numero,
           fecha: datos.fecha,
           valor: String(a.abono),
-          retencionTotal: esPrimero ? String(ret.total) : "0",
+          retencionTotal: String(ret.total),
           cuentaOrigenId: datos.cuentaOrigenId ?? null,
           beneficiarioCuentaId: datos.beneficiario?.beneficiarioCuentaId ?? null,
           beneficiarioBanco: datos.beneficiario?.banco ?? null,
@@ -411,7 +450,7 @@ export async function pagarAProveedor(
         })
         .returning();
 
-      if (esPrimero && ret.detalle.length) {
+      if (ret.detalle.length) {
         await tx.insert(pagoRetenciones).values(
           ret.detalle.map((d) => ({
             empresaId: ctx.empresaId,
@@ -431,7 +470,7 @@ export async function pagarAProveedor(
     }
 
     if (datos.cuentaOrigenId) {
-      const mov = movimientoDesdePago({ valor: datos.monto, retencionTotal: ret.total });
+      const mov = movimientoDesdePago({ valor: aplicado, retencionTotal: retencionGlobal });
       await tx.insert(movimientosTesoreria).values({
         empresaId: ctx.empresaId,
         cuentaPropiaId: datos.cuentaOrigenId,
@@ -445,7 +484,7 @@ export async function pagarAProveedor(
     }
 
     await registrarAuditoria(
-      { empresaId: ctx.empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx27", modelId: proveedorId, accion: "CREAR", registroNuevo: { proveedorId, monto: datos.monto, retencion: ret.total }, ipOrigen: ctx.ip },
+      { empresaId: ctx.empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx27", modelId: proveedorId, accion: "CREAR", registroNuevo: { proveedorId, monto: aplicado, retencion: retencionGlobal }, ipOrigen: ctx.ip },
       tx,
     );
   });
@@ -459,6 +498,9 @@ export interface DocAbierto {
   vence: string;
   total: number;
   saldo: number;
+  /** Solo en cuentas por pagar: estado de la factura del proveedor. */
+  esElectronica?: boolean;
+  facturaRegistrada?: boolean;
 }
 
 /** Facturas con saldo pendiente de UN cliente (las que componen su deuda). */
@@ -489,6 +531,8 @@ export async function cuentasPorPagarDe(empresaId: number, proveedorId: number):
       vence: cuentasPorPagar.fechaVencimiento,
       total: cuentasPorPagar.valorTotal,
       saldo: cuentasPorPagar.saldoPendiente,
+      esElectronica: cuentasPorPagar.esElectronica,
+      facturaRegistrada: cuentasPorPagar.facturaRegistrada,
     })
     .from(cuentasPorPagar)
     .where(and(eq(cuentasPorPagar.empresaId, empresaId), eq(cuentasPorPagar.proveedorId, proveedorId), gt(cuentasPorPagar.saldoPendiente, "0")))
@@ -513,13 +557,22 @@ export async function cuentaPorCobrarDeFactura(
 export async function cuentaPorPagarDePedido(
   empresaId: number,
   pedidoId: number,
-): Promise<{ total: number; saldo: number; vence: string } | null> {
+): Promise<{ id: number; numero: string; total: number; saldo: number; vence: string; fecha: string; esElectronica: boolean; facturaRegistrada: boolean } | null> {
   const [r] = await db
-    .select({ total: cuentasPorPagar.valorTotal, saldo: cuentasPorPagar.saldoPendiente, vence: cuentasPorPagar.fechaVencimiento })
+    .select({
+      id: cuentasPorPagar.id,
+      numero: cuentasPorPagar.numeroFactura,
+      total: cuentasPorPagar.valorTotal,
+      saldo: cuentasPorPagar.saldoPendiente,
+      vence: cuentasPorPagar.fechaVencimiento,
+      fecha: cuentasPorPagar.fechaFactura,
+      esElectronica: cuentasPorPagar.esElectronica,
+      facturaRegistrada: cuentasPorPagar.facturaRegistrada,
+    })
     .from(cuentasPorPagar)
     .where(and(eq(cuentasPorPagar.empresaId, empresaId), eq(cuentasPorPagar.pedidoId, pedidoId)))
     .limit(1);
-  return r ? { total: Number(r.total), saldo: Number(r.saldo), vence: r.vence } : null;
+  return r ? { ...r, total: Number(r.total), saldo: Number(r.saldo) } : null;
 }
 
 /** Todos los documentos abiertos por pagar, agrupados por proveedor (sin N+1). */
@@ -533,13 +586,15 @@ export async function cuentasPorPagarAbiertasPorProveedor(empresaId: number): Pr
       vence: cuentasPorPagar.fechaVencimiento,
       total: cuentasPorPagar.valorTotal,
       saldo: cuentasPorPagar.saldoPendiente,
+      esElectronica: cuentasPorPagar.esElectronica,
+      facturaRegistrada: cuentasPorPagar.facturaRegistrada,
     })
     .from(cuentasPorPagar)
     .where(and(eq(cuentasPorPagar.empresaId, empresaId), gt(cuentasPorPagar.saldoPendiente, "0")))
     .orderBy(asc(cuentasPorPagar.fechaVencimiento));
   const porProveedor: Record<number, DocAbierto[]> = {};
   for (const r of rows) {
-    (porProveedor[r.proveedorId] ??= []).push({ id: r.id, numero: r.numero, fecha: r.fecha, vence: r.vence, total: Number(r.total), saldo: Number(r.saldo) });
+    (porProveedor[r.proveedorId] ??= []).push({ id: r.id, numero: r.numero, fecha: r.fecha, vence: r.vence, total: Number(r.total), saldo: Number(r.saldo), esElectronica: r.esElectronica, facturaRegistrada: r.facturaRegistrada });
   }
   return porProveedor;
 }

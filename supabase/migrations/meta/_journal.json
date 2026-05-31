@@ -50,6 +50,13 @@
       "when": 1780191448043,
       "tag": "0006_gifted_shadow_king",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780199966547,
+      "tag": "0007_tiresome_serpent_society",
+      "breakpoints": true
     }
   ]
 }
