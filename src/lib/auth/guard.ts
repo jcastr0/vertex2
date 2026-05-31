@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { getSesion } from "./cookies";
 import { puede, type Permiso } from "./roles";
+import { getPermisos } from "./permisos";
 import { empresaActivaId } from "./empresa";
 import type { SessionPayload } from "./session";
 
@@ -15,7 +16,8 @@ export async function requireSesion(): Promise<SessionPayload> {
 /** Exige sesión + permiso; redirige a /login o /dashboard. Para Server Components. */
 export async function requirePermiso(permiso: Permiso): Promise<SessionPayload> {
   const sesion = await requireSesion();
-  if (!puede(sesion.rol, permiso)) redirect("/dashboard");
+  const permisos = await getPermisos();
+  if (!puede(permisos, permiso)) redirect("/dashboard");
   return sesion;
 }
 
