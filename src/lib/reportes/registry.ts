@@ -1,10 +1,11 @@
 // src/lib/reportes/registry.ts
 import "server-only";
-import { TrendingUp, HandCoins, Boxes } from "lucide-react";
+import { TrendingUp, HandCoins, Boxes, Route } from "lucide-react";
 import type { ReporteDef, FiltroSpec } from "./tipos";
 import { cargarVentas, filtrosVentas } from "@/lib/services/reportes/ventas";
 import { cargarCarteraCobrar, filtrosCartera } from "@/lib/services/reportes/cartera-cobrar";
 import { cargarInventario, filtrosInventario } from "@/lib/services/reportes/inventario";
+import { cargarRecaudo, filtrosRecaudo } from "@/lib/services/reportes/recaudo";
 
 export const REPORTES: ReporteDef[] = [
   {
@@ -52,6 +53,19 @@ export const REPORTES: ReporteDef[] = [
       { key: "categoria", label: "Categoría", tipo: "select", opciones: await filtrosInventario(empresaId) },
     ],
     cargar: cargarInventario,
+  },
+  {
+    slug: "recaudo", titulo: "Recaudo / Ruta", desc: "Recaudado por día y recaudador, efectividad de visitas.", grupo: "Cartera", icon: Route,
+    charts: [
+      { tipo: "linea", titulo: "Recaudado por día", serie: "porDia", formato: "money", ancho: "full" },
+      { tipo: "barras", titulo: "Recaudado por recaudador", serie: "porRecaudador", formato: "money" },
+      { tipo: "torta", titulo: "Resultados de visita", serie: "resultados", formato: "num" },
+    ],
+    filtros: async (empresaId): Promise<FiltroSpec[]> => [
+      { key: "desde", label: "Desde", tipo: "fecha" }, { key: "hasta", label: "Hasta", tipo: "fecha" },
+      { key: "recaudador", label: "Recaudador", tipo: "select", opciones: await filtrosRecaudo(empresaId) },
+    ],
+    cargar: cargarRecaudo,
   },
 ];
 
