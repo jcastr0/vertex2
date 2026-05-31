@@ -11,6 +11,7 @@ export const empresaSchema = z.object({
   direccion: opc(255),
   ciudad: opc(100),
   pais: opc(100),
+  paletaTema: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
 export type EmpresaInput = z.infer<typeof empresaSchema>;
@@ -25,5 +26,6 @@ export function parseEmpresaForm(form: FormData) {
     direccion: form.get("direccion") ?? "",
     ciudad: form.get("ciudad") ?? "",
     pais: form.get("pais") ?? "",
+    paletaTema: form.get("paletaTema") ?? "",
   });
 }

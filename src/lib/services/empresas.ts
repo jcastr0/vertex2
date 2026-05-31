@@ -36,6 +36,7 @@ function aColumnas(data: EmpresaInput) {
     direccion: data.direccion || null,
     ciudad: data.ciudad || null,
     pais: data.pais || "Colombia",
+    paletaTema: data.paletaTema || null,
   };
 }
 
