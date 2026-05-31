@@ -6,6 +6,8 @@ import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseFacturaForm } from "@/lib/validation/factura";
 import { crearFactura, ultimoPrecioPorCliente, ultimaUnidadVentaPorCliente, VentaInvalida } from "@/lib/services/facturas";
+import { registrarRecaudo, AbonoInvalido } from "@/lib/services/cartera";
+import { crearClienteRapido } from "@/lib/services/terceros";
 
 export interface FacturaState {
   error?: string;
@@ -57,6 +59,66 @@ export async function crearFacturaAction(
   revalidatePath("/facturas");
   revalidatePath("/inventario");
   redirect(`/facturas/${nuevoId}`);
+}
+
+export interface AbonoFacturaState {
+  error?: string;
+  ok?: boolean;
+}
+
+/** Cobra (abona) una factura puntual desde su detalle. */
+export async function abonarFacturaAction(
+  cuentaPorCobrarId: number,
+  _prev: AbonoFacturaState,
+  form: FormData,
+): Promise<AbonoFacturaState> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "recaudos.crear")) return { error: "No tienes permiso para cobrar." };
+  const valor = Number(form.get("valor"));
+  const cuentaDestinoId = Number(form.get("cuentaDestinoId")) || undefined;
+  if (!cuentaDestinoId) return { error: "Elige a dónde entró el dinero." };
+  try {
+    await registrarRecaudo(
+      cuentaPorCobrarId,
+      {
+        valor,
+        metodoPago: String(form.get("metodoPago") || "efectivo"),
+        fecha: String(form.get("fecha") || new Date().toISOString().slice(0, 10)),
+        referencia: String(form.get("referencia") || "") || undefined,
+        cuentaDestinoId,
+      },
+      c.ctx,
+    );
+  } catch (e) {
+    if (e instanceof AbonoInvalido) return { error: e.message };
+    console.error("[facturas] error al abonar:", e);
+    return { error: "No se pudo registrar el cobro." };
+  }
+  revalidatePath("/facturas");
+  revalidatePath("/cuentas-cobrar");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** Crea un cliente con lo mínimo, durante la venta. Devuelve el creado. */
+export async function crearClienteRapidoAction(
+  nombre: string,
+  identificacion: string,
+): Promise<{ ok: true; id: number; nombre: string; requiereFE: boolean } | { ok: false; error: string }> {
+  const c = await contexto();
+  if (!c) return { ok: false, error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "terceros.crear")) return { ok: false, error: "No tienes permiso para crear clientes." };
+  const n = nombre.trim();
+  if (n.length < 2) return { ok: false, error: "Escribe el nombre del cliente." };
+  try {
+    const cli = await crearClienteRapido({ razonSocial: n, identificacion: identificacion.trim() }, c.ctx);
+    revalidatePath("/terceros");
+    return { ok: true, id: cli.id, nombre: cli.razonSocial, requiereFE: cli.requiereFacturaElectronica };
+  } catch (e) {
+    console.error("[facturas] error al crear cliente rápido:", e);
+    return { ok: false, error: "No se pudo crear el cliente." };
+  }
 }
 
 export async function preciosClienteAction(clienteId: number): Promise<Record<number, number>> {

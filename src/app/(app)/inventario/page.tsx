@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { puede } from "@/lib/auth/roles";
 import { listarInventario, type FilaInventario } from "@/lib/services/inventario";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
 import { ListaFiltrable } from "@/components/lista-filtrable";
 import { type Columna } from "@/components/responsive-table";
-import { Boxes } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { Boxes, SlidersHorizontal } from "lucide-react";
 
 export const metadata: Metadata = { title: "Inventario — Vertex" };
 const PAGE_SIZE = 10;
@@ -19,7 +21,7 @@ export default async function InventarioPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  await requirePermiso("inventario.ver");
+  const sesion = await requirePermiso("inventario.ver");
   const { empresaId } = await requireEmpresa();
   const { q = "", page: pageRaw } = await searchParams;
   const todos = await listarInventario(empresaId);
@@ -49,7 +51,13 @@ export default async function InventarioPage({
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Inventario" description="Existencias por bodega, valorizadas a costo promedio." />
+      <PageHeader title="Inventario" description="Existencias por bodega, valorizadas a costo promedio.">
+        {puede(sesion.rol, "notas_inventario.crear") && (
+          <Link href="/notas-inventario/nueva" className={buttonVariants({ variant: "outline" })}>
+            <SlidersHorizontal className="size-4" /> Ajustar (merma/sobrante)
+          </Link>
+        )}
+      </PageHeader>
       <ListaFiltrable
         base="/inventario"
         q={q}

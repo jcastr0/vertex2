@@ -496,6 +496,32 @@ export async function cuentasPorPagarDe(empresaId: number, proveedorId: number):
   return rows.map((r) => ({ ...r, total: Number(r.total), saldo: Number(r.saldo) }));
 }
 
+/** Cuenta por cobrar de UNA factura (para cobrar esa factura puntual). */
+export async function cuentaPorCobrarDeFactura(
+  empresaId: number,
+  facturaId: number,
+): Promise<{ id: number; total: number; saldo: number } | null> {
+  const [r] = await db
+    .select({ id: cuentasPorCobrar.id, total: cuentasPorCobrar.valorTotal, saldo: cuentasPorCobrar.saldoPendiente })
+    .from(cuentasPorCobrar)
+    .where(and(eq(cuentasPorCobrar.empresaId, empresaId), eq(cuentasPorCobrar.facturaId, facturaId)))
+    .limit(1);
+  return r ? { id: r.id, total: Number(r.total), saldo: Number(r.saldo) } : null;
+}
+
+/** Cuenta por pagar generada por UN pedido (lo que quedó debiendo al recibirlo). */
+export async function cuentaPorPagarDePedido(
+  empresaId: number,
+  pedidoId: number,
+): Promise<{ total: number; saldo: number; vence: string } | null> {
+  const [r] = await db
+    .select({ total: cuentasPorPagar.valorTotal, saldo: cuentasPorPagar.saldoPendiente, vence: cuentasPorPagar.fechaVencimiento })
+    .from(cuentasPorPagar)
+    .where(and(eq(cuentasPorPagar.empresaId, empresaId), eq(cuentasPorPagar.pedidoId, pedidoId)))
+    .limit(1);
+  return r ? { total: Number(r.total), saldo: Number(r.saldo), vence: r.vence } : null;
+}
+
 /** Todos los documentos abiertos por cobrar, agrupados por cliente (sin N+1). */
 export async function cuentasPorCobrarAbiertasPorCliente(empresaId: number): Promise<Record<number, DocAbierto[]>> {
   const rows = await db

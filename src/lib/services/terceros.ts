@@ -1,9 +1,10 @@
 import "server-only";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, count } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { terceros } from "@/lib/db/schema";
 import { registrarAuditoria } from "@/lib/audit";
 import { digitoVerificacionPara } from "@/lib/domain/nit";
+import { formatearNumero } from "@/lib/domain/numeracion";
 import type { TerceroInput } from "@/lib/validation/tercero";
 import type { Contexto } from "./bodegas";
 
@@ -84,6 +85,59 @@ export async function crearTercero(data: TerceroInput, ctx: Contexto): Promise<T
       throw new ConflictoTercero("Ya existe un tercero con ese código o identificación.");
     throw e;
   }
+}
+
+/**
+ * Alta mínima de un cliente durante la venta. Genera un código único e infiere
+ * lo demás con valores sensatos (persona natural, contado). La identificación es
+ * opcional: si no se da, se usa el código (un consumidor que llega sin NIT).
+ */
+export async function crearClienteRapido(
+  data: { razonSocial: string; identificacion?: string },
+  ctx: Contexto,
+): Promise<Tercero> {
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(terceros)
+    .where(eq(terceros.empresaId, ctx.empresaId));
+  let intento = Number(n) + 1;
+  for (let i = 0; i < 8; i++, intento++) {
+    const codigo = formatearNumero("CLI", intento);
+    const identificacion = data.identificacion?.trim() || codigo;
+    try {
+      const [creado] = await db
+        .insert(terceros)
+        .values({
+          empresaId: ctx.empresaId,
+          tipo: "cliente",
+          codigo,
+          razonSocial: data.razonSocial.trim(),
+          tipoIdentificacion: "CC",
+          identificacion,
+          digitoVerificacion: digitoVerificacionPara("CC", identificacion),
+          tipoPersona: "natural",
+          cupoCredito: "0",
+          diasCreditoCliente: 0,
+          diasCreditoProveedor: 0,
+          requiereFacturaElectronica: false,
+        })
+        .returning();
+      await registrarAuditoria({
+        empresaId: ctx.empresaId,
+        usuarioId: ctx.usuarioId,
+        tablaAfectada: "vx07",
+        modelId: creado.id,
+        accion: "CREAR",
+        registroNuevo: creado,
+        ipOrigen: ctx.ip,
+      });
+      return creado;
+    } catch (e) {
+      if (esViolacionUnica(e)) continue; // colisión de código/identificación → reintenta
+      throw e;
+    }
+  }
+  throw new ConflictoTercero("No se pudo generar un código único para el cliente.");
 }
 
 export async function actualizarTercero(

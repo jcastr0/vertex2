@@ -3,17 +3,19 @@
 import { useMemo, useState, useTransition } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { crearFacturaAction, datosClienteAction, type FacturaState } from "./actions";
+import { crearFacturaAction, datosClienteAction, crearClienteRapidoAction, type FacturaState } from "./actions";
 import { Autocomplete, type OpcionAuto } from "@/components/ui/autocomplete";
 import { buscarProductos, agregarOIncrementar, precioSugerido, sugerirUnidadVenta, type LineaCarrito } from "@/lib/domain/venta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Field } from "@/components/ui/field";
+import { Modal } from "@/components/ui/modal";
 import { SearchSelect } from "@/components/ui/search-select";
 import { Switch } from "@/components/ui/switch";
 import { METODOS_PAGO } from "@/lib/domain/cartera";
 import { cn } from "@/lib/utils";
-import { AlertCircle, Loader2, ShoppingBag, Trash2, ScanLine, Minus, Plus, Check, Receipt, FileText } from "lucide-react";
+import { AlertCircle, Loader2, ShoppingBag, Trash2, ScanLine, Minus, Plus, Check, Receipt, FileText, UserPlus } from "lucide-react";
 
 interface Cliente { id: number; nombre: string; requiereFE: boolean }
 interface Bodega { id: number; nombre: string }
@@ -39,6 +41,12 @@ function Vender({ className }: { className?: string }) {
 
 export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy }: { clientes: Cliente[]; bodegas: Bodega[]; productos: Prod[]; cuentasDestino: { id: number; nombre: string }[]; hoy: string }) {
   const [state, action] = useActionState<FacturaState, FormData>(crearFacturaAction, {});
+  const [listaClientes, setListaClientes] = useState<Cliente[]>(clientes);
+  const [nuevoOpen, setNuevoOpen] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState("");
+  const [nuevoDoc, setNuevoDoc] = useState("");
+  const [nuevoError, setNuevoError] = useState("");
+  const [creandoCliente, setCreandoCliente] = useState(false);
   const [clienteId, setClienteId] = useState("");
   const [bodegaId, setBodegaId] = useState(bodegas[0] ? String(bodegas[0].id) : "");
   const [tipo, setTipo] = useState<"contado" | "credito">("contado");
@@ -53,7 +61,7 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
 
   const prodPorId = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const base = useMemo(() => Object.fromEntries(productos.map((p) => [p.id, p.precio])), [productos]);
-  const clienteNombre = useMemo(() => clientes.find((c) => String(c.id) === clienteId)?.nombre ?? "", [clientes, clienteId]);
+  const clienteNombre = useMemo(() => listaClientes.find((c) => String(c.id) === clienteId)?.nombre ?? "", [listaClientes, clienteId]);
 
   /** Map productoId → unidadId a partir de la última venta al cliente */
   const unidadUltimaPorProducto = useMemo<Record<number, number>>(
@@ -61,7 +69,7 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
     [unidadesCliente],
   );
 
-  const opcionesCliente = useMemo<OpcionAuto[]>(() => clientes.map((c) => ({ value: String(c.id), label: c.nombre })), [clientes]);
+  const opcionesCliente = useMemo<OpcionAuto[]>(() => listaClientes.map((c) => ({ value: String(c.id), label: c.nombre })), [listaClientes]);
   const opcionesProducto = useMemo<OpcionAuto[]>(
     () => productos.map((p) => ({ value: String(p.id), label: p.nombre, hint: `(${p.sku})`, derecha: money(precioSugerido(p.id, { porCliente: preciosCliente, base })) })),
     [productos, preciosCliente, base],
@@ -70,13 +78,30 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
   function elegirCliente(value: string) {
     setClienteId(value);
     // La factura hereda el flag del cliente; el usuario puede cambiarlo abajo.
-    const cli = clientes.find((c) => String(c.id) === value);
+    const cli = listaClientes.find((c) => String(c.id) === value);
     setEsElectronica(cli?.requiereFE ?? false);
     startTransition(async () => {
       const datos = await datosClienteAction(Number(value));
       setPreciosCliente(datos.precios);
       setUnidadesCliente(datos.unidades);
     });
+  }
+
+  async function crearClienteRapido() {
+    setNuevoError("");
+    setCreandoCliente(true);
+    try {
+      const res = await crearClienteRapidoAction(nuevoNombre, nuevoDoc);
+      if (!res.ok) { setNuevoError(res.error); return; }
+      const nuevo: Cliente = { id: res.id, nombre: res.nombre, requiereFE: res.requiereFE };
+      setListaClientes((cs) => [nuevo, ...cs]);
+      setNuevoOpen(false);
+      setNuevoNombre("");
+      setNuevoDoc("");
+      elegirCliente(String(res.id));
+    } finally {
+      setCreandoCliente(false);
+    }
   }
 
   /** Resuelve precio para una unidad concreta: usa el último precio del cliente si la unidad coincide, luego el precio de la presentación, luego el base. */
@@ -166,7 +191,16 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
                   <span className="text-xs text-muted-foreground">Cambiar</span>
                 </button>
               ) : (
-                <Autocomplete opciones={opcionesCliente} onSelect={elegirCliente} filtrar={filtrarOpciones} placeholder="Elegir cliente…" inputClassName="h-11" />
+                <>
+                  <Autocomplete opciones={opcionesCliente} onSelect={elegirCliente} filtrar={filtrarOpciones} placeholder="Elegir cliente…" inputClassName="h-11" />
+                  <button
+                    type="button"
+                    onClick={() => setNuevoOpen(true)}
+                    className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                  >
+                    <UserPlus className="size-4" /> Cliente nuevo
+                  </button>
+                </>
               )}
             </div>
 
@@ -325,6 +359,29 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
           <div className="w-40"><Vender /></div>
         </div>
       </div>
+
+      <Modal open={nuevoOpen} onOpenChange={setNuevoOpen} title="Cliente nuevo" description="Lo mínimo para vender ya; luego puedes completar sus datos.">
+        <div className="space-y-4">
+          {nuevoError && (
+            <div role="alert" className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <AlertCircle className="size-4 shrink-0" /> {nuevoError}
+            </div>
+          )}
+          <Field label="Nombre" required>
+            <Input value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} maxLength={200} autoFocus placeholder="Ej. Tienda Doña Mary" />
+          </Field>
+          <Field label="Documento / NIT" hint="Opcional — puedes dejarlo en blanco">
+            <Input value={nuevoDoc} onChange={(e) => setNuevoDoc(e.target.value)} maxLength={50} placeholder="Sin documento" />
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => setNuevoOpen(false)}>Cancelar</Button>
+            <Button type="button" onClick={crearClienteRapido} disabled={creandoCliente}>
+              {creandoCliente ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
+              Crear y elegir
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </form>
   );
 }

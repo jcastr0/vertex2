@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
@@ -6,10 +7,13 @@ import { obtenerPedido } from "@/lib/services/pedidos";
 import { obtenerTercero } from "@/lib/services/terceros";
 import { obtenerBodega } from "@/lib/services/bodegas";
 import { listarProductos, listarUnidadesMedida } from "@/lib/services/productos";
+import { cuentaPorPagarDePedido } from "@/lib/services/cartera";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import { PedidoAcciones } from "./pedido-acciones";
+import { HandCoins, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = { title: "Pedido — Vertex" };
 
@@ -30,6 +34,7 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
   ]);
   const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
   const undPorId = new Map(unidades.map((u) => [u.id, u.abreviatura]));
+  const cxp = await cuentaPorPagarDePedido(empresaId, pedido.id);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -82,6 +87,26 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
 
       {pedido.observaciones && (
         <p className="text-sm text-muted-foreground">{pedido.observaciones}</p>
+      )}
+
+      {cxp && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <HandCoins className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground">{cxp.saldo > 0 ? "Le debes a este proveedor por este pedido" : "Pagado"}</p>
+            <p className="tabular text-lg font-bold tracking-tight">
+              {cxp.saldo > 0 ? money(String(cxp.saldo)) : money(String(cxp.total))}
+            </p>
+            {cxp.saldo > 0 && <p className="text-xs text-muted-foreground">Vence {cxp.vence}</p>}
+          </div>
+          {cxp.saldo > 0 && puede(sesion.rol, "pagos_proveedor.crear") && (
+            <Link href="/cuentas-pagar" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              Ir a pagar <ArrowRight className="size-4" />
+            </Link>
+          )}
+        </div>
       )}
 
       {puede(sesion.rol, "pedidos.editar") && (
