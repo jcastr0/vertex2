@@ -83,6 +83,7 @@ export default async function BodegasPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(b) => b.id}
+        rowHref={(b) => `/bodegas/${b.id}`}
         rowClassName={(b) => (b.activo ? "" : "opacity-60")}
         columns={columnas}
         searchPlaceholder="Buscar por código, nombre o responsable…"
