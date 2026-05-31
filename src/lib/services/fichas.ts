@@ -1,6 +1,7 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { TIPOS_NOTA } from "@/lib/domain/nota-inventario";
 import {
   inventario, productos, bodegas, unidadesMedida, movimientosInventario,
   facturas, facturaDetalles, pedidos, pedidoDetalles, notasInventario,
@@ -86,6 +87,9 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
 
 const u30 = sql`now() - interval '30 days'`;
 
+/** Tipos de nota que RESTAN existencias (merma, daño, faltantes y ajustes de salida). */
+const TIPOS_SALIDA = TIPOS_NOTA.filter((t) => t.signo === -1).map((t) => t.value);
+
 export interface KpiPeriodo { total: number; ultimos30: number }
 export interface FichaProductoExistencia { bodegaId: number; bodegaNombre: string; existencia: number; valor: number }
 export interface FichaProductoMerma { id: number; fecha: Date; bodegaNombre: string; cantidad: number; motivo: string }
@@ -130,7 +134,7 @@ export async function fichaProducto(empresaId: number, productoId: number): Prom
         u30: sql<string>`coalesce(sum(case when ${notasInventario.fecha} >= ${u30} then ${notasInventario.cantidad} else 0 end), 0)`,
       })
       .from(notasInventario)
-      .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida"))),
+      .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), inArray(notasInventario.tipo, TIPOS_SALIDA))),
     db
       .select({ bodegaId: inventario.bodegaId, bodegaNombre: bodegas.nombre, existencia: inventario.cantidadActual, valor: inventario.valorTotal })
       .from(inventario)
@@ -141,7 +145,7 @@ export async function fichaProducto(empresaId: number, productoId: number): Prom
       .select({ id: notasInventario.id, fecha: notasInventario.fecha, bodegaNombre: bodegas.nombre, cantidad: notasInventario.cantidad, motivo: notasInventario.motivo })
       .from(notasInventario)
       .innerJoin(bodegas, eq(notasInventario.bodegaId, bodegas.id))
-      .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida")))
+      .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), inArray(notasInventario.tipo, TIPOS_SALIDA)))
       .orderBy(desc(notasInventario.fecha))
       .limit(5),
   ]);
