@@ -79,7 +79,7 @@ Vender es muy simple. Entra a **Facturas → Vender**.
 1. **¿A quién le vendes?** Elige el cliente (puedes buscar por nombre).
 2. **¿Cómo paga?** Toca **Contado** o **Crédito**.
 3. **¿Qué vendes?** Busca el producto; el precio se completa solo (puedes ajustarlo) y escribe la cantidad.
-4. Agrega más productos si necesitas con **Agregar otro producto**.
+4. Agrega más productos si necesitas con **Agregar producto**.
 5. Revisa el **Total** y toca **Registrar venta**.
 
 > Al registrar, el inventario baja automáticamente y, si es a **crédito**, se crea la cuenta por cobrar.
@@ -182,7 +182,7 @@ La **ruta de recaudo** te ayuda a cobrarle a tus clientes a crédito de forma or
 Necesitas el permiso para programar (rol Admin o superior).
 
 1. Entra a **Ruta de recaudo** y toca **Programar ruta**.
-2. Elige los **clientes** y asígnales un **recaudador** y un **día de cobro** (lunes a domingo).
+2. Elige los **clientes** y asígnales un **recaudador** y un **día de cobro** (de lunes a sábado).
 3. Guarda. Desde ese momento, a cada recaudador le aparecen sus clientes el día que les toca.
 
 > ¿Quién ve qué? Si tienes permiso de usuarios, puedes elegir de qué recaudador ver la ruta. Si eres recaudador, ves solo la tuya.
@@ -193,7 +193,7 @@ El recaudador abre **Ruta de recaudo** en su celular. Arriba ve **cuánto lleva 
 En **"Hoy te toca"** aparece cada cliente como una tarjeta. En cada una puede:
 
 - **Recaudar** — registrar el pago: **valor**, **cómo pagó** (efectivo, transferencia…) y una **referencia** si aplica. Al guardar, baja la deuda del cliente y suma a lo recaudado del día.
-- **Marcar visita** — cuando no cobró: elige **"No estaba"** o **"No quiso pagar"**, puede tomar una **foto de evidencia** y dejar una **observación**. Así queda registro de que sí pasó por el cliente.
+- **No le pagaron** — cuando no cobró: toca este botón, elige el motivo (**"No estaba"** o **"No quiso pagar"**), puede tomar una **foto de evidencia** y dejar una **observación**. Así queda registro de que sí pasó por el cliente.
 
 > Necesita el permiso de recaudar. El pago queda en el historial de **Recaudos** y la foto se guarda como evidencia de la visita.
 `,
@@ -212,7 +212,7 @@ Cuando recibes un pedido, Vertex crea una **cuenta por pagar** al proveedor. Aqu
 Para no escribir el número de cuenta cada vez, guárdalo una vez:
 
 1. Entra a **Terceros**, abre el proveedor.
-2. En el panel de **Beneficiarios** toca **Agregar cuenta**.
+2. En el panel de **Cuentas de pago** toca **Agregar cuenta**.
 3. Elige el **banco** (de la lista), el **tipo** y el **N° de cuenta**.
 4. Por defecto la cuenta es **del mismo proveedor**. Si la cuenta está a nombre de otro (factoring o cesión), pon el **NIT y nombre del titular**.
 
@@ -227,7 +227,7 @@ En **Cuentas por pagar** toca **Pagar**:
 1. Escribe el **monto** a pagar.
 2. Elige **de qué cuenta sale** la plata (tus cuentas de tesorería).
 3. Para proveedores con **factura electrónica**, elige la **cuenta beneficiaria** (a dónde va el dinero) — una guardada o una nueva.
-4. Si tienes **retenciones** configuradas, se calculan solas sobre las compras electrónicas y verás el **neto a pagar** (monto − retención).
+4. Si tienes **retenciones** configuradas, se calculan solas sobre las compras electrónicas y verás el **neto a desembolsar** (monto − retención).
 5. Confirma. El pago baja la cuenta por pagar y queda en **Pagos a proveedor**.
 
 → Para configurar retenciones, ver [Retenciones](/manuales/retenciones).
@@ -256,7 +256,7 @@ Las retenciones se descuentan del pago a un proveedor según la ley. En Vertex s
 Las retenciones se calculan **automáticamente al pagar a un proveedor**, sobre las compras marcadas como **factura electrónica**, y solo cuando la base supera la **base mínima**.
 
 - El sistema calcula la retención por documento y la resta del pago.
-- Verás el **neto a pagar** = monto − retención.
+- Verás el **neto a desembolsar** = monto − retención.
 - Cada retención aplicada queda registrada en el pago, para el contador.
 
 → Ver el flujo completo en [Pagar a un proveedor](/manuales/pagar-proveedor).
