@@ -15,7 +15,7 @@ export default async function EditarEmpresaPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Editar empresa" description={e.nombre} />
-      <EmpresaForm empresa={{ id: e.id, nombre: e.nombre, razonSocial: e.razonSocial, nit: e.nit, email: e.email, telefono: e.telefono, direccion: e.direccion, ciudad: e.ciudad, pais: e.pais }} />
+      <EmpresaForm empresa={{ id: e.id, nombre: e.nombre, razonSocial: e.razonSocial, nit: e.nit, email: e.email, telefono: e.telefono, direccion: e.direccion, ciudad: e.ciudad, pais: e.pais, paletaTema: e.paletaTema }} />
     </div>
   );
 }

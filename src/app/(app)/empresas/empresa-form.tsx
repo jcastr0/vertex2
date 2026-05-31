@@ -8,6 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { FormSection } from "@/components/ui/form-section";
+import { PaletaPicker } from "./paleta-picker";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
     direccion: string | null;
     ciudad: string | null;
     pais: string | null;
+    paletaTema?: string | null;
   };
 }
 
@@ -83,6 +85,13 @@ export function EmpresaForm({ empresa }: Props) {
             <Input name="pais" defaultValue={empresa?.pais ?? "Colombia"} maxLength={100} />
           </Field>
         </div>
+      </FormSection>
+
+      <FormSection
+        title="Apariencia"
+        description="Elige la paleta de color de la empresa. El logo y los colores de la app se ajustan a esta selección."
+      >
+        <PaletaPicker defaultKey={empresa?.paletaTema} />
       </FormSection>
 
       <div className="flex gap-3">
