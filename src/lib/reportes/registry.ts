@@ -1,12 +1,13 @@
 // src/lib/reportes/registry.ts
 import "server-only";
-import { TrendingUp, HandCoins, Boxes, Route, ShoppingBag } from "lucide-react";
+import { TrendingUp, HandCoins, Boxes, Route, ShoppingBag, Wallet } from "lucide-react";
 import type { ReporteDef, FiltroSpec } from "./tipos";
 import { cargarVentas, filtrosVentas } from "@/lib/services/reportes/ventas";
 import { cargarCarteraCobrar, filtrosCartera } from "@/lib/services/reportes/cartera-cobrar";
 import { cargarInventario, filtrosInventario } from "@/lib/services/reportes/inventario";
 import { cargarRecaudo, filtrosRecaudo } from "@/lib/services/reportes/recaudo";
 import { cargarCompras, filtrosCompras } from "@/lib/services/reportes/compras";
+import { cargarCarteraPagar, filtrosCarteraPagar } from "@/lib/services/reportes/cartera-pagar";
 
 export const REPORTES: ReporteDef[] = [
   {
@@ -80,6 +81,19 @@ export const REPORTES: ReporteDef[] = [
       { key: "proveedor", label: "Proveedor", tipo: "select", opciones: await filtrosCompras(empresaId) },
     ],
     cargar: cargarCompras,
+  },
+  {
+    slug: "cartera-pagar", titulo: "Cuentas por pagar", desc: "Aging de lo que debes y top proveedores.", grupo: "Cartera", icon: Wallet,
+    charts: [
+      { tipo: "barras", titulo: "Saldo por tramo (aging)", serie: "porTramo", formato: "money", ancho: "full" },
+      { tipo: "torta", titulo: "Vencido vs por vencer", serie: "vencidoVsPorVencer", formato: "money" },
+      { tipo: "barras", titulo: "Top proveedores", serie: "topProveedores", formato: "money" },
+    ],
+    filtros: async (empresaId): Promise<FiltroSpec[]> => [
+      { key: "hasta", label: "Corte", tipo: "fecha" },
+      { key: "proveedor", label: "Proveedor", tipo: "select", opciones: await filtrosCarteraPagar(empresaId) },
+    ],
+    cargar: cargarCarteraPagar,
   },
 ];
 
