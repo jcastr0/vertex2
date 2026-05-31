@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchSelect } from "@/components/ui/search-select";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { DIAS_COBRO } from "@/lib/domain/ruta-recaudo";
 import { AlertCircle, Loader2, Search, Check, UserRound, CalendarDays } from "lucide-react";
@@ -34,16 +35,22 @@ export function AsignarRuta({ clientes, recaudadores }: Props) {
   const [recaudadorId, setRecaudadorId] = useState("0");
   const [diaCobro, setDiaCobro] = useState("0");
   const [q, setQ] = useState("");
+  const [soloDeben, setSoloDeben] = useState(true);
   const [state, formAction] = useActionState<AsignarState, FormData>(asignarRecaudoAction, {});
 
   useEffect(() => {
     if (state.ok) { setSel(new Set()); router.refresh(); }
   }, [state.ok, router]);
 
+  const conDeuda = useMemo(() => clientes.filter((c) => c.saldo > 0).length, [clientes]);
   const lista = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return t ? clientes.filter((c) => c.nombre.toLowerCase().includes(t)) : clientes;
-  }, [clientes, q]);
+    return clientes.filter((c) => {
+      if (soloDeben && c.saldo <= 0) return false;
+      if (t && !c.nombre.toLowerCase().includes(t)) return false;
+      return true;
+    });
+  }, [clientes, q, soloDeben]);
 
   const todosSel = lista.length > 0 && lista.every((c) => sel.has(c.id));
   function toggle(id: number) {
@@ -104,6 +111,14 @@ export function AsignarRuta({ clientes, recaudadores }: Props) {
           {todosSel ? "Quitar todos" : "Seleccionar todos"}
         </Button>
       </div>
+
+      <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-2.5">
+        <span className="text-sm">
+          <span className="font-medium">Solo los que me deben</span>
+          <span className="ml-2 text-xs text-muted-foreground">{conDeuda} con deuda · {clientes.length} en total</span>
+        </span>
+        <Switch checked={soloDeben} onCheckedChange={setSoloDeben} />
+      </label>
 
       {/* Lista de clientes */}
       <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
