@@ -304,6 +304,20 @@ export const unidadesMedida = pgTable("vx09", {
 });
 
 // ──────────────────────────────────────────────────────────────────────────
+// vx36 — Bancos (catálogo global de entidades financieras de Colombia)
+// ──────────────────────────────────────────────────────────────────────────
+export const bancos = pgTable("vx36", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  codigo: varchar("codigo", { length: 30 }).notNull().unique(),
+  nombre: varchar("nombre", { length: 100 }).notNull(),
+  tipo: varchar("tipo", { length: 20 }), // banco | billetera | cooperativa | financiera
+  activo: boolean("activo").notNull().default(true),
+  orden: integer("orden").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ──────────────────────────────────────────────────────────────────────────
 // vx10 — Productos
 // ──────────────────────────────────────────────────────────────────────────
 export const productos = pgTable("vx10",

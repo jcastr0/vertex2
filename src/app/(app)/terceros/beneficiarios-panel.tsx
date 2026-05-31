@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
-import { SearchSelect } from "@/components/ui/search-select";
+import { SearchSelect, type OpcionSelect } from "@/components/ui/search-select";
 import { Loader2, Trash2, Plus } from "lucide-react";
 
 interface Cuenta { id: number; banco: string; tipo: string; numeroCuenta: string; titularNit: string; titularNombre: string }
-interface Props { terceroId: number; terceroNit: string; terceroNombre: string; cuentas: Cuenta[] }
+interface Props { terceroId: number; terceroNit: string; terceroNombre: string; cuentas: Cuenta[]; bancos: OpcionSelect[] }
 
 function AgregarBtn() {
   const { pending } = useFormStatus();
@@ -24,7 +24,7 @@ function AgregarBtn() {
   );
 }
 
-export function BeneficiariosPanel({ terceroId, terceroNit, terceroNombre, cuentas }: Props) {
+export function BeneficiariosPanel({ terceroId, terceroNit, terceroNombre, cuentas, bancos }: Props) {
   const router = useRouter();
   const action = agregarBeneficiarioAction.bind(null, terceroId);
   const [state, formAction] = useActionState<BeneficiarioState, FormData>(action, {});
@@ -64,7 +64,9 @@ export function BeneficiariosPanel({ terceroId, terceroNit, terceroNombre, cuent
           <input type="hidden" name="terceroNombre" value={terceroNombre} />
 
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr]">
-            <Field label="Banco" required><Input name="banco" maxLength={100} required /></Field>
+            <Field label="Banco" required>
+              <SearchSelect name="banco" options={bancos} placeholder="Elige el banco…" searchPlaceholder="Buscar banco…" />
+            </Field>
             <Field label="Tipo" required>
               <SearchSelect name="tipo" defaultValue="ahorros" options={[{ value: "ahorros", label: "Ahorros" }, { value: "corriente", label: "Corriente" }]} />
             </Field>

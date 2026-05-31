@@ -8,11 +8,13 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchSelect, type OpcionSelect } from "@/components/ui/search-select";
 import { FormSection } from "@/components/ui/form-section";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 interface Props {
   cuenta?: { id: number; nombre: string; tipo: string; banco: string | null; numeroCuenta: string | null; titularNit: string | null; titularNombre: string | null; saldoInicial: string };
+  bancos: OpcionSelect[];
 }
 
 function Guardar() {
@@ -25,8 +27,14 @@ function Guardar() {
   );
 }
 
-export function CuentaForm({ cuenta }: Props) {
+export function CuentaForm({ cuenta, bancos }: Props) {
   const [state, action] = useActionState<TesoreriaState, FormData>(guardarCuentaAction, {});
+  // Si la cuenta trae un banco que no está en el catálogo (dato legado), lo
+  // sumamos para que el selector lo muestre como seleccionado.
+  const opcionesBanco =
+    cuenta?.banco && !bancos.some((b) => b.value === cuenta.banco)
+      ? [{ value: cuenta.banco, label: cuenta.banco }, ...bancos]
+      : bancos;
   return (
     <form action={action} className="max-w-xl space-y-5">
       {cuenta && <input type="hidden" name="id" value={cuenta.id} />}
@@ -58,8 +66,14 @@ export function CuentaForm({ cuenta }: Props) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="banco">Banco</Label>
-              <Input id="banco" name="banco" defaultValue={cuenta?.banco ?? ""} maxLength={100} />
+              <Label>Banco</Label>
+              <SearchSelect
+                name="banco"
+                options={opcionesBanco}
+                defaultValue={cuenta?.banco ?? ""}
+                placeholder="Elige el banco…"
+                searchPlaceholder="Buscar banco…"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="numeroCuenta">N° de cuenta</Label>

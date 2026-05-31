@@ -16,6 +16,7 @@ import * as schema from "./schema";
 import { ROLES } from "@/lib/auth/roles";
 import { hashPassword } from "@/lib/auth/password";
 import { CATALOGO } from "./nomenclatura";
+import { BANCOS_CO } from "./bancos-co";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -81,6 +82,18 @@ async function main() {
     await db.insert(schema.unidadesMedida).values(u).onConflictDoNothing({
       target: schema.unidadesMedida.codigo,
     });
+  }
+
+  console.log("→ Sembrando bancos (vx36)…");
+  for (let i = 0; i < BANCOS_CO.length; i++) {
+    const b = BANCOS_CO[i];
+    await db
+      .insert(schema.bancos)
+      .values({ codigo: b.codigo, nombre: b.nombre, tipo: b.tipo, orden: i + 1 })
+      .onConflictDoUpdate({
+        target: schema.bancos.codigo,
+        set: { nombre: b.nombre, tipo: b.tipo, orden: i + 1, updatedAt: new Date() },
+      });
   }
 
   console.log("→ Sembrando empresa demo…");

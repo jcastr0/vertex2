@@ -36,6 +36,13 @@
       "when": 1780169126216,
       "tag": "0004_great_runaways",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780190351115,
+      "tag": "0005_high_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

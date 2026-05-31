@@ -6,6 +6,7 @@ import { puede } from "@/lib/auth/roles";
 import { obtenerTercero } from "@/lib/services/terceros";
 import { listarRecaudadores } from "@/lib/services/usuarios";
 import { listarBeneficiarios } from "@/lib/services/beneficiarios";
+import { listarBancos } from "@/lib/services/bancos";
 import { BeneficiariosPanel } from "../beneficiarios-panel";
 import { PageHeader } from "@/components/page-header";
 import { FormSection } from "@/components/ui/form-section";
@@ -41,6 +42,7 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
   const recaudadores = t.recaudadorId ? await listarRecaudadores(empresaId) : [];
   const recaudador = recaudadores.find((r) => r.id === t.recaudadorId)?.nombre ?? null;
   const beneficiarios = esProveedor ? (await listarBeneficiarios(empresaId, t.id)).filter((b) => b.activa) : [];
+  const bancos = esProveedor ? await listarBancos() : [];
   const puedeEditar = puede(sesion.rol, "terceros.editar");
 
   return (
@@ -129,7 +131,7 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
         {esProveedor && (
           <TabsContent value="cuentas">
             {puedeEditar ? (
-              <BeneficiariosPanel terceroId={t.id} terceroNit={t.identificacion} terceroNombre={t.razonSocial} cuentas={beneficiarios} />
+              <BeneficiariosPanel terceroId={t.id} terceroNit={t.identificacion} terceroNombre={t.razonSocial} cuentas={beneficiarios} bancos={bancos} />
             ) : (
               <FormSection title="Cuentas de pago" description="Cuentas a las que se le paga a este proveedor.">
                 {beneficiarios.length === 0 ? (
