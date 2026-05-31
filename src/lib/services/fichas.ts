@@ -41,17 +41,30 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
   const bodega = await obtenerBodega(empresaId, bodegaId);
   if (!bodega) return null;
 
-  const filas = await db
-    .select({
-      productoId: inventario.productoId, nombre: productos.nombre, sku: productos.sku,
-      unidad: unidadesMedida.abreviatura, existencia: inventario.cantidadActual,
-      costoPromedio: inventario.costoPromedio, valor: inventario.valorTotal,
-    })
-    .from(inventario)
-    .innerJoin(productos, eq(inventario.productoId, productos.id))
-    .innerJoin(unidadesMedida, eq(productos.unidadBaseId, unidadesMedida.id))
-    .where(and(eq(inventario.empresaId, empresaId), eq(inventario.bodegaId, bodegaId)))
-    .orderBy(desc(inventario.valorTotal));
+  // Consultas independientes en paralelo (existencias y movimientos no dependen entre sí).
+  const [filas, movs] = await Promise.all([
+    db
+      .select({
+        productoId: inventario.productoId, nombre: productos.nombre, sku: productos.sku,
+        unidad: unidadesMedida.abreviatura, existencia: inventario.cantidadActual,
+        costoPromedio: inventario.costoPromedio, valor: inventario.valorTotal,
+      })
+      .from(inventario)
+      .innerJoin(productos, eq(inventario.productoId, productos.id))
+      .innerJoin(unidadesMedida, eq(productos.unidadBaseId, unidadesMedida.id))
+      .where(and(eq(inventario.empresaId, empresaId), eq(inventario.bodegaId, bodegaId)))
+      .orderBy(desc(inventario.valorTotal)),
+    db
+      .select({
+        id: movimientosInventario.id, fecha: movimientosInventario.fecha, tipo: movimientosInventario.tipo,
+        productoNombre: productos.nombre, cantidad: movimientosInventario.cantidad, referencia: movimientosInventario.referencia,
+      })
+      .from(movimientosInventario)
+      .innerJoin(productos, eq(movimientosInventario.productoId, productos.id))
+      .where(and(eq(movimientosInventario.empresaId, empresaId), eq(movimientosInventario.bodegaId, bodegaId)))
+      .orderBy(desc(movimientosInventario.fecha))
+      .limit(10),
+  ]);
 
   const productosFicha: FichaBodegaProducto[] = filas.map((f) => ({
     productoId: f.productoId, nombre: f.nombre, sku: f.sku, unidad: f.unidad,
@@ -59,17 +72,6 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
   }));
 
   const resumen = resumenInventarioBodega(productosFicha.map((p) => ({ existencia: p.existencia, valor: p.valor })));
-
-  const movs = await db
-    .select({
-      id: movimientosInventario.id, fecha: movimientosInventario.fecha, tipo: movimientosInventario.tipo,
-      productoNombre: productos.nombre, cantidad: movimientosInventario.cantidad, referencia: movimientosInventario.referencia,
-    })
-    .from(movimientosInventario)
-    .innerJoin(productos, eq(movimientosInventario.productoId, productos.id))
-    .where(and(eq(movimientosInventario.empresaId, empresaId), eq(movimientosInventario.bodegaId, bodegaId)))
-    .orderBy(desc(movimientosInventario.fecha))
-    .limit(10);
 
   return {
     bodega,
@@ -100,50 +102,52 @@ export async function fichaProducto(empresaId: number, productoId: number): Prom
   const producto = await obtenerProducto(empresaId, productoId);
   if (!producto) return null;
 
-  const [venta] = await db
-    .select({
-      cantTotal: sql<string>`coalesce(sum(${facturaDetalles.cantidadBase}), 0)`,
-      cant30: sql<string>`coalesce(sum(case when ${facturas.fecha} >= ${u30} then ${facturaDetalles.cantidadBase} else 0 end), 0)`,
-      montoTotal: sql<string>`coalesce(sum(${facturaDetalles.subtotal}), 0)`,
-      monto30: sql<string>`coalesce(sum(case when ${facturas.fecha} >= ${u30} then ${facturaDetalles.subtotal} else 0 end), 0)`,
-    })
-    .from(facturaDetalles)
-    .innerJoin(facturas, eq(facturaDetalles.facturaId, facturas.id))
-    .where(and(eq(facturas.empresaId, empresaId), eq(facturaDetalles.productoId, productoId), eq(facturas.estado, "emitida")));
-
-  const [compra] = await db
-    .select({
-      cantTotal: sql<string>`coalesce(sum(${pedidoDetalles.cantidad}), 0)`,
-      cant30: sql<string>`coalesce(sum(case when ${pedidos.fecha} >= ${u30} then ${pedidoDetalles.cantidad} else 0 end), 0)`,
-      recibida: sql<string>`coalesce(sum(${pedidoDetalles.cantidadRecibida}), 0)`,
-      pedidos: sql<string>`count(distinct ${pedidoDetalles.pedidoId})`,
-    })
-    .from(pedidoDetalles)
-    .innerJoin(pedidos, eq(pedidoDetalles.pedidoId, pedidos.id))
-    .where(and(eq(pedidos.empresaId, empresaId), eq(pedidoDetalles.productoId, productoId)));
-
-  const [merma] = await db
-    .select({
-      total: sql<string>`coalesce(sum(${notasInventario.cantidad}), 0)`,
-      u30: sql<string>`coalesce(sum(case when ${notasInventario.fecha} >= ${u30} then ${notasInventario.cantidad} else 0 end), 0)`,
-    })
-    .from(notasInventario)
-    .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida")));
-
-  const exist = await db
-    .select({ bodegaId: inventario.bodegaId, bodegaNombre: bodegas.nombre, existencia: inventario.cantidadActual, valor: inventario.valorTotal })
-    .from(inventario)
-    .innerJoin(bodegas, eq(inventario.bodegaId, bodegas.id))
-    .where(and(eq(inventario.empresaId, empresaId), eq(inventario.productoId, productoId)))
-    .orderBy(desc(inventario.cantidadActual));
-
-  const mermasDet = await db
-    .select({ id: notasInventario.id, fecha: notasInventario.fecha, bodegaNombre: bodegas.nombre, cantidad: notasInventario.cantidad, motivo: notasInventario.motivo })
-    .from(notasInventario)
-    .innerJoin(bodegas, eq(notasInventario.bodegaId, bodegas.id))
-    .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida")))
-    .orderBy(desc(notasInventario.fecha))
-    .limit(5);
+  // Las cinco consultas son independientes (solo dependen de empresaId/productoId) → en paralelo.
+  const [ventaRows, compraRows, mermaRows, exist, mermasDet] = await Promise.all([
+    db
+      .select({
+        cantTotal: sql<string>`coalesce(sum(${facturaDetalles.cantidadBase}), 0)`,
+        cant30: sql<string>`coalesce(sum(case when ${facturas.fecha} >= ${u30} then ${facturaDetalles.cantidadBase} else 0 end), 0)`,
+        montoTotal: sql<string>`coalesce(sum(${facturaDetalles.subtotal}), 0)`,
+        monto30: sql<string>`coalesce(sum(case when ${facturas.fecha} >= ${u30} then ${facturaDetalles.subtotal} else 0 end), 0)`,
+      })
+      .from(facturaDetalles)
+      .innerJoin(facturas, eq(facturaDetalles.facturaId, facturas.id))
+      .where(and(eq(facturas.empresaId, empresaId), eq(facturaDetalles.productoId, productoId), eq(facturas.estado, "emitida"))),
+    db
+      .select({
+        cantTotal: sql<string>`coalesce(sum(${pedidoDetalles.cantidad}), 0)`,
+        cant30: sql<string>`coalesce(sum(case when ${pedidos.fecha} >= ${u30} then ${pedidoDetalles.cantidad} else 0 end), 0)`,
+        recibida: sql<string>`coalesce(sum(${pedidoDetalles.cantidadRecibida}), 0)`,
+        pedidos: sql<string>`count(distinct ${pedidoDetalles.pedidoId})`,
+      })
+      .from(pedidoDetalles)
+      .innerJoin(pedidos, eq(pedidoDetalles.pedidoId, pedidos.id))
+      .where(and(eq(pedidos.empresaId, empresaId), eq(pedidoDetalles.productoId, productoId))),
+    db
+      .select({
+        total: sql<string>`coalesce(sum(${notasInventario.cantidad}), 0)`,
+        u30: sql<string>`coalesce(sum(case when ${notasInventario.fecha} >= ${u30} then ${notasInventario.cantidad} else 0 end), 0)`,
+      })
+      .from(notasInventario)
+      .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida"))),
+    db
+      .select({ bodegaId: inventario.bodegaId, bodegaNombre: bodegas.nombre, existencia: inventario.cantidadActual, valor: inventario.valorTotal })
+      .from(inventario)
+      .innerJoin(bodegas, eq(inventario.bodegaId, bodegas.id))
+      .where(and(eq(inventario.empresaId, empresaId), eq(inventario.productoId, productoId)))
+      .orderBy(desc(inventario.cantidadActual)),
+    db
+      .select({ id: notasInventario.id, fecha: notasInventario.fecha, bodegaNombre: bodegas.nombre, cantidad: notasInventario.cantidad, motivo: notasInventario.motivo })
+      .from(notasInventario)
+      .innerJoin(bodegas, eq(notasInventario.bodegaId, bodegas.id))
+      .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), eq(notasInventario.tipo, "salida")))
+      .orderBy(desc(notasInventario.fecha))
+      .limit(5),
+  ]);
+  const [venta] = ventaRows;
+  const [compra] = compraRows;
+  const [merma] = mermaRows;
 
   const existencias = exist.map((x) => ({ bodegaId: x.bodegaId, bodegaNombre: x.bodegaNombre, existencia: Number(x.existencia ?? 0), valor: Number(x.valor ?? 0) }));
 
