@@ -71,10 +71,16 @@ async function main() {
 
   console.log("→ Sembrando roles…");
   for (const [nombre, permisos] of Object.entries(ROLES)) {
+    // Upsert de permisos: la fuente de verdad vive en la BD (vx01.permisos), pero
+    // los roles del sistema se re-siembran desde el código para que su matriz
+    // refleje los permisos base. Los roles creados a mano por el usuario no se tocan.
     await db
       .insert(schema.roles)
       .values({ nombre, descripcion: `Rol ${nombre}`, permisos: [...permisos] })
-      .onConflictDoNothing({ target: schema.roles.nombre });
+      .onConflictDoUpdate({
+        target: schema.roles.nombre,
+        set: { permisos: [...permisos] },
+      });
   }
 
   console.log("→ Sembrando unidades de medida…");

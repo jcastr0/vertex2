@@ -9,6 +9,17 @@ import type { Contexto } from "./bodegas";
 export class RolInvalido extends Error {}
 export type Rol = typeof roles.$inferSelect;
 
+/** Extrae el código de error de Postgres, esté en el error o en su `cause` (Drizzle lo envuelve). */
+function pgErrorCode(e: unknown): string | undefined {
+  for (const o of [e, (e as { cause?: unknown })?.cause]) {
+    if (o && typeof o === "object" && "code" in o) {
+      const c = (o as { code?: unknown }).code;
+      if (typeof c === "string") return c;
+    }
+  }
+  return undefined;
+}
+
 export async function listarRoles(): Promise<(Rol & { usuarios: number })[]> {
   const rows = await db
     .select({ rol: roles, usuarios: sql<number>`count(${usuariosEmpresas.id})` })
@@ -37,10 +48,10 @@ export async function crearRol(
       .values({ nombre, descripcion: `Rol ${nombre}`, permisos })
       .returning();
   } catch (e) {
-    // 23505 = unique_violation (nombre de rol duplicado)
-    if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "23505") {
-      throw new RolInvalido("Ya existe un rol con ese nombre.");
-    }
+    // 23505 = unique_violation (nombre de rol duplicado). Drizzle envuelve el error
+    // de postgres-js, así que el código puede venir en `e` o en `e.cause`.
+    const code = pgErrorCode(e);
+    if (code === "23505") throw new RolInvalido("Ya existe un rol con ese nombre.");
     throw e;
   }
   await registrarAuditoria({
