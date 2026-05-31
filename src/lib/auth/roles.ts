@@ -30,6 +30,7 @@ export const MODULOS = [
   "auditoria",
   "manuales",
   "dashboard",
+  "roles",
 ] as const;
 
 export const ACCIONES = ["ver", "crear", "editar", "eliminar"] as const;
@@ -37,6 +38,18 @@ export const ACCIONES = ["ver", "crear", "editar", "eliminar"] as const;
 export type Modulo = (typeof MODULOS)[number];
 export type Accion = (typeof ACCIONES)[number];
 export type Permiso = `${Modulo}.${Accion}`;
+
+/** Etiquetas legibles por módulo (para UI de roles, sidebar, etc.). */
+export const MODULO_LABEL: Record<Modulo, string> = {
+  empresas: "Empresas", usuarios: "Usuarios", bodegas: "Bodegas", terceros: "Terceros",
+  categorias: "Categorías", productos: "Productos", pedidos: "Pedidos",
+  inventario: "Inventario", traslados: "Traslados", notas_inventario: "Notas de inventario",
+  facturas: "Ventas / Facturas", devoluciones: "Devoluciones", notas_credito: "Notas crédito",
+  cuentas_cobrar: "Cuentas por cobrar", ruta_recaudo: "Ruta de recaudo", recaudos: "Recaudos",
+  cuentas_pagar: "Cuentas por pagar", pagos_proveedor: "Pagos a proveedor", retenciones: "Retenciones",
+  tesoreria: "Tesorería", reportes: "Reportes", auditoria: "Auditoría", manuales: "Manuales",
+  dashboard: "Inicio", roles: "Roles y permisos",
+};
 
 /** Genera `modulo.accion` para un módulo y un subconjunto de acciones. */
 function p(modulo: Modulo, acciones: readonly Accion[]): Permiso[] {
@@ -127,10 +140,8 @@ export const ROLES: Record<string, readonly (Permiso | "*")[]> = {
   Contador: [...SOLO_LECTURA],
 };
 
-/** ¿El rol `rol` tiene el permiso `permiso`? */
-export function puede(rol: string | null | undefined, permiso: Permiso): boolean {
-  if (!rol) return false;
-  const permisos = ROLES[rol];
-  if (!permisos) return false;
+/** ¿La lista de permisos concede `permiso`? `"*"` concede todo. */
+export function puede(permisos: readonly string[] | null | undefined, permiso: Permiso): boolean {
+  if (!permisos || permisos.length === 0) return false;
   return permisos.includes("*") || permisos.includes(permiso);
 }

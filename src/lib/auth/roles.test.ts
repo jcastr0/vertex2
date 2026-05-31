@@ -1,34 +1,30 @@
 import { describe, it, expect } from "vitest";
-import { ROLES, puede, type Permiso } from "./roles";
+import { ROLES, puede, MODULOS, MODULO_LABEL, type Permiso } from "./roles";
 
-describe("roles y permisos", () => {
-  it("define los 6 roles de Vertex", () => {
-    expect(Object.keys(ROLES)).toEqual([
-      "SuperAdmin",
-      "Admin",
-      "Operador",
-      "Vendedor",
-      "Bodega",
-      "Contador",
-    ]);
+describe("puede (por lista de permisos)", () => {
+  it("true si la lista incluye el permiso exacto", () => {
+    expect(puede(["facturas.crear", "facturas.ver"], "facturas.crear")).toBe(true);
   });
-
-  it("SuperAdmin puede todo (comodín)", () => {
-    expect(puede("SuperAdmin", "empresas.eliminar")).toBe(true);
-    expect(puede("SuperAdmin", "facturas.crear")).toBe(true);
+  it("false si no lo incluye", () => {
+    expect(puede(["facturas.ver"], "facturas.crear")).toBe(false);
   });
-
-  it("Vendedor puede crear facturas pero no ver compras", () => {
-    expect(puede("Vendedor", "facturas.crear")).toBe(true);
-    expect(puede("Vendedor", "pedidos.crear" as Permiso)).toBe(false);
+  it("el comodín * concede todo", () => {
+    expect(puede(["*"], "ruta_recaudo.editar")).toBe(true);
   });
-
-  it("Contador es solo lectura: ve facturas pero no las crea", () => {
-    expect(puede("Contador", "facturas.ver")).toBe(true);
-    expect(puede("Contador", "facturas.crear")).toBe(false);
+  it("lista vacía o nula = sin permiso", () => {
+    expect(puede([], "facturas.ver")).toBe(false);
+    expect(puede(null, "facturas.ver")).toBe(false);
   });
+});
 
-  it("rol desconocido no puede nada", () => {
-    expect(puede("Inexistente", "facturas.ver")).toBe(false);
+describe("catálogo", () => {
+  it("incluye el módulo 'roles'", () => {
+    expect(MODULOS).toContain("roles");
+  });
+  it("cada módulo tiene etiqueta legible", () => {
+    for (const m of MODULOS) expect(MODULO_LABEL[m]?.length).toBeGreaterThan(0);
+  });
+  it("SuperAdmin tiene acceso total", () => {
+    expect(ROLES.SuperAdmin).toEqual(["*"]);
   });
 });
