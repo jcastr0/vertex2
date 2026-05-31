@@ -1,6 +1,6 @@
 // src/lib/reportes/registry.ts
 import "server-only";
-import { TrendingUp, HandCoins, Boxes, Route, ShoppingBag, Wallet, Landmark } from "lucide-react";
+import { TrendingUp, HandCoins, Boxes, Route, ShoppingBag, Wallet, Landmark, FileText } from "lucide-react";
 import type { ReporteDef, FiltroSpec } from "./tipos";
 import { cargarVentas, filtrosVentas } from "@/lib/services/reportes/ventas";
 import { cargarCarteraCobrar, filtrosCartera } from "@/lib/services/reportes/cartera-cobrar";
@@ -9,6 +9,7 @@ import { cargarRecaudo, filtrosRecaudo } from "@/lib/services/reportes/recaudo";
 import { cargarCompras, filtrosCompras } from "@/lib/services/reportes/compras";
 import { cargarCarteraPagar, filtrosCarteraPagar } from "@/lib/services/reportes/cartera-pagar";
 import { cargarFlujoCaja, filtrosFlujoCaja } from "@/lib/services/reportes/flujo-caja";
+import { cargarFE } from "@/lib/services/reportes/fe";
 
 export const REPORTES: ReporteDef[] = [
   {
@@ -108,6 +109,15 @@ export const REPORTES: ReporteDef[] = [
       { key: "cuenta", label: "Cuenta", tipo: "select", opciones: await filtrosFlujoCaja(empresaId) },
     ],
     cargar: cargarFlujoCaja,
+  },
+  {
+    slug: "factura-electronica", titulo: "Factura electrónica", desc: "Ventas F.E. y compras con retenciones.", grupo: "Análisis", icon: FileText,
+    charts: [
+      { tipo: "linea", titulo: "Ventas F.E. por día", serie: "ventasDia", formato: "money", ancho: "full" },
+      { tipo: "torta", titulo: "Ventas vs compras F.E.", serie: "ventasVsCompras", formato: "money" },
+    ],
+    filtros: async (): Promise<FiltroSpec[]> => [ { key: "desde", label: "Desde", tipo: "fecha" }, { key: "hasta", label: "Hasta", tipo: "fecha" } ],
+    cargar: cargarFE,
   },
 ];
 
