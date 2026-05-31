@@ -1,8 +1,9 @@
 // src/lib/reportes/registry.ts
 import "server-only";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, HandCoins } from "lucide-react";
 import type { ReporteDef, FiltroSpec } from "./tipos";
 import { cargarVentas, filtrosVentas } from "@/lib/services/reportes/ventas";
+import { cargarCarteraCobrar, filtrosCartera } from "@/lib/services/reportes/cartera-cobrar";
 
 export const REPORTES: ReporteDef[] = [
   {
@@ -24,6 +25,19 @@ export const REPORTES: ReporteDef[] = [
       { key: "tipoVenta", label: "Tipo", tipo: "select", opciones: [{ value: "contado", label: "Contado" }, { value: "credito", label: "Crédito" }] },
     ],
     cargar: cargarVentas,
+  },
+  {
+    slug: "cartera-cobrar", titulo: "Cartera por cobrar", desc: "Aging, vencimientos y top deudores.", grupo: "Cartera", icon: HandCoins,
+    charts: [
+      { tipo: "barras", titulo: "Saldo por tramo (aging)", serie: "porTramo", formato: "money", ancho: "full" },
+      { tipo: "torta", titulo: "Vencido vs por vencer", serie: "vencidoVsPorVencer", formato: "money" },
+      { tipo: "barras", titulo: "Top deudores", serie: "topDeudores", formato: "money" },
+    ],
+    filtros: async (empresaId): Promise<FiltroSpec[]> => [
+      { key: "hasta", label: "Corte", tipo: "fecha" },
+      { key: "cliente", label: "Cliente", tipo: "select", opciones: await filtrosCartera(empresaId) },
+    ],
+    cargar: cargarCarteraCobrar,
   },
 ];
 
