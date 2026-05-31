@@ -4,11 +4,13 @@ import { puede } from "@/lib/auth/roles";
 import { listarRecaudadores } from "@/lib/services/usuarios";
 import { rutaDelRecaudador } from "@/lib/services/ruta-recaudo";
 import { diaSemana, DIAS_COBRO } from "@/lib/domain/ruta-recaudo";
+import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import { ParadaCard } from "./parada-card";
 import { RecaudadorPicker } from "./recaudador-picker";
-import { Route, CheckCircle2 } from "lucide-react";
+import { Route, CheckCircle2, CalendarCog } from "lucide-react";
 
 export const metadata: Metadata = { title: "Ruta de recaudo — Vertex" };
 
@@ -43,7 +45,14 @@ export default async function RutaRecaudoPage({
   return (
     <div className="mx-auto max-w-3xl pb-10">
       <PageHeader title="Ruta de recaudo" description={`${hoyLabel} — a quién cobrar hoy.`}>
-        {puedeElegir && <RecaudadorPicker recaudadores={recaudadores} actual={recaudadorId} />}
+        <div className="flex flex-wrap items-center gap-2">
+          {puedeElegir && <RecaudadorPicker recaudadores={recaudadores} actual={recaudadorId} />}
+          {puede(sesion.rol, "ruta_recaudo.editar") && (
+            <Link href="/ruta-recaudo/asignar" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              <CalendarCog className="size-4" /> Programar ruta
+            </Link>
+          )}
+        </div>
       </PageHeader>
 
       <Card className="mb-6">

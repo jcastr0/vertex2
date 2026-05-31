@@ -3,13 +3,47 @@
 import { revalidatePath } from "next/cache";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
-import { recaudarEnRuta, registrarVisita, RutaError } from "@/lib/services/ruta-recaudo";
+import { recaudarEnRuta, registrarVisita, asignarRecaudo, RutaError } from "@/lib/services/ruta-recaudo";
 import { AbonoInvalido } from "@/lib/services/cartera";
 import { subirEvidencia } from "@/lib/storage";
 
 export interface RutaState {
   error?: string;
   ok?: boolean;
+}
+
+export interface AsignarState {
+  error?: string;
+  ok?: boolean;
+  asignados?: number;
+}
+
+/** Programa (o reprograma) recaudador + día para varios clientes a la vez. */
+export async function asignarRecaudoAction(_prev: AsignarState, form: FormData): Promise<AsignarState> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "ruta_recaudo.editar")) return { error: "No tienes permiso para programar la ruta." };
+
+  let clienteIds: number[] = [];
+  try {
+    clienteIds = (JSON.parse(String(form.get("clienteIds") ?? "[]")) as number[]).filter((n) => Number.isInteger(n));
+  } catch { /* ignore */ }
+  if (clienteIds.length === 0) return { error: "Selecciona al menos un cliente." };
+
+  const recRaw = String(form.get("recaudadorId") ?? "");
+  const diaRaw = String(form.get("diaCobro") ?? "");
+  const recaudadorId = recRaw && recRaw !== "0" ? Number(recRaw) : null;
+  const diaCobro = diaRaw && diaRaw !== "0" ? Number(diaRaw) : null;
+
+  try {
+    const n = await asignarRecaudo(c.ctx.empresaId, clienteIds, recaudadorId, diaCobro, c.ctx);
+    revalidatePath("/ruta-recaudo");
+    revalidatePath("/ruta-recaudo/asignar");
+    return { ok: true, asignados: n };
+  } catch (e) {
+    console.error("[ruta] asignar:", e);
+    return { error: "No se pudo programar la ruta." };
+  }
 }
 
 export async function recaudarRutaAction(_prev: RutaState, form: FormData): Promise<RutaState> {

@@ -1,7 +1,7 @@
 import "server-only";
-import { and, eq, sql, asc } from "drizzle-orm";
+import { and, eq, sql, asc, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { terceros, cuentasPorCobrar, visitasRecaudo, recaudosClientes } from "@/lib/db/schema";
+import { terceros, cuentasPorCobrar, visitasRecaudo, recaudosClientes, usuarios } from "@/lib/db/schema";
 import { registrarAuditoria } from "@/lib/audit";
 import { ordenarRuta, type ParadaRuta } from "@/lib/domain/ruta-recaudo";
 import { registrarRecaudo, type DatosAbono } from "./cartera";
@@ -136,6 +136,64 @@ export async function recaudarEnRuta(
 }
 
 /** Registra una visita sin pago (no estaba / no quiso), con foto opcional. */
+export interface ClienteProgramacion {
+  id: number;
+  nombre: string;
+  recaudadorId: number | null;
+  recaudador: string | null;
+  diaCobro: number | null;
+  saldo: number;
+}
+
+/** Clientes con su programación de recaudo (recaudador + día) y su saldo. */
+export async function clientesParaRuta(empresaId: number): Promise<ClienteProgramacion[]> {
+  const rec = usuarios; // alias legible
+  const rows = await db
+    .select({
+      id: terceros.id,
+      nombre: terceros.razonSocial,
+      recaudadorId: terceros.recaudadorId,
+      recaudador: rec.nombre,
+      diaCobro: terceros.diaCobro,
+      saldo: sql<string>`coalesce(sum(${cuentasPorCobrar.saldoPendiente}), 0)`,
+    })
+    .from(terceros)
+    .leftJoin(cuentasPorCobrar, eq(cuentasPorCobrar.clienteId, terceros.id))
+    .leftJoin(rec, eq(terceros.recaudadorId, rec.id))
+    .where(and(eq(terceros.empresaId, empresaId), eq(terceros.activo, true), inArray(terceros.tipo, ["cliente", "ambos"])))
+    .groupBy(terceros.id, terceros.razonSocial, terceros.recaudadorId, rec.nombre, terceros.diaCobro)
+    .orderBy(asc(terceros.razonSocial));
+  return rows.map((r) => ({ ...r, saldo: Number(r.saldo) }));
+}
+
+/**
+ * Programa (o reprograma) el recaudo de varios clientes a la vez: les fija el
+ * recaudador y el día de cobro. `recaudadorId`/`diaCobro` en null = sin asignar.
+ */
+export async function asignarRecaudo(
+  empresaId: number,
+  clienteIds: number[],
+  recaudadorId: number | null,
+  diaCobro: number | null,
+  ctx: Contexto,
+): Promise<number> {
+  if (clienteIds.length === 0) return 0;
+  await db
+    .update(terceros)
+    .set({ recaudadorId, diaCobro, updatedAt: new Date() })
+    .where(and(eq(terceros.empresaId, empresaId), inArray(terceros.id, clienteIds)));
+  await registrarAuditoria({
+    empresaId: ctx.empresaId,
+    usuarioId: ctx.usuarioId,
+    tablaAfectada: "vx07",
+    modelId: clienteIds[0],
+    accion: "ACTUALIZAR",
+    registroNuevo: { ruta: { clienteIds, recaudadorId, diaCobro } },
+    ipOrigen: ctx.ip,
+  });
+  return clienteIds.length;
+}
+
 export async function registrarVisita(
   clienteId: number,
   recaudadorId: number,
