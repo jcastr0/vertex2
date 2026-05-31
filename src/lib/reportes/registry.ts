@@ -1,9 +1,10 @@
 // src/lib/reportes/registry.ts
 import "server-only";
-import { TrendingUp, HandCoins } from "lucide-react";
+import { TrendingUp, HandCoins, Boxes } from "lucide-react";
 import type { ReporteDef, FiltroSpec } from "./tipos";
 import { cargarVentas, filtrosVentas } from "@/lib/services/reportes/ventas";
 import { cargarCarteraCobrar, filtrosCartera } from "@/lib/services/reportes/cartera-cobrar";
+import { cargarInventario, filtrosInventario } from "@/lib/services/reportes/inventario";
 
 export const REPORTES: ReporteDef[] = [
   {
@@ -38,6 +39,19 @@ export const REPORTES: ReporteDef[] = [
       { key: "cliente", label: "Cliente", tipo: "select", opciones: await filtrosCartera(empresaId) },
     ],
     cargar: cargarCarteraCobrar,
+  },
+  {
+    slug: "inventario", titulo: "Inventario y rentabilidad", desc: "Valorizado, margen por categoría y dispersión margen/rotación.", grupo: "Operación", icon: Boxes,
+    charts: [
+      { tipo: "barras", titulo: "Valor por categoría", serie: "valorPorCategoria", formato: "money" },
+      { tipo: "barras", titulo: "Margen por categoría", serie: "margenPorCategoria", formato: "money" },
+      { tipo: "dispersion", titulo: "Margen % vs unidades vendidas", serie: "margenVsRotacion", formato: "pct", ancho: "full" },
+    ],
+    filtros: async (empresaId): Promise<FiltroSpec[]> => [
+      { key: "desde", label: "Desde", tipo: "fecha" }, { key: "hasta", label: "Hasta", tipo: "fecha" },
+      { key: "categoria", label: "Categoría", tipo: "select", opciones: await filtrosInventario(empresaId) },
+    ],
+    cargar: cargarInventario,
   },
 ];
 
