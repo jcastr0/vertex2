@@ -69,7 +69,7 @@ export const ROLES: Record<string, readonly (Permiso | "*")[]> = {
     ...p("cuentas_cobrar", CRUD),
     ...p("cuentas_pagar", CRUD),
     ...p("recaudos", CRUD),
-    ...p("ruta_recaudo", VER),
+    ...p("ruta_recaudo", VER_CREAR_EDITAR),
     ...p("retenciones", CRUD),
     ...p("tesoreria", CRUD),
     ...p("pagos_proveedor", CRUD),
