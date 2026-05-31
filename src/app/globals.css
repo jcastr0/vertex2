@@ -214,3 +214,9 @@
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
 }
+
+@media print {
+  body * { visibility: hidden; }
+  .recibo, .recibo * { visibility: visible; }
+  .recibo { position: absolute; left: 0; top: 0; }
+}
