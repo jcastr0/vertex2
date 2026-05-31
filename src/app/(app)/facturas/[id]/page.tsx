@@ -8,6 +8,7 @@ import { listarProductos } from "@/lib/services/productos";
 import { cuentaPorCobrarDeFactura } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
 import { abonarFacturaAction } from "../actions";
+import { AnularButton } from "../anular-button";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
   const hoy = new Date().toISOString().slice(0, 10);
   const saldo = cxc?.saldo ?? 0;
   const puedeCobrar = puede(sesion.rol, "recaudos.crear");
+  const puedeAnular = puede(sesion.rol, "facturas.eliminar");
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -44,11 +46,15 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
           {factura.esElectronica && (
             <Badge variant="secondary" className="font-normal"><FileText className="mr-1 size-3" /> Electrónica</Badge>
           )}
-          <Badge variant={factura.tipoVenta === "credito" ? "secondary" : "outline"} className="font-normal capitalize">
-            {factura.tipoVenta}
-          </Badge>
+          {factura.estado === "anulada" ? (
+            <Badge variant="destructive" className="font-normal">Anulada</Badge>
+          ) : (
+            <Badge variant={factura.tipoVenta === "credito" ? "secondary" : "outline"} className="font-normal capitalize">
+              {factura.tipoVenta}
+            </Badge>
+          )}
           <PrintButton />
-          {puedeCobrar && saldo > 0 && cxc && (
+          {puedeCobrar && saldo > 0 && cxc && factura.estado !== "anulada" && (
             <AbonoButton
               cuentaId={cxc.id}
               saldo={saldo}
@@ -60,6 +66,7 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
               cuentasDestino={cuentasDestino.map((c) => ({ id: c.id, nombre: c.nombre }))}
             />
           )}
+          {factura.estado === "emitida" && puedeAnular && <AnularButton facturaId={factura.id} />}
         </div>
       </PageHeader>
 
@@ -80,6 +87,12 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
           )}
         </CardContent>
       </Card>
+
+      {factura.estado === "anulada" && factura.motivoAnulacion && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <span className="font-semibold">Motivo de anulación:</span> {factura.motivoAnulacion}
+        </div>
+      )}
 
       <div className="space-y-2">
         {factura.detalles.map((d) => (

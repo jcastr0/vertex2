@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseFacturaForm } from "@/lib/validation/factura";
-import { crearFactura, ultimoPrecioPorCliente, ultimaUnidadVentaPorCliente, VentaInvalida } from "@/lib/services/facturas";
+import { crearFactura, ultimoPrecioPorCliente, ultimaUnidadVentaPorCliente, VentaInvalida, anularFactura, AnulacionInvalida } from "@/lib/services/facturas";
 import { registrarRecaudo, AbonoInvalido } from "@/lib/services/cartera";
 import { crearClienteRapido } from "@/lib/services/terceros";
 
@@ -150,4 +150,24 @@ export async function datosClienteAction(clienteId: number): Promise<{
     console.error("[facturas] error al cargar datos del cliente:", e);
     return { precios: {}, unidades: {} };
   }
+}
+
+export interface AnularState { error?: string; ok?: boolean }
+
+export async function anularFacturaAction(facturaId: number, _prev: AnularState, form: FormData): Promise<AnularState> {
+  const c = await contexto();
+  if (!c) return { error: "Sesión sin empresa activa." };
+  if (!puede(c.rol, "facturas.eliminar")) return { error: "No tienes permiso para anular." };
+  const motivo = String(form.get("motivo") || "").trim();
+  if (motivo.length < 3) return { error: "Escribe el motivo de la anulación." };
+  try {
+    await anularFactura(facturaId, motivo, c.ctx);
+  } catch (e) {
+    if (e instanceof AnulacionInvalida) return { error: e.message };
+    console.error("[facturas] anular:", e);
+    return { error: "No se pudo anular la factura." };
+  }
+  revalidatePath(`/facturas/${facturaId}`);
+  revalidatePath("/facturas"); revalidatePath("/cuentas-cobrar"); revalidatePath("/inventario");
+  return { ok: true };
 }
