@@ -5,6 +5,7 @@ import { rangoMes } from "@/lib/domain/periodo";
 import { PageHeader } from "@/components/page-header";
 import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExportFE } from "./export-fe";
 
 export const metadata: Metadata = { title: "Reportes — Vertex" };
 
@@ -92,6 +93,11 @@ export default async function ReportesPage() {
         ) : (
           <ResponsiveTable items={vencidas} getKey={(c) => c.id} columns={colVenc} />
         )}
+      </div>
+
+      <div>
+        <h3 className="mb-3 text-base font-semibold">Factura electrónica (para el contador)</h3>
+        <ExportFE desdeInicial={desde} hastaInicial={hasta} />
       </div>
 
       <div>

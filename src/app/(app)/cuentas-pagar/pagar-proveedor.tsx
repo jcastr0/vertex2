@@ -12,8 +12,10 @@ import { SearchSelect } from "@/components/ui/search-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { METODOS_PAGO } from "@/lib/domain/cartera";
 import { calcularRetenciones, type RetencionConfig } from "@/lib/domain/retenciones";
-import { AlertCircle, Loader2, ChevronRight } from "lucide-react";
+import { PagarDoc } from "./pagar-doc";
+import { AlertCircle, Loader2, ChevronDown, Wallet } from "lucide-react";
 
+interface Doc { id: number; numero: string; fecha: string; vence: string; total: number; saldo: number }
 interface Props {
   proveedorId: number;
   proveedor: string;
@@ -23,6 +25,7 @@ interface Props {
   hoy: string;
   cuentasOrigen: { id: number; nombre: string }[];
   retenciones: RetencionConfig[];
+  docs: Doc[];
 }
 
 type Beneficiario = {
@@ -34,6 +37,7 @@ type Beneficiario = {
 };
 
 const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
+const fmtFecha = (s: string) => new Date(s + "T00:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "short" });
 
 function Confirmar() {
   const { pending } = useFormStatus();
@@ -54,9 +58,11 @@ export function PagarProveedor({
   hoy,
   cuentasOrigen,
   retenciones,
+  docs,
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [abierto, setAbierto] = useState(false);
   const [monto, setMonto] = useState(total);
   const [beneficiarios, setBeneficiarios] = useState<Beneficiario[]>([]);
 
@@ -93,22 +99,51 @@ export function PagarProveedor({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-all hover:border-destructive/40 hover:shadow-md"
-      >
-        <span
-          className={`size-2.5 shrink-0 rounded-full ${vencido ? "bg-destructive" : "bg-primary/40"}`}
-          title={vencido ? "Vencido" : "Al día"}
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{proveedor}</p>
-          <p className="text-sm text-muted-foreground">Le debes</p>
+      <div className="overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-destructive/40">
+        <div className="flex items-center gap-3 p-4">
+          <button
+            type="button"
+            onClick={() => setAbierto((v) => !v)}
+            aria-expanded={abierto}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          >
+            <span className={`size-2.5 shrink-0 rounded-full ${vencido ? "bg-destructive" : "bg-primary/40"}`} title={vencido ? "Vencido" : "Al día"} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-medium">{proveedor}</span>
+              <span className="text-sm text-muted-foreground">{docs.length} {docs.length === 1 ? "factura" : "facturas"}{facturaElectronica ? " · F.E." : ""}{vencido ? " · tiene vencido" : ""}</span>
+            </span>
+            <span className="tabular text-lg font-bold tracking-tight">{money(total)}</span>
+            <ChevronDown className={`size-5 shrink-0 text-muted-foreground transition-transform ${abierto ? "rotate-180" : ""}`} />
+          </button>
+          <Button type="button" size="sm" onClick={() => setOpen(true)} className="shrink-0">
+            <Wallet className="size-4" /> Pagar
+          </Button>
         </div>
-        <span className="tabular text-lg font-bold tracking-tight">{money(total)}</span>
-        <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-destructive" />
-      </button>
+
+        {abierto && docs.length > 0 && (
+          <ul className="divide-y divide-border border-t border-border bg-muted/20 text-sm">
+            {docs.map((d) => (
+              <li key={d.id} className="flex items-center gap-3 px-4 py-2.5">
+                <span className="min-w-0 flex-1 truncate">
+                  <span className="font-medium">{d.numero}</span>
+                  <span className="text-muted-foreground"> · {fmtFecha(d.fecha)}</span>
+                </span>
+                <span className={`hidden shrink-0 text-xs sm:inline ${d.vence < hoy ? "font-medium text-destructive" : "text-muted-foreground"}`}>vence {fmtFecha(d.vence)}</span>
+                <span className="tabular w-20 shrink-0 text-right font-medium sm:w-24">{money(d.saldo)}</span>
+                <PagarDoc
+                  cxpId={d.id}
+                  numero={d.numero}
+                  saldo={d.saldo}
+                  hoy={hoy}
+                  facturaElectronica={facturaElectronica}
+                  cuentasOrigen={cuentasOrigen}
+                  retenciones={retenciones}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <Modal
         open={open}

@@ -52,7 +52,7 @@ export default async function UsuariosPage({
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Usuarios" description="Personas con acceso a esta empresa.">
         {puedeCrear && (
-          <Link href="/usuarios/nuevo" className={buttonVariants()}>
+          <Link href="/usuarios/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nuevo usuario
           </Link>
         )}

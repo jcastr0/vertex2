@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
+import { puede } from "@/lib/auth/roles";
 import { listarNotasCredito } from "@/lib/services/devoluciones";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
 import { ListaFiltrable } from "@/components/lista-filtrable";
 import { type Columna } from "@/components/responsive-table";
-import { FileMinus } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { FileMinus, Plus } from "lucide-react";
 
 export const metadata: Metadata = { title: "Notas crédito — Vertex" };
 const PAGE_SIZE = 10;
@@ -18,7 +21,7 @@ export default async function NotasCreditoPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  await requirePermiso("notas_credito.ver");
+  const sesion = await requirePermiso("notas_credito.ver");
   const { empresaId } = await requireEmpresa();
   const { q = "", page: pageRaw } = await searchParams;
   const todos = await listarNotasCredito(empresaId);
@@ -40,7 +43,13 @@ export default async function NotasCreditoPage({
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Notas crédito" description="Generadas por devoluciones de clientes." />
+      <PageHeader title="Notas crédito" description="Por devolución, o manuales (descuento/corrección).">
+        {puede(sesion.rol, "notas_credito.crear") && (
+          <Link href="/notas-credito/nueva" className={buttonVariants()}>
+            <Plus className="size-4" /> Nueva nota crédito
+          </Link>
+        )}
+      </PageHeader>
       <ListaFiltrable
         base="/notas-credito"
         q={q}

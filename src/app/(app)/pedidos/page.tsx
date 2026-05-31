@@ -69,7 +69,7 @@ export default async function PedidosPage({
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Pedidos a proveedores" description="Órdenes de compra e ingreso a inventario.">
         {puedeCrear && (
-          <Link href="/pedidos/nuevo" className={buttonVariants()}>
+          <Link href="/pedidos/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nuevo pedido
           </Link>
         )}

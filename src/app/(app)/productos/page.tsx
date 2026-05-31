@@ -84,7 +84,7 @@ export default async function ProductosPage({
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Productos" description="Catálogo de productos de la empresa.">
         {puedeCrear && (
-          <Link href="/productos/nuevo" className={buttonVariants()}>
+          <Link href="/productos/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nuevo producto
           </Link>
         )}

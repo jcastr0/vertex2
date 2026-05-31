@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { puede } from "@/lib/auth/roles";
-import { acreedoresPorProveedor } from "@/lib/services/cartera";
+import { acreedoresPorProveedor, cuentasPorPagarAbiertasPorProveedor } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
 import { retencionesActivas } from "@/lib/services/retenciones";
 import { PageHeader } from "@/components/page-header";
@@ -21,10 +21,11 @@ export default async function PagarPage({
   const { empresaId } = await requireEmpresa();
   const { q = "" } = await searchParams;
 
-  const [acreedores, cuentasOrigen, retenciones] = await Promise.all([
+  const [acreedores, cuentasOrigen, retenciones, docsPorProveedor] = await Promise.all([
     acreedoresPorProveedor(empresaId),
     cuentasPropiasActivas(empresaId),
     retencionesActivas(empresaId),
+    cuentasPorPagarAbiertasPorProveedor(empresaId),
   ]);
 
   const hoy = new Date().toISOString().slice(0, 10);
@@ -88,6 +89,7 @@ export default async function PagarPage({
                     hoy={hoy}
                     cuentasOrigen={cuentasOrigen}
                     retenciones={retenciones}
+                    docs={docsPorProveedor[a.proveedorId] ?? []}
                   />
                 ) : (
                   <div

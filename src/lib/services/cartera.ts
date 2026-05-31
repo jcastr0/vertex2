@@ -522,6 +522,28 @@ export async function cuentaPorPagarDePedido(
   return r ? { total: Number(r.total), saldo: Number(r.saldo), vence: r.vence } : null;
 }
 
+/** Todos los documentos abiertos por pagar, agrupados por proveedor (sin N+1). */
+export async function cuentasPorPagarAbiertasPorProveedor(empresaId: number): Promise<Record<number, DocAbierto[]>> {
+  const rows = await db
+    .select({
+      proveedorId: cuentasPorPagar.proveedorId,
+      id: cuentasPorPagar.id,
+      numero: cuentasPorPagar.numeroFactura,
+      fecha: cuentasPorPagar.fechaFactura,
+      vence: cuentasPorPagar.fechaVencimiento,
+      total: cuentasPorPagar.valorTotal,
+      saldo: cuentasPorPagar.saldoPendiente,
+    })
+    .from(cuentasPorPagar)
+    .where(and(eq(cuentasPorPagar.empresaId, empresaId), gt(cuentasPorPagar.saldoPendiente, "0")))
+    .orderBy(asc(cuentasPorPagar.fechaVencimiento));
+  const porProveedor: Record<number, DocAbierto[]> = {};
+  for (const r of rows) {
+    (porProveedor[r.proveedorId] ??= []).push({ id: r.id, numero: r.numero, fecha: r.fecha, vence: r.vence, total: Number(r.total), saldo: Number(r.saldo) });
+  }
+  return porProveedor;
+}
+
 /** Todos los documentos abiertos por cobrar, agrupados por cliente (sin N+1). */
 export async function cuentasPorCobrarAbiertasPorCliente(empresaId: number): Promise<Record<number, DocAbierto[]>> {
   const rows = await db

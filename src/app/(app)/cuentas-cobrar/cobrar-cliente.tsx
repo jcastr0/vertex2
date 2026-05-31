@@ -3,7 +3,8 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import { cobrarClienteAction, type AbonoState } from "./actions";
+import { cobrarClienteAction, registrarRecaudoAction, type AbonoState } from "./actions";
+import { AbonoButton } from "@/components/abono-button";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,10 +85,20 @@ export function CobrarCliente({ clienteId, cliente, total, vencido, hoy, cuentas
                     <span className="font-medium">{d.numero}</span>
                     <span className="text-muted-foreground"> · {fmtFecha(d.fecha)}</span>
                   </span>
-                  <span className={`shrink-0 text-xs ${venc ? "font-medium text-destructive" : "text-muted-foreground"}`}>
+                  <span className={`hidden shrink-0 text-xs sm:inline ${venc ? "font-medium text-destructive" : "text-muted-foreground"}`}>
                     vence {fmtFecha(d.vence)}
                   </span>
-                  <span className="tabular w-24 shrink-0 text-right font-medium">{money(d.saldo)}</span>
+                  <span className="tabular w-20 shrink-0 text-right font-medium sm:w-24">{money(d.saldo)}</span>
+                  <AbonoButton
+                    cuentaId={d.id}
+                    saldo={d.saldo}
+                    hoy={hoy}
+                    triggerLabel="Cobrar"
+                    modalTitulo={`Cobrar ${d.numero}`}
+                    confirmarLabel="Registrar cobro"
+                    action={registrarRecaudoAction}
+                    cuentasDestino={cuentasDestino}
+                  />
                 </li>
               );
             })}

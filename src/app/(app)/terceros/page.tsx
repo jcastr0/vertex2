@@ -94,7 +94,7 @@ export default async function TercerosPage({
     <div className="mx-auto max-w-6xl">
       <PageHeader title="Terceros" description="Proveedores y clientes de la empresa.">
         {puedeCrear && (
-          <Link href="/terceros/nuevo" className={buttonVariants()}>
+          <Link href="/terceros/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nuevo tercero
           </Link>
         )}

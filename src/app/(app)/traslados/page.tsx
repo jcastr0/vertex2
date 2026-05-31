@@ -68,7 +68,7 @@ export default async function TrasladosPage({
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Traslados entre bodegas" description="Mueve existencias de una bodega a otra.">
         {puedeCrear && (
-          <Link href="/traslados/nuevo" className={buttonVariants()}>
+          <Link href="/traslados/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nuevo traslado
           </Link>
         )}
