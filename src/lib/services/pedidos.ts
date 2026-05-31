@@ -28,7 +28,10 @@ export interface LineaPedido {
   precioUnitario: number;
 }
 export interface CostoPedido {
+  /** Nombre de la categoría de gasto (etiqueta denormalizada: "Flete", "Gasolina"…). */
   tipo: string;
+  /** Categoría de gasto (vx08, tipo='gasto'). Opcional para compatibilidad. */
+  categoriaId?: number;
   descripcion?: string;
   valor: number;
 }
@@ -117,6 +120,7 @@ export async function crearPedido(data: NuevoPedido, ctx: Contexto): Promise<Ped
       await tx.insert(pedidoCostos).values(
         data.costos.map((c) => ({
           pedidoId: pedido.id,
+          categoriaId: c.categoriaId ?? null,
           tipo: c.tipo,
           descripcion: c.descripcion || null,
           valor: String(c.valor),

@@ -8,6 +8,7 @@ export const lineaSchema = z.object({
 });
 
 export const costoSchema = z.object({
+  categoriaId: z.coerce.number().int().positive().optional(),
   tipo: z.string().trim().min(1),
   descripcion: z.string().trim().optional().or(z.literal("")),
   valor: z.coerce.number().min(0),

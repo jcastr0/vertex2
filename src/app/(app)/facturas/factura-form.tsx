@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchSelect } from "@/components/ui/search-select";
+import { Switch } from "@/components/ui/switch";
 import { METODOS_PAGO } from "@/lib/domain/cartera";
 import { cn } from "@/lib/utils";
-import { AlertCircle, Loader2, ShoppingBag, Trash2, ScanLine, Minus, Plus, Check, Receipt } from "lucide-react";
+import { AlertCircle, Loader2, ShoppingBag, Trash2, ScanLine, Minus, Plus, Check, Receipt, FileText } from "lucide-react";
 
-interface Cliente { id: number; nombre: string }
+interface Cliente { id: number; nombre: string; requiereFE: boolean }
 interface Bodega { id: number; nombre: string }
 interface ProdUnidad { unidadId: number; abrev: string; factor: number; precio: number | null }
 interface Prod { id: number; nombre: string; sku: string; unidadBaseId: number; unidadAbrev: string; precio: number; unidades: ProdUnidad[] }
@@ -43,6 +44,7 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
   const [tipo, setTipo] = useState<"contado" | "credito">("contado");
   const [metodoPago, setMetodoPago] = useState("efectivo");
   const [cuentaDestinoId, setCuentaDestinoId] = useState(cuentasDestino[0] ? String(cuentasDestino[0].id) : "");
+  const [esElectronica, setEsElectronica] = useState(false);
   const [carrito, setCarrito] = useState<LineaCarrito[]>([]);
   const [preciosCliente, setPreciosCliente] = useState<Record<number, number>>({});
   /** Última unidad vendida por producto al cliente seleccionado: productoId → { unidadId, precio } */
@@ -67,6 +69,9 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
 
   function elegirCliente(value: string) {
     setClienteId(value);
+    // La factura hereda el flag del cliente; el usuario puede cambiarlo abajo.
+    const cli = clientes.find((c) => String(c.id) === value);
+    setEsElectronica(cli?.requiereFE ?? false);
     startTransition(async () => {
       const datos = await datosClienteAction(Number(value));
       setPreciosCliente(datos.precios);
@@ -135,6 +140,7 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
       <input type="hidden" name="tipoVenta" value={tipo} />
       <input type="hidden" name="metodoPago" value={metodoPago} />
       <input type="hidden" name="cuentaDestinoId" value={cuentaDestinoId} />
+      <input type="hidden" name="esElectronica" value={esElectronica ? "1" : ""} />
       <input type="hidden" name="fecha" value={hoy} />
 
       {state.error && (
@@ -152,7 +158,7 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
               {clienteNombre ? (
                 <button
                   type="button"
-                  onClick={() => { setClienteId(""); setPreciosCliente({}); setUnidadesCliente({}); }}
+                  onClick={() => { setClienteId(""); setPreciosCliente({}); setUnidadesCliente({}); setEsElectronica(false); }}
                   className="flex w-full items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5 text-left text-sm transition-colors hover:bg-primary/10"
                 >
                   <Check className="size-4 shrink-0 text-primary" />
@@ -200,6 +206,15 @@ export function FacturaForm({ clientes, bodegas, productos, cuentasDestino, hoy 
                 {bodegas.map((b) => <option key={b.id} value={b.id}>{b.nombre}</option>)}
               </select>
             </div>
+
+            <label className={cn("flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors", esElectronica ? "border-primary/40 bg-primary/5" : "border-border")}>
+              <FileText className={cn("size-4 shrink-0", esElectronica ? "text-primary" : "text-muted-foreground")} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">Factura electrónica</p>
+                <p className="text-xs text-muted-foreground">{esElectronica ? "Se exportará para el contador" : "Venta normal"}</p>
+              </div>
+              <Switch checked={esElectronica} onCheckedChange={setEsElectronica} />
+            </label>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">

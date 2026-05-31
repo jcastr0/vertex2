@@ -23,7 +23,7 @@ interface Opcion {
   nombre: string;
 }
 interface Props {
-  categoria?: { id: number; nombre: string; descripcion: string | null; padreId: number | null };
+  categoria?: { id: number; nombre: string; descripcion: string | null; padreId: number | null; tipo: string };
   opcionesPadre: Opcion[];
 }
 
@@ -59,9 +59,21 @@ export function CategoriaForm({ categoria, opcionesPadre }: Props) {
 
       <FormSection title="Datos de la categoría">
         <div className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="nombre">Nombre</Label>
-            <Input id="nombre" name="nombre" defaultValue={categoria?.nombre} required maxLength={100} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="nombre">Nombre</Label>
+              <Input id="nombre" name="nombre" defaultValue={categoria?.nombre} required maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select name="tipo" defaultValue={categoria?.tipo ?? "producto"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="producto">Productos</SelectItem>
+                  <SelectItem value="gasto">Gastos (flete, gasolina…)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">

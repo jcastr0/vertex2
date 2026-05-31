@@ -31,6 +31,8 @@ export async function crearFacturaAction(
     if (!cuentaDestinoId) return { error: "Elige a dónde entró el dinero." };
   }
 
+  const esElectronica = String(form.get("esElectronica") || "") === "1";
+
   let nuevoId: number;
   try {
     const f = await crearFactura(
@@ -42,6 +44,7 @@ export async function crearFacturaAction(
         lineas: parsed.data.lineas,
         metodoPago,
         cuentaDestinoId,
+        esElectronica,
       },
       c.ctx,
     );

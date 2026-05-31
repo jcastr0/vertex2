@@ -43,6 +43,13 @@
       "when": 1780190351115,
       "tag": "0005_high_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780191448043,
+      "tag": "0006_gifted_shadow_king",
+      "breakpoints": true
     }
   ]
 }

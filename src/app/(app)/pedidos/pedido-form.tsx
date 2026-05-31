@@ -17,7 +17,7 @@ interface Opt { id: number; nombre: string }
 interface Prod { id: number; nombre: string; sku: string }
 interface Und { id: number; nombre: string; abreviatura: string }
 interface Linea { productoId: string; unidadId: string; cantidad: string; precioUnitario: string }
-interface Costo { tipo: string; valor: string }
+interface Costo { categoriaId: string; descripcion: string; valor: string }
 
 const money = (n: number) => "$" + n.toLocaleString("es-CO", { maximumFractionDigits: 2 });
 
@@ -36,12 +36,14 @@ export function PedidoForm({
   bodegas,
   productos,
   unidades,
+  categoriasGasto,
   hoy,
 }: {
   proveedores: Opt[];
   bodegas: Opt[];
   productos: Prod[];
   unidades: Und[];
+  categoriasGasto: Opt[];
   hoy: string;
 }) {
   const [state, action] = useActionState<PedidoState, FormData>(crearPedidoAction, {});
@@ -68,8 +70,16 @@ export function PedidoForm({
         precioUnitario: Number(l.precioUnitario) || 0,
       })),
   );
+  const nombreCategoria = (id: string) => categoriasGasto.find((c) => String(c.id) === id)?.nombre ?? "";
   const costosJson = JSON.stringify(
-    costos.filter((c) => c.tipo && c.valor).map((c) => ({ tipo: c.tipo, valor: Number(c.valor) })),
+    costos
+      .filter((c) => c.categoriaId && c.valor)
+      .map((c) => ({
+        categoriaId: Number(c.categoriaId),
+        tipo: nombreCategoria(c.categoriaId),
+        descripcion: c.descripcion || undefined,
+        valor: Number(c.valor),
+      })),
   );
 
   function setLinea(i: number, patch: Partial<Linea>) {
@@ -156,16 +166,26 @@ export function PedidoForm({
         )}
         <div className="space-y-3">
           {costos.map((c, i) => (
-            <div key={i} className="grid gap-3 sm:grid-cols-[2fr_1fr_auto] sm:items-center">
-              <Input placeholder="Concepto (flete, gasolina…)" value={c.tipo} onChange={(e) => setCostos((cs) => cs.map((x, idx) => idx === i ? { ...x, tipo: e.target.value } : x))} />
-              <Input type="number" min="0" step="0.01" placeholder="Valor" value={c.valor} onChange={(e) => setCostos((cs) => cs.map((x, idx) => idx === i ? { ...x, valor: e.target.value } : x))} />
-              <Button type="button" variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => setCostos((cs) => cs.filter((_, idx) => idx !== i))}>
+            <div key={i} className="grid gap-2.5 sm:grid-cols-[1fr_1.4fr_8rem_2.5rem] sm:items-center">
+              <SearchSelect
+                value={c.categoriaId}
+                onValueChange={(v) => setCostos((cs) => cs.map((x, idx) => idx === i ? { ...x, categoriaId: v } : x))}
+                placeholder="Tipo de gasto…"
+                searchPlaceholder="Buscar…"
+                options={categoriasGasto.map((g) => ({ value: String(g.id), label: g.nombre }))}
+              />
+              <Input placeholder="Nota (opcional)" value={c.descripcion} onChange={(e) => setCostos((cs) => cs.map((x, idx) => idx === i ? { ...x, descripcion: e.target.value } : x))} />
+              <div className="relative">
+                <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                <Input type="number" min="0" step="0.01" inputMode="decimal" aria-label="Valor" placeholder="Valor" className="pl-6 text-right tabular" value={c.valor} onChange={(e) => setCostos((cs) => cs.map((x, idx) => idx === i ? { ...x, valor: e.target.value } : x))} />
+              </div>
+              <Button type="button" variant="ghost" size="icon" className="size-8 justify-self-end text-muted-foreground hover:text-destructive" onClick={() => setCostos((cs) => cs.filter((_, idx) => idx !== i))}>
                 <Trash2 className="size-4" />
               </Button>
             </div>
           ))}
         </div>
-        <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => setCostos((cs) => [...cs, { tipo: "", valor: "" }])}>
+        <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => setCostos((cs) => [...cs, { categoriaId: "", descripcion: "", valor: "" }])}>
           <Plus className="size-4" /> Agregar costo
         </Button>
       </FormSection>

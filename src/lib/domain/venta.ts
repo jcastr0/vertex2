@@ -57,3 +57,15 @@ export function sugerirUnidadVenta(
 ): number {
   return ultimaUnidadPorProducto[productoId] ?? unidadBaseId;
 }
+
+/**
+ * Resuelve si una factura es electrónica. Por defecto hereda el flag del cliente
+ * (requiereFacturaElectronica); si el usuario marca/desmarca el check en la
+ * factura puntual (`override`), ese valor manda.
+ */
+export function resolverFacturaElectronica(
+  override: boolean | undefined,
+  clienteRequiere: boolean,
+): boolean {
+  return override ?? clienteRequiere;
+}

@@ -3,6 +3,7 @@ import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { listarTerceros } from "@/lib/services/terceros";
 import { listarBodegas } from "@/lib/services/bodegas";
 import { listarProductos, listarUnidadesMedida } from "@/lib/services/productos";
+import { listarCategorias } from "@/lib/services/categorias";
 import { PageHeader } from "@/components/page-header";
 import { PedidoForm } from "../pedido-form";
 
@@ -11,11 +12,12 @@ export const metadata: Metadata = { title: "Nuevo pedido — Vertex" };
 export default async function NuevoPedidoPage() {
   await requirePermiso("pedidos.crear");
   const { empresaId } = await requireEmpresa();
-  const [terceros, bodegas, productos, unidades] = await Promise.all([
+  const [terceros, bodegas, productos, unidades, gastos] = await Promise.all([
     listarTerceros(empresaId),
     listarBodegas(empresaId),
     listarProductos(empresaId),
     listarUnidadesMedida(),
+    listarCategorias(empresaId, "gasto"),
   ]);
 
   const hoy = new Date().toISOString().slice(0, 10);
@@ -33,6 +35,7 @@ export default async function NuevoPedidoPage() {
           .filter((p) => p.activo)
           .map((p) => ({ id: p.id, nombre: p.nombre, sku: p.sku }))}
         unidades={unidades.map((u) => ({ id: u.id, nombre: u.nombre, abreviatura: u.abreviatura }))}
+        categoriasGasto={gastos.filter((g) => g.activo).map((g) => ({ id: g.id, nombre: g.nombre }))}
       />
     </div>
   );

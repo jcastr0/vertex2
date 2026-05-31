@@ -28,6 +28,7 @@ export default async function EditarCategoriaPage({
           nombre: categoria.nombre,
           descripcion: categoria.descripcion,
           padreId: categoria.padreId,
+          tipo: categoria.tipo,
         }}
         opcionesPadre={categorias.filter((c) => c.activo).map((c) => ({ id: c.id, nombre: c.nombre }))}
       />

@@ -15,6 +15,7 @@ import {
 import { registrarAuditoria } from "@/lib/audit";
 import { formatearNumero } from "@/lib/domain/numeracion";
 import { cantidadEnBase, precioBaseDesdeUnidad } from "@/lib/domain/conversion";
+import { resolverFacturaElectronica } from "@/lib/domain/venta";
 import type { Contexto } from "./bodegas";
 
 export type Factura = typeof facturas.$inferSelect;
@@ -34,6 +35,8 @@ export interface NuevaFactura {
   /** Solo contado: cómo pagó y a qué cuenta entró el dinero. */
   metodoPago?: string;
   cuentaDestinoId?: number;
+  /** Factura electrónica. Si se omite, hereda el flag del cliente. */
+  esElectronica?: boolean;
 }
 
 export class VentaInvalida extends Error {}
@@ -89,11 +92,12 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
   );
 
   const [cli] = await db
-    .select({ dias: terceros.diasCreditoCliente })
+    .select({ dias: terceros.diasCreditoCliente, requiereFE: terceros.requiereFacturaElectronica })
     .from(terceros)
     .where(eq(terceros.id, data.clienteId))
     .limit(1);
   const diasCredito = cli?.dias ?? 0;
+  const esElectronica = resolverFacturaElectronica(data.esElectronica, cli?.requiereFE ?? false);
 
   // Pre-cálculo de líneas (factor, base, costo desde inventario actual).
   const preparadas: {
@@ -163,6 +167,7 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
         impuestos: "0",
         total: String(total),
         estado: "emitida",
+        esElectronica,
         usuarioId: ctx.usuarioId,
       })
       .returning();

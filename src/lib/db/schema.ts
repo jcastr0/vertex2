@@ -276,6 +276,8 @@ export const categoriasProductos = pgTable("vx08",
       .references(() => empresas.id),
     nombre: varchar("nombre", { length: 100 }).notNull(),
     descripcion: text("descripcion"),
+    // Distingue categorías de productos de categorías de gasto (flete, gasolina…).
+    tipo: varchar("tipo", { length: 20 }).notNull().default("producto"),
     padreId: bigint("padre_id", { mode: "number" }).references(
       (): AnyPgColumn => categoriasProductos.id,
     ),
@@ -445,6 +447,10 @@ export const pedidoCostos = pgTable("vx15",
     pedidoId: bigint("pedido_id", { mode: "number" })
       .notNull()
       .references(() => pedidos.id, { onDelete: "cascade" }),
+    // Categoría de gasto (vx08, tipo='gasto'). Opcional para datos previos.
+    categoriaId: bigint("categoria_id", { mode: "number" }).references(
+      (): AnyPgColumn => categoriasProductos.id,
+    ),
     tipo: varchar("tipo", { length: 50 }).notNull(),
     descripcion: varchar("descripcion", { length: 200 }),
     valor: money("valor").notNull(),

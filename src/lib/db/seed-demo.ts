@@ -237,9 +237,18 @@ async function main() {
   // vx08 no tiene unique constraint en (empresaId, nombre), así que usamos
   // "insert only if not exists" manual para garantizar idempotencia.
   console.log("→ Sembrando categorías…");
-  const CATS_DEMO = [
-    { nombre: "Verduras", descripcion: "Hortalizas y verduras frescas" },
-    { nombre: "Frutas", descripcion: "Frutas frescas de temporada" },
+  const CATS_DEMO: { nombre: string; descripcion: string; tipo: "producto" | "gasto" }[] = [
+    { nombre: "Verduras", descripcion: "Hortalizas y verduras frescas", tipo: "producto" },
+    { nombre: "Frutas", descripcion: "Frutas frescas de temporada", tipo: "producto" },
+    // Categorías de gasto (para costos de pedido: flete, gasolina…).
+    { nombre: "Flete", descripcion: "Transporte de la mercancía", tipo: "gasto" },
+    { nombre: "Gasolina", descripcion: "Combustible", tipo: "gasto" },
+    { nombre: "Transporte", descripcion: "Otros transportes", tipo: "gasto" },
+    { nombre: "Descargue", descripcion: "Mano de obra de descargue", tipo: "gasto" },
+    { nombre: "Empaque", descripcion: "Bolsas, canastillas, costales", tipo: "gasto" },
+    { nombre: "Hielo", descripcion: "Hielo / cadena de frío", tipo: "gasto" },
+    { nombre: "Peajes", descripcion: "Peajes de ruta", tipo: "gasto" },
+    { nombre: "Otros gastos", descripcion: "Gastos varios del pedido", tipo: "gasto" },
   ];
   for (const cat of CATS_DEMO) {
     const existing = await db
@@ -257,6 +266,7 @@ async function main() {
         empresaId: E,
         nombre: cat.nombre,
         descripcion: cat.descripcion,
+        tipo: cat.tipo,
       });
     }
   }

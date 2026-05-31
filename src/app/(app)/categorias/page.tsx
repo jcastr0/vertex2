@@ -39,6 +39,14 @@ export default async function CategoriasPage({
 
   const columnas: Columna<Categoria>[] = [
     { header: "Nombre", primary: true, cell: (c) => c.nombre },
+    {
+      header: "Tipo",
+      cell: (c) => (
+        <Badge variant={c.tipo === "gasto" ? "secondary" : "outline"} className="font-normal">
+          {c.tipo === "gasto" ? "Gasto" : "Producto"}
+        </Badge>
+      ),
+    },
     { header: "Categoría padre", cell: (c) => (c.padreId ? (nombrePorId.get(c.padreId) ?? "—") : "—") },
     {
       header: "Estado",
@@ -52,7 +60,7 @@ export default async function CategoriasPage({
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title="Categorías" description="Clasificación jerárquica de productos.">
+      <PageHeader title="Categorías" description="De productos y de gastos (flete, gasolina…).">
         {puedeCrear && (
           <Link href="/categorias/nueva" className={buttonVariants()}>
             <Plus className="size-4" /> Nueva categoría

@@ -26,7 +26,7 @@ export default async function EditarProductoPage({
   if (!producto) notFound();
 
   const [categorias, unidades, presentaciones] = await Promise.all([
-    listarCategorias(empresaId),
+    listarCategorias(empresaId, "producto"),
     listarUnidadesMedida(),
     listarUnidadesProducto(producto.id),
   ]);

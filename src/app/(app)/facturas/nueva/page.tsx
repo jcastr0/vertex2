@@ -31,7 +31,7 @@ export default async function NuevaFacturaPage() {
         hoy={hoy}
         clientes={terceros
           .filter((t) => t.activo && (t.tipo === "cliente" || t.tipo === "ambos"))
-          .map((t) => ({ id: t.id, nombre: t.razonSocial }))}
+          .map((t) => ({ id: t.id, nombre: t.razonSocial, requiereFE: t.requiereFacturaElectronica }))}
         bodegas={bodegasActivas.map((b) => ({ id: b.id, nombre: b.nombre }))}
         productos={productos}
         cuentasDestino={cuentasDestino.map((c) => ({ id: c.id, nombre: c.nombre }))}

@@ -3,6 +3,22 @@ import { buscarProductos, type ProductoBuscable } from "./venta";
 import { agregarOIncrementar, type LineaCarrito } from "./venta";
 import { precioSugerido } from "./venta";
 import { sugerirUnidadVenta } from "./venta";
+import { resolverFacturaElectronica } from "./venta";
+
+describe("resolverFacturaElectronica", () => {
+  it("sin override, hereda el flag del cliente (true)", () => {
+    expect(resolverFacturaElectronica(undefined, true)).toBe(true);
+  });
+  it("sin override, hereda el flag del cliente (false)", () => {
+    expect(resolverFacturaElectronica(undefined, false)).toBe(false);
+  });
+  it("el override del usuario gana sobre el cliente (forzar)", () => {
+    expect(resolverFacturaElectronica(true, false)).toBe(true);
+  });
+  it("el override del usuario gana sobre el cliente (anular)", () => {
+    expect(resolverFacturaElectronica(false, true)).toBe(false);
+  });
+});
 
 const P = (id: number, nombre: string, sku: string): ProductoBuscable => ({ id, nombre, sku });
 const lista = [P(1, "Tomate chonto", "VEG-01"), P(2, "Tomate larga vida", "VEG-02"), P(3, "Cebolla cabezona", "VEG-03"), P(4, "Papa criolla", "VEG-04")];

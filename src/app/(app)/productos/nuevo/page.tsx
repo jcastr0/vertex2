@@ -11,7 +11,7 @@ export default async function NuevoProductoPage() {
   await requirePermiso("productos.crear");
   const { empresaId } = await requireEmpresa();
   const [categorias, unidades] = await Promise.all([
-    listarCategorias(empresaId),
+    listarCategorias(empresaId, "producto"),
     listarUnidadesMedida(),
   ]);
   return (

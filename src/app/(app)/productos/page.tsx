@@ -27,7 +27,7 @@ export default async function ProductosPage({
 
   const [todos, categorias, unidades] = await Promise.all([
     listarProductos(empresaId),
-    listarCategorias(empresaId),
+    listarCategorias(empresaId, "producto"),
     listarUnidadesMedida(),
   ]);
   const catPorId = new Map(categorias.map((c) => [c.id, c.nombre]));

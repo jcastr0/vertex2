@@ -8,11 +8,17 @@ import type { Contexto } from "./bodegas";
 
 export type Categoria = typeof categoriasProductos.$inferSelect;
 
-export async function listarCategorias(empresaId: number): Promise<Categoria[]> {
+export async function listarCategorias(
+  empresaId: number,
+  tipo?: "producto" | "gasto",
+): Promise<Categoria[]> {
+  const filtro = tipo
+    ? and(eq(categoriasProductos.empresaId, empresaId), eq(categoriasProductos.tipo, tipo))
+    : eq(categoriasProductos.empresaId, empresaId);
   return db
     .select()
     .from(categoriasProductos)
-    .where(eq(categoriasProductos.empresaId, empresaId))
+    .where(filtro)
     .orderBy(desc(categoriasProductos.activo), categoriasProductos.nombre);
 }
 
@@ -32,6 +38,7 @@ export async function crearCategoria(data: CategoriaInput, ctx: Contexto): Promi
       empresaId: ctx.empresaId,
       nombre: data.nombre,
       descripcion: data.descripcion || null,
+      tipo: data.tipo,
       padreId: data.padreId,
     })
     .returning();
@@ -61,6 +68,7 @@ export async function actualizarCategoria(
     .set({
       nombre: data.nombre,
       descripcion: data.descripcion || null,
+      tipo: data.tipo,
       padreId,
       updatedAt: new Date(),
     })
