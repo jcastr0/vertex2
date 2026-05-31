@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { empresas } from "@/lib/db/schema";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppTopbar } from "@/components/app-topbar";
+import { getPaleta } from "@/lib/temas/paletas";
+import { temaCss } from "@/lib/domain/tema";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const sesion = await getSesion();
@@ -14,18 +16,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const empresaIdActiva = await empresaActivaId(sesion);
 
   let empresaNombre: string | null = null;
+  let paletaKey: string | null = null;
   if (empresaIdActiva) {
     try {
       const [e] = await db
-        .select({ nombre: empresas.nombre })
+        .select({ nombre: empresas.nombre, paletaTema: empresas.paletaTema })
         .from(empresas)
         .where(eq(empresas.id, empresaIdActiva))
         .limit(1);
       empresaNombre = e?.nombre ?? null;
+      paletaKey = e?.paletaTema ?? null;
     } catch {
       empresaNombre = null;
     }
   }
+  const css = temaCss(getPaleta(paletaKey));
 
   // El superadmin puede cambiar de empresa.
   const listaEmpresas = sesion.esSuperadmin
@@ -34,6 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-svh overflow-hidden">
+      {css && <style id="tema-empresa" dangerouslySetInnerHTML={{ __html: css }} />}
       <AppSidebar rol={sesion.rol} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar
