@@ -14,6 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AbonoButton } from "@/components/abono-button";
 import { PrintButton } from "@/components/print-button";
+import { ReciboPrint } from "@/components/recibo/recibo-print";
+import { db } from "@/lib/db";
+import { empresas } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { AlertTriangle, FileText } from "lucide-react";
 
 export const metadata: Metadata = { title: "Factura — Vertex" };
@@ -38,6 +42,14 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
   const saldo = cxc?.saldo ?? 0;
   const puedeCobrar = puede(sesion.rol, "recaudos.crear");
   const puedeAnular = puede(sesion.rol, "facturas.eliminar");
+
+  const [emp] = await db.select({ nombre: empresas.nombre, nit: empresas.nit }).from(empresas).where(eq(empresas.id, empresaId));
+  const datosRecibo = {
+    empresa: emp?.nombre ?? "Vertex", nit: emp?.nit ?? "",
+    numero: factura.numero, fecha: factura.fecha, cliente: cli?.razonSocial ?? "—",
+    lineas: factura.detalles.map((d) => ({ producto: prodPorId.get(d.productoId) ?? `#${d.productoId}`, cantidad: Number(d.cantidad), precio: Number(d.precioUnitario), subtotal: Number(d.subtotal) })),
+    total: Number(factura.total), formaPago: factura.tipoVenta === "contado" ? (factura.metodoPago ?? "contado") : "crédito",
+  };
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -111,6 +123,11 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
             <div className="tabular font-medium">{money(d.subtotal)}</div>
           </div>
         ))}
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <h3 className="mb-3 text-sm font-semibold print:hidden">Recibo</h3>
+        <ReciboPrint datos={datosRecibo} />
       </div>
     </div>
   );
