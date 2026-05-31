@@ -16,6 +16,7 @@ import { registrarAuditoria } from "@/lib/audit";
 import { formatearNumero } from "@/lib/domain/numeracion";
 import { cantidadEnBase, precioBaseDesdeUnidad } from "@/lib/domain/conversion";
 import { resolverFacturaElectronica } from "@/lib/domain/venta";
+import { puedeAnular } from "@/lib/domain/anulacion";
 import type { Contexto } from "./bodegas";
 
 export type Factura = typeof facturas.$inferSelect;
@@ -74,7 +75,7 @@ export async function facturasDeCliente(empresaId: number, clienteId: number): P
     })
     .from(facturas)
     .leftJoin(cuentasPorCobrar, eq(cuentasPorCobrar.facturaId, facturas.id))
-    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId), ne(facturas.estado, "cancelada")))
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId), ne(facturas.estado, "anulada")))
     .orderBy(desc(facturas.fecha), desc(facturas.id));
   return rows.map((r) => ({
     id: r.id,
@@ -321,4 +322,59 @@ export async function ultimaUnidadVentaPorCliente(empresaId: number, clienteId: 
     .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId)))
     .orderBy(facturaDetalles.productoId, desc(facturas.fecha), desc(facturas.id));
   return Object.fromEntries(rows.map((r) => [r.productoId, { unidadId: r.unidadId, precio: Number(r.precio) }]));
+}
+
+export class AnulacionInvalida extends Error {}
+
+/** Anula una factura emitida sin cobros: devuelve stock y revierte cartera/caja. */
+export async function anularFactura(facturaId: number, motivo: string, ctx: Contexto): Promise<void> {
+  const [f] = await db.select().from(facturas).where(and(eq(facturas.empresaId, ctx.empresaId), eq(facturas.id, facturaId))).limit(1);
+  if (!f) throw new AnulacionInvalida("Factura no encontrada.");
+
+  // Saldo pendiente (crédito): de la CxC; contado no tiene CxC.
+  let saldoPend = Number(f.total);
+  let cxcId: number | null = null;
+  if (f.tipoVenta === "credito") {
+    const [cxc] = await db.select().from(cuentasPorCobrar).where(eq(cuentasPorCobrar.facturaId, facturaId)).limit(1);
+    if (cxc) { saldoPend = Number(cxc.saldoPendiente); cxcId = cxc.id; }
+  }
+  const chk = puedeAnular(f.estado, saldoPend, Number(f.total), f.tipoVenta);
+  if (!chk.ok) throw new AnulacionInvalida(chk.motivo!);
+
+  const detalles = await db.select().from(facturaDetalles).where(eq(facturaDetalles.facturaId, facturaId));
+
+  await db.transaction(async (tx) => {
+    // 1) Devolver stock
+    for (const d of detalles) {
+      const [inv] = await tx.select().from(inventario)
+        .where(and(eq(inventario.empresaId, ctx.empresaId), eq(inventario.bodegaId, f.bodegaId), eq(inventario.productoId, d.productoId))).limit(1);
+      if (inv) {
+        const nueva = Number(inv.cantidadActual) + Number(d.cantidadBase);
+        const costo = Number(inv.costoPromedio);
+        await tx.update(inventario).set({ cantidadActual: String(nueva), valorTotal: String(nueva * costo), ultimaActualizacion: new Date(), updatedAt: new Date() }).where(eq(inventario.id, inv.id));
+        await tx.insert(movimientosInventario).values({
+          empresaId: ctx.empresaId, bodegaId: f.bodegaId, productoId: d.productoId,
+          tipo: "entrada", cantidad: String(d.cantidadBase), costoUnitario: String(d.costoUnitario),
+          referencia: `ANULA ${f.numero}`, usuarioId: ctx.usuarioId,
+        });
+      }
+    }
+    // 2) Revertir cartera / caja
+    if (f.tipoVenta === "credito" && cxcId) {
+      await tx.update(cuentasPorCobrar).set({ saldoPendiente: "0", updatedAt: new Date() }).where(eq(cuentasPorCobrar.id, cxcId));
+    } else if (f.tipoVenta === "contado" && f.cuentaDestinoId) {
+      await tx.insert(movimientosTesoreria).values({
+        empresaId: ctx.empresaId, cuentaPropiaId: f.cuentaDestinoId, fecha: f.fecha,
+        tipo: "salida", origen: "ajuste", valor: String(f.total),
+        descripcion: `Anulación venta ${f.numero}`, facturaId: f.id, usuarioId: ctx.usuarioId,
+      });
+    }
+    // 3) Marcar la factura
+    await tx.update(facturas).set({ estado: "anulada", motivoAnulacion: motivo, anuladaEn: new Date(), updatedAt: new Date() }).where(eq(facturas.id, f.id));
+
+    await registrarAuditoria(
+      { empresaId: ctx.empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx21", modelId: f.id, accion: "ELIMINAR", registroNuevo: { motivo }, ipOrigen: ctx.ip },
+      tx,
+    );
+  });
 }

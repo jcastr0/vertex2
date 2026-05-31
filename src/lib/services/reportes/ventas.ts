@@ -9,7 +9,7 @@ import type { DatosReporte, Filtros } from "@/lib/reportes/tipos";
 export async function cargarVentas(empresaId: number, f: Filtros): Promise<DatosReporte> {
   const cond = and(
     eq(facturas.empresaId, empresaId),
-    ne(facturas.estado, "cancelada"),
+    ne(facturas.estado, "anulada"),
     gte(facturas.fecha, f.desde!),
     lte(facturas.fecha, f.hasta!),
     f.cliente ? eq(facturas.clienteId, Number(f.cliente)) : undefined,
@@ -42,7 +42,7 @@ export async function cargarVentas(empresaId: number, f: Filtros): Promise<Datos
     .where(cond).groupBy(terceros.razonSocial).orderBy(desc(sql`sum(${facturas.total})`)).limit(10);
 
   // Top productos (por líneas de las facturas del filtro)
-  const condDet = and(eq(facturas.empresaId, empresaId), ne(facturas.estado, "cancelada"), gte(facturas.fecha, f.desde!), lte(facturas.fecha, f.hasta!),
+  const condDet = and(eq(facturas.empresaId, empresaId), ne(facturas.estado, "anulada"), gte(facturas.fecha, f.desde!), lte(facturas.fecha, f.hasta!),
     f.cliente ? eq(facturas.clienteId, Number(f.cliente)) : undefined,
     f.bodega ? eq(facturas.bodegaId, Number(f.bodega)) : undefined,
     f.tipoVenta ? eq(facturas.tipoVenta, f.tipoVenta) : undefined);

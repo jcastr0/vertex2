@@ -26,7 +26,7 @@ export async function resumenCliente(
       ultima: sql<string | null>`max(${facturas.fecha})`,
     })
     .from(facturas)
-    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId), ne(facturas.estado, "cancelada")));
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId), ne(facturas.estado, "anulada")));
 
   const [deuda] = await db
     .select({
