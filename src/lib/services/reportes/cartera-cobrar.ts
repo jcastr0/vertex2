@@ -17,7 +17,7 @@ export async function cargarCarteraCobrar(empresaId: number, f: Filtros): Promis
   );
   const rows = await db
     .select({
-      id: cuentasPorCobrar.id, cliente: terceros.razonSocial, numero: facturas.numero,
+      id: cuentasPorCobrar.id, clienteId: cuentasPorCobrar.clienteId, cliente: terceros.razonSocial, numero: facturas.numero,
       fecha: cuentasPorCobrar.fechaFactura, vence: cuentasPorCobrar.fechaVencimiento,
       saldo: cuentasPorCobrar.saldoPendiente,
     })
@@ -29,7 +29,7 @@ export async function cargarCarteraCobrar(empresaId: number, f: Filtros): Promis
   const enriq = rows.map((r) => { const dv = dias(r.vence, corte); return { ...r, saldo: Number(r.saldo), dv, tramo: tramoAging(dv) }; });
   const total = enriq.reduce((a, r) => a + r.saldo, 0);
   const vencido = enriq.filter((r) => r.dv > 0).reduce((a, r) => a + r.saldo, 0);
-  const clientesUnicos = new Set(enriq.map((r) => r.cliente)).size;
+  const clientesUnicos = new Set(enriq.map((r) => r.clienteId)).size;
 
   const tramos = ["Corriente", "1-30", "31-60", "61-90", "+90"];
   const porTramo = tramos.map((t) => ({ x: t, etiqueta: t, y: enriq.filter((r) => r.tramo === t).reduce((a, r) => a + r.saldo, 0) }));

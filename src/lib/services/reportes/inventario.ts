@@ -51,7 +51,8 @@ export async function cargarInventario(empresaId: number, f: Filtros): Promise<D
   });
 
   const valorTotal = filas.reduce((a, r) => a + r.valor, 0);
-  const margenProm = filas.length ? filas.reduce((a, r) => a + r.margenPct, 0) / filas.filter((r) => r.vendido > 0).length || 0 : 0;
+  const vendidas = filas.filter((r) => r.vendido > 0);
+  const margenProm = vendidas.length ? vendidas.reduce((a, r) => a + r.margenPct, 0) / vendidas.length : 0;
 
   const porCategoria = Object.values(filas.reduce<Record<string, { etiqueta: string; x: string; y: number }>>((acc, r) => {
     const k = r.categoria ?? "Sin categoría";
@@ -68,7 +69,7 @@ export async function cargarInventario(empresaId: number, f: Filtros): Promise<D
       { label: "Inventario valorizado", valor: valorTotal, formato: "money" },
       { label: "# Productos", valor: filas.length, formato: "num" },
       { label: "Margen del periodo", valor: filas.reduce((a, r) => a + r.margen, 0), formato: "money" },
-      { label: "Margen promedio", valor: isFinite(margenProm) ? margenProm : 0, formato: "pct" },
+      { label: "Margen promedio", valor: margenProm, formato: "pct" },
     ],
     series: {
       valorPorCategoria: porCategoria,

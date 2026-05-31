@@ -70,9 +70,9 @@ export async function construirXlsx(
     });
   }
 
-  // Anchos
+  // Anchos (reduce, sin spread, para no reventar el stack con miles de filas)
   columnas.forEach((c, i) => {
-    const maxLen = Math.max(c.header.length, ...filas.map((f) => String(f[i] ?? "").length));
+    const maxLen = filas.reduce((m, f) => Math.max(m, String(f[i] ?? "").length), c.header.length);
     ws.getColumn(i + 1).width = Math.min(40, Math.max(10, maxLen + 2));
   });
 
