@@ -36,6 +36,7 @@ import {
   CircleDollarSign,
   Settings,
   Home,
+  KeyRound,
 } from "lucide-react";
 import type { Modulo } from "./auth/roles";
 
@@ -127,6 +128,7 @@ export const NAV: GrupoNav[] = [
       { modulo: "usuarios", label: "Usuarios", href: "/usuarios", icon: Users, listo: true, desc: "Cuentas, roles y accesos." },
       { modulo: "auditoria", label: "Auditoría", href: "/auditoria", icon: ShieldCheck, listo: true, desc: "Trazabilidad de cambios." },
       { modulo: "manuales", label: "Manuales", href: "/manuales", icon: BookOpen, listo: true, desc: "Guías de uso del sistema." },
+      { modulo: "roles", label: "Roles", href: "/roles", icon: KeyRound, listo: true, desc: "Permisos por rol." },
     ],
   },
 ];
