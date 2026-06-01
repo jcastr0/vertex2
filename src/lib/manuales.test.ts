@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it, expect } from "vitest";
 import { MANUALES, getManual } from "./manuales";
 import { MODULOS } from "./auth/roles";
@@ -46,5 +48,16 @@ describe("catálogo de manuales", () => {
         expect(slugs.has(ref), `${m.slug} enlaza a /manuales/${ref} que no existe`).toBe(true);
       }
     }
+  });
+  it("toda imagen referenciada existe en /public", () => {
+    let total = 0;
+    for (const m of MANUALES) {
+      const imgs = [...m.contenido.matchAll(/!\[[^\]]*\]\((\/[^)]+\.(?:png|jpg|jpeg|webp|svg))\)/g)].map((x) => x[1]);
+      for (const ruta of imgs) {
+        total++;
+        expect(existsSync(join(process.cwd(), "public", ruta)), `falta la imagen ${ruta} (manual ${m.slug})`).toBe(true);
+      }
+    }
+    expect(total).toBeGreaterThan(0); // hay manuales con imágenes
   });
 });

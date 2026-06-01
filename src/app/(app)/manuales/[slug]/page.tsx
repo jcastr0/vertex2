@@ -8,6 +8,7 @@ import { getPermisos } from "@/lib/auth/permisos";
 import { puede, type Permiso } from "@/lib/auth/roles";
 import { getManual } from "@/lib/manuales";
 import { buttonVariants } from "@/components/ui/button";
+import { ManualImage } from "@/components/manuales/manual-image";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = { title: "Manual — Vertex" };
@@ -26,7 +27,7 @@ export default async function ManualPage({ params }: { params: Promise<{ slug: s
         <ArrowLeft className="size-4" /> Manuales
       </Link>
       <article className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{manual.contenido}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ img: ManualImage }}>{manual.contenido}</ReactMarkdown>
       </article>
     </div>
   );

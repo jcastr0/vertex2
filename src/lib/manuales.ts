@@ -47,6 +47,8 @@ Vertex te ayuda a administrar **compras, inventario, ventas y cartera** de tu em
 
 Así se mueve la plata y la mercancía en Vertex, de principio a fin. Cada paso tiene su manual detallado.
 
+![El panel de inicio de Vertex](/manuales/dashboard-desktop.png)
+
 ## 1. Compras a tu proveedor
 Creas un **pedido** (qué le compras y a qué bodega entra) y, cuando llega, lo **recibes**: el inventario sube, se recalcula el **costo promedio** y nace una **cuenta por pagar**.
 → Ver [Compras y pedidos](/manuales/compras).
@@ -76,6 +78,8 @@ Las ventas a crédito quedan en **Cuentas por cobrar**. Con la **Ruta de recaudo
 
 Vender es muy simple. Entra a **Facturas → Vender**.
 
+![La pantalla Vender en el computador](/manuales/vender-desktop.png)
+
 1. **¿A quién le vendes?** Elige el cliente (puedes buscar por nombre).
 2. **¿Cómo paga?** Toca **Contado** o **Crédito**.
 3. **¿Qué vendes?** Busca el producto; el precio se completa solo (puedes ajustarlo) y escribe la cantidad.
@@ -83,6 +87,10 @@ Vender es muy simple. Entra a **Facturas → Vender**.
 5. Revisa el **Total** y toca **Registrar venta**.
 
 > Al registrar, el inventario baja automáticamente y, si es a **crédito**, se crea la cuenta por cobrar.
+
+En el celular se ve así (ideal para vender en el puesto):
+
+![Vender desde el celular](/manuales/vender-movil.png)
 
 ## Factura electrónica
 Al elegir el cliente, si está marcado como que **requiere factura electrónica**, el interruptor **"Factura electrónica"** se enciende solo (también puedes activarlo a mano). Cuando está encendido, la venta se marca como electrónica y **se exportará para el contador** desde **Reportes → exportar F.E.** No es un envío automático a la DIAN: es la marca y el archivo para que el contador la presente.
@@ -99,6 +107,8 @@ Al elegir el cliente, si está marcado como que **requiere factura electrónica*
     icon: ShoppingCart,
     modulo: "pedidos",
     contenido: `# Compras y pedidos
+
+![Crear un pedido a un proveedor](/manuales/compras-desktop.png)
 
 ## Crear un pedido
 1. **Pedidos → Nuevo pedido**.
@@ -121,6 +131,8 @@ En el detalle del pedido toca **Recibir e ingresar a inventario**:
     modulo: "inventario",
     contenido: `# Inventario
 
+![Existencias por bodega](/manuales/inventario-desktop.png)
+
 ## Existencias
 **Inventario** muestra el stock por bodega, valorizado al **costo promedio**. Toca un producto para ver su **kardex** (todos los movimientos).
 
@@ -141,6 +153,8 @@ Usa **Notas de inventario** para registrar **mermas, daños o diferencias**. El 
     modulo: "cuentas_cobrar",
     contenido: `# Cartera
 
+![Cuentas por cobrar](/manuales/cartera-desktop.png)
+
 ## Cuentas por cobrar
 Se crean al **facturar a crédito**. En **Cuentas por cobrar** verás el saldo y el estado (pendiente, vencida, pagada). Toca **Recaudar** para registrar un abono del cliente.
 
@@ -157,6 +171,8 @@ Se crean al **recibir un pedido**. En **Cuentas por pagar** toca **Pagar** para 
     icon: Package,
     modulo: "productos",
     contenido: `# Productos y unidades
+
+![Catálogo de productos](/manuales/productos-desktop.png)
 
 ## Crear un producto
 **Productos → Nuevo producto**: SKU, nombre, **unidad base** (la que se lleva en inventario) y categoría.
@@ -185,10 +201,14 @@ Necesitas el permiso para programar (rol Admin o superior).
 2. Elige los **clientes** y asígnales un **recaudador** y un **día de cobro** (de lunes a sábado).
 3. Guarda. Desde ese momento, a cada recaudador le aparecen sus clientes el día que les toca.
 
+![Programar la ruta en el computador](/manuales/recaudo-asignar-desktop.png)
+
 > ¿Quién ve qué? Si tienes permiso de usuarios, puedes elegir de qué recaudador ver la ruta. Si eres recaudador, ves solo la tuya.
 
 ## En el celular — cobrar en la calle
 El recaudador abre **Ruta de recaudo** en su celular. Arriba ve **cuánto lleva recaudado hoy**, cuántos clientes tiene con saldo y cuántos ya visitó.
+
+![La ruta del día en el celular](/manuales/recaudo-ruta-movil.png)
 
 En **"Hoy te toca"** aparece cada cliente como una tarjeta. En cada una puede:
 
@@ -207,6 +227,8 @@ En **"Hoy te toca"** aparece cada cliente como una tarjeta. En cada una puede:
     contenido: `# Pagar a un proveedor
 
 Cuando recibes un pedido, Vertex crea una **cuenta por pagar** al proveedor. Aquí está todo lo necesario para pagarle bien.
+
+![Cuentas por pagar](/manuales/pagar-proveedor-desktop.png)
 
 ## 1. Guarda las cuentas bancarias del proveedor
 Para no escribir el número de cuenta cada vez, guárdalo una vez:
@@ -242,6 +264,8 @@ En **Cuentas por pagar** toca **Pagar**:
     contenido: `# Retenciones
 
 Las retenciones se descuentan del pago a un proveedor según la ley. En Vertex se configuran una vez y se aplican solas.
+
+![Crear una retención](/manuales/retenciones-desktop.png)
 
 ## Crear una retención
 1. Entra a **Retenciones → Nueva**.
