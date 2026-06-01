@@ -35,6 +35,15 @@ export function ManualImage({ src: srcRaw, alt }: { src?: string | Blob; alt?: s
 
   if (!src) return null;
 
+  // Responsive por dispositivo: la imagen "-desktop" solo se ve en pantallas md+,
+  // la "-movil" solo en móvil. Así el lector ve una sola — la de su dispositivo.
+  // (En impresión, md+ aplica, así que imprime la versión de escritorio.)
+  const vis = src.endsWith("-movil.png")
+    ? "block md:hidden"
+    : src.endsWith("-desktop.png")
+      ? "hidden md:block"
+      : "block";
+
   return (
     <>
       {/* Miniatura dentro del artículo */}
@@ -42,20 +51,16 @@ export function ManualImage({ src: srcRaw, alt }: { src?: string | Blob; alt?: s
         type="button"
         onClick={() => setAbierto(true)}
         aria-label={alt ? `Ampliar imagen: ${alt}` : "Ampliar imagen"}
-        className="group not-prose my-5 block w-full cursor-zoom-in overflow-hidden rounded-xl border border-border bg-card shadow-sm ring-1 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary print:hidden"
+        className={`${vis} group not-prose my-5 w-full cursor-zoom-in overflow-hidden rounded-xl border border-border bg-card shadow-sm ring-1 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
       >
         <span className="relative block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt={alt ?? ""} loading="lazy" decoding="async" className="block w-full" />
-          <span className="pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-full bg-background/85 px-2 py-1 text-[11px] font-medium text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100">
+          <span className="pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-full bg-background/85 px-2 py-1 text-[11px] font-medium text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 print:hidden">
             <ZoomIn className="size-3.5" /> Ampliar
           </span>
         </span>
       </button>
-
-      {/* Versión estática para impresión (sin botón) */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt ?? ""} className="hidden w-full rounded-lg border border-border print:block" />
 
       {/* Overlay / lightbox */}
       {montado && abierto &&

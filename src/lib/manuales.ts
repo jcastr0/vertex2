@@ -82,6 +82,8 @@ Vender es muy simple. Entra a **Facturas → Vender**.
 
 ![La pantalla Vender en el computador](/manuales/vender-desktop.png)
 
+![Vender desde el celular](/manuales/vender-movil.png)
+
 1. **¿A quién le vendes?** Elige el cliente (puedes buscar por nombre).
 2. **¿Cómo paga?** Toca **Contado** o **Crédito**.
 3. **¿Qué vendes?** Busca el producto; el precio se completa solo (puedes ajustarlo) y escribe la cantidad.
@@ -89,10 +91,6 @@ Vender es muy simple. Entra a **Facturas → Vender**.
 5. Revisa el **Total** y toca **Registrar venta**.
 
 > Al registrar, el inventario baja automáticamente y, si es a **crédito**, se crea la cuenta por cobrar.
-
-En el celular se ve así (ideal para vender en el puesto):
-
-![Vender desde el celular](/manuales/vender-movil.png)
 
 ## Factura electrónica
 Al elegir el cliente, si está marcado como que **requiere factura electrónica**, el interruptor **"Factura electrónica"** se enciende solo (también puedes activarlo a mano). Cuando está encendido, la venta se marca como electrónica y **se exportará para el contador** desde **Reportes → exportar F.E.** No es un envío automático a la DIAN: es la marca y el archivo para que el contador la presente.
@@ -226,6 +224,8 @@ Necesitas el permiso para programar (rol Admin o superior).
 
 ## En el celular — cobrar en la calle
 El recaudador abre **Ruta de recaudo** en su celular. Arriba ve **cuánto lleva recaudado hoy**, cuántos clientes tiene con saldo y cuántos ya visitó.
+
+![La ruta del día en el computador](/manuales/recaudo-ruta-desktop.png)
 
 ![La ruta del día en el celular](/manuales/recaudo-ruta-movil.png)
 
