@@ -73,11 +73,7 @@ export default async function FacturasPage({
     {
       header: "Número",
       primary: true,
-      cell: (f) => (
-        <Link href={`/facturas/${f.factura.id}`} className="tabular font-medium text-primary hover:underline">
-          {f.factura.numero}
-        </Link>
-      ),
+      cell: (f) => <span className="tabular font-medium">{f.factura.numero}</span>,
     },
     { header: "Cliente", cell: (f) => f.cliente },
     { header: "Fecha", cell: (f) => f.factura.fecha },
@@ -110,6 +106,7 @@ export default async function FacturasPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.factura.id}
+        rowHref={(f) => `/facturas/${f.factura.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o cliente…"
         filtros={filtros}

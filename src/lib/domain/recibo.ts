@@ -12,6 +12,8 @@ export interface LineaReciboVenta { producto: string; cantidad: number; precio: 
 export interface DatosReciboVenta {
   empresa: string; nit: string; numero: string; fecha: string; cliente: string;
   lineas: LineaReciboVenta[]; total: number; formaPago: string;
+  /** Si la factura está anulada, el recibo muestra una marca de agua "ANULADA". */
+  anulada?: boolean;
 }
 
 const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
@@ -20,7 +22,10 @@ const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
 export function textoReciboVenta(d: DatosReciboVenta, cols = 32): string[] {
   const sep = "-".repeat(cols);
   const par = (izq: string, der: string) => (izq + der.padStart(Math.max(0, cols - izq.length))).slice(0, cols);
-  const out: string[] = [d.empresa, `NIT ${d.nit}`, sep, `Factura ${d.numero}`, d.fecha, `Cliente: ${d.cliente}`, sep];
+  const centrar = (s: string) => { const p = Math.max(0, Math.floor((cols - s.length) / 2)); return " ".repeat(p) + s; };
+  const out: string[] = [d.empresa, `NIT ${d.nit}`, sep];
+  if (d.anulada) out.push(centrar("*** ANULADA ***"), sep);
+  out.push(`Factura ${d.numero}`, d.fecha, `Cliente: ${d.cliente}`, sep);
   for (const l of d.lineas) {
     out.push(l.producto.slice(0, cols));
     out.push(par(`  ${l.cantidad} x ${money(l.precio)}`, money(l.subtotal)));

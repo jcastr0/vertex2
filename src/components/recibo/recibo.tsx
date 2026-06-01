@@ -6,8 +6,18 @@ const ANCHOS: Record<string, string> = { carta: "max-w-[148mm]", "80": "max-w-[8
 export function Recibo({ datos, formato }: { datos: DatosReciboVenta; formato: "carta" | "80" | "58" }) {
   return (
     <div
-      className={`recibo mx-auto bg-white p-4 font-mono text-[12px] leading-snug text-black shadow-sm ring-1 ring-black/5 ${ANCHOS[formato]}`}
+      className={`recibo relative isolate overflow-hidden bg-white p-4 font-mono text-[12px] leading-snug text-black shadow-sm ring-1 ring-black/5 mx-auto ${ANCHOS[formato]}`}
     >
+      {datos.anulada && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-10 flex select-none items-center justify-center [-webkit-print-color-adjust:exact] [print-color-adjust:exact]"
+        >
+          <span className="-rotate-[30deg] whitespace-nowrap rounded border-4 border-red-600/40 px-3 py-1 text-[34px] font-black uppercase tracking-[0.2em] text-red-600/35">
+            Anulada
+          </span>
+        </div>
+      )}
       <div className="text-center text-[13px] font-bold uppercase tracking-[0.18em]">{datos.empresa}</div>
       <div className="text-center text-[10px] tracking-wide text-black/70">NIT {datos.nit}</div>
       <hr className="my-2 border-0 border-t border-dashed border-black/40" />

@@ -51,6 +51,7 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
     numero: factura.numero, fecha: factura.fecha, cliente: cli?.razonSocial ?? "—",
     lineas: factura.detalles.map((d) => ({ producto: prodPorId.get(d.productoId) ?? `#${d.productoId}`, cantidad: Number(d.cantidad), precio: Number(d.precioUnitario), subtotal: Number(d.subtotal) })),
     total: Number(factura.total), formaPago: factura.tipoVenta === "contado" ? (factura.metodoPago ?? "contado") : "crédito",
+    anulada: factura.estado === "anulada",
   };
 
   return (
