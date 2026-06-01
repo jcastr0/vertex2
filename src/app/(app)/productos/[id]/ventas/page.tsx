@@ -1,30 +1,47 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerProducto } from "@/lib/services/productos";
 import { ventasDeProducto, type VentaDeProducto } from "@/lib/services/fichas";
-import Link from "next/link";
+import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
 import { PageHeader } from "@/components/page-header";
-import { ResponsiveTable, type Columna } from "@/components/responsive-table";
+import { ListaFiltrable } from "@/components/lista-filtrable";
+import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Receipt } from "lucide-react";
 import { fechaCorta } from "@/lib/fecha";
 
 export const metadata: Metadata = { title: "Ventas del producto — Vertex" };
+const PAGE_SIZE = 15;
 const num = (n: number) => n.toLocaleString("es-CO", { maximumFractionDigits: 4 });
 const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
 
-export default async function VentasProductoPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function VentasProductoPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
   await requirePermiso("productos.ver");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
+  const { q = "", page: pageRaw } = await searchParams;
   const productoId = parseId(id);
   const producto = await obtenerProducto(empresaId, productoId);
   if (!producto) notFound();
-  const ventas = await ventasDeProducto(empresaId, productoId);
-  const totalCant = ventas.reduce((s, v) => s + v.cantidad, 0);
-  const totalMonto = ventas.reduce((s, v) => s + v.subtotal, 0);
+
+  const todas = await ventasDeProducto(empresaId, productoId);
+  const totalCant = todas.reduce((s, v) => s + v.cantidad, 0);
+  const totalMonto = todas.reduce((s, v) => s + v.subtotal, 0);
+  const { items, total, page } = filtrarPaginar(todas, {
+    q,
+    page: parsePage(pageRaw),
+    pageSize: PAGE_SIZE,
+    texto: (v) => `${v.numero} ${v.cliente}`,
+  });
 
   const cols: Columna<VentaDeProducto>[] = [
     { header: "Factura", primary: true, cell: (v) => <span className="tabular font-medium">{v.numero}</span> },
@@ -39,12 +56,21 @@ export default async function VentasProductoPage({ params }: { params: Promise<{
       <Link href={`/productos/${productoId}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
         <ArrowLeft className="size-4" /> {producto.nombre}
       </Link>
-      <PageHeader title="Ventas del producto" description={`${num(totalCant)} unidades · ${money(totalMonto)} en ${ventas.length} factura${ventas.length !== 1 ? "s" : ""}`} />
-      {ventas.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center text-sm text-muted-foreground">Este producto aún no se ha vendido.</div>
-      ) : (
-        <ResponsiveTable items={ventas} getKey={(v) => v.facturaId} columns={cols} rowHref={(v) => `/facturas/${v.facturaId}`} />
-      )}
+      <PageHeader title="Ventas del producto" description={`${num(totalCant)} unidades · ${money(totalMonto)} en ${todas.length} factura${todas.length !== 1 ? "s" : ""}`} />
+      <ListaFiltrable
+        base={`/productos/${productoId}/ventas`}
+        q={q}
+        page={page}
+        total={total}
+        pageSize={PAGE_SIZE}
+        items={items}
+        columns={cols}
+        getKey={(v) => v.facturaId}
+        rowHref={(v) => `/facturas/${v.facturaId}`}
+        searchPlaceholder="Buscar por factura o cliente…"
+        hayDatos={todas.length > 0}
+        vacio={{ icon: Receipt, titulo: "Este producto aún no se ha vendido", texto: "Cuando lo vendas, las facturas aparecerán aquí." }}
+      />
     </div>
   );
 }
