@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it, expect } from "vitest";
-import { MANUALES, getManual } from "./manuales";
+import { MANUALES, getManual, ORDEN_MANUALES, manualesOrdenados, vecinosManual } from "./manuales";
 import { MODULOS } from "./auth/roles";
 
 describe("getManual", () => {
@@ -49,6 +49,9 @@ describe("catálogo de manuales", () => {
       }
     }
   });
+  it("ORDEN_MANUALES cubre exactamente todos los manuales (ninguno queda fuera del recorrido)", () => {
+    expect([...ORDEN_MANUALES].sort()).toEqual(MANUALES.map((m) => m.slug).sort());
+  });
   it("toda imagen referenciada existe en /public", () => {
     let total = 0;
     for (const m of MANUALES) {
@@ -59,5 +62,34 @@ describe("catálogo de manuales", () => {
       }
     }
     expect(total).toBeGreaterThan(0); // hay manuales con imágenes
+  });
+});
+
+describe("navegación entre manuales", () => {
+  const todos = MANUALES.map((m) => m.slug);
+
+  it("manualesOrdenados respeta ORDEN_MANUALES y filtra por visibilidad", () => {
+    const visibles = ["vender", "ciclo-negocio", "compras"];
+    const orden = manualesOrdenados(visibles).map((m) => m.slug);
+    expect(orden).toEqual(["ciclo-negocio", "compras", "vender"]);
+  });
+
+  it("el primero no tiene anterior y el último no tiene siguiente", () => {
+    const primero = ORDEN_MANUALES[0];
+    const ultimo = ORDEN_MANUALES[ORDEN_MANUALES.length - 1];
+    expect(vecinosManual(primero, todos).anterior).toBeNull();
+    expect(vecinosManual(primero, todos).siguiente?.slug).toBe(ORDEN_MANUALES[1]);
+    expect(vecinosManual(ultimo, todos).siguiente).toBeNull();
+  });
+
+  it("conecta cada paso con el siguiente en orden", () => {
+    expect(vecinosManual("compras", todos).siguiente?.slug).toBe("inventario");
+    expect(vecinosManual("inventario", todos).anterior?.slug).toBe("compras");
+  });
+
+  it("salta los manuales no visibles al calcular vecinos", () => {
+    // Sin 'inventario' visible, el siguiente de 'compras' es 'vender'.
+    const visibles = todos.filter((s) => s !== "inventario");
+    expect(vecinosManual("compras", visibles).siguiente?.slug).toBe("vender");
   });
 });

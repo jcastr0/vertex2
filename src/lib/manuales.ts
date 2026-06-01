@@ -318,3 +318,44 @@ Las retenciones se calculan **automáticamente al pagar a un proveedor**, sobre 
 export function getManual(slug: string): Manual | null {
   return MANUALES.find((m) => m.slug === slug) ?? null;
 }
+
+/**
+ * Orden de lectura sugerido — sigue el flujo del negocio: preparar → comprar →
+ * tener stock → vender → cobrar → pagar. Permite leer los manuales como un
+ * recorrido (anterior/siguiente) en vez de tarjetas sueltas.
+ */
+export const ORDEN_MANUALES = [
+  "primeros-pasos",
+  "ciclo-negocio",
+  "productos",
+  "compras",
+  "inventario",
+  "vender",
+  "cartera",
+  "recaudo",
+  "pagar-proveedor",
+  "retenciones",
+] as const;
+
+/** Manuales visibles para el usuario, en el orden de lectura. */
+export function manualesOrdenados(slugsVisibles: readonly string[]): Manual[] {
+  const visibles = new Set(slugsVisibles);
+  const ordenados = ORDEN_MANUALES.filter((s) => visibles.has(s))
+    .map((s) => getManual(s))
+    .filter((m): m is Manual => m !== null);
+  // Cualquier manual visible que no esté en ORDEN_MANUALES se agrega al final.
+  const enOrden = new Set<string>(ORDEN_MANUALES);
+  const resto = MANUALES.filter((m) => visibles.has(m.slug) && !enOrden.has(m.slug));
+  return [...ordenados, ...resto];
+}
+
+/** Manual anterior y siguiente dentro de la secuencia visible. */
+export function vecinosManual(
+  slug: string,
+  slugsVisibles: readonly string[],
+): { anterior: Manual | null; siguiente: Manual | null } {
+  const orden = manualesOrdenados(slugsVisibles);
+  const i = orden.findIndex((m) => m.slug === slug);
+  if (i === -1) return { anterior: null, siguiente: null };
+  return { anterior: orden[i - 1] ?? null, siguiente: orden[i + 1] ?? null };
+}
