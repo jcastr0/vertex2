@@ -8,7 +8,6 @@ import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { fichaProducto } from "@/lib/services/fichas";
 import { PageHeader } from "@/components/page-header";
-import { KpiFila } from "@/components/reportes/kpi";
 import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import type { FichaProductoExistencia, FichaProductoMerma } from "@/lib/services/fichas";
@@ -37,8 +36,7 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
     { header: "Cantidad", className: "text-right", cell: (m) => <span className="tabular">{num(m.cantidad)}</span> },
     { header: "Motivo", cell: (m) => m.motivo },
   ];
-  const periodo = (k: { total: number; ultimos30: number }, fmt = false) =>
-    `${fmt ? money(k.total) : num(k.total)} · 30d: ${fmt ? money(k.ultimos30) : num(k.ultimos30)}`;
+  const stockValor = f.existencias.reduce((s, x) => s + x.valor, 0);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -49,12 +47,15 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
         </div>
       </PageHeader>
 
-      <KpiFila kpis={[
-        { label: "Stock total", valor: f.stockTotal, formato: "num" },
-        { label: "Vendido (total)", valor: f.vendidoCantidad.total, formato: "num" },
-        { label: "Vendido $", valor: f.vendidoMonto.total, formato: "money" },
-        { label: "Merma (total)", valor: f.mermaCantidad.total, formato: "num" },
-      ]} />
+      {/* Lo principal: cuánto hay ahora */}
+      <section className="rounded-2xl border border-border bg-gradient-to-br from-primary/[0.08] to-transparent p-5">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Stock actual</p>
+        <p className="tabular text-4xl font-bold tracking-tight">{num(f.stockTotal)}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          valorizado en <span className="font-medium text-foreground">{money(stockValor)}</span>
+          {f.existencias.length > 0 && ` · en ${f.existencias.length} bodega${f.existencias.length !== 1 ? "s" : ""}`}
+        </p>
+      </section>
 
       {/* Cómo se forma el stock — reconciliación desde el kardex (siempre cuadra) */}
       <section className="rounded-2xl border border-border bg-card p-4">
@@ -83,21 +84,12 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
         </p>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Vendido</p>
-          <p className="tabular text-lg font-semibold">{periodo(f.vendidoCantidad)}</p>
-          <p className="text-xs text-muted-foreground">{money(f.vendidoMonto.total)} histórico</p>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Comprado</p>
-          <p className="tabular text-lg font-semibold">{periodo(f.compradoCantidad)}</p>
-          <p className="text-xs text-muted-foreground">Traído en {f.pedidosDistintos} pedido(s) · recibido {num(f.cantidadRecibida)}</p>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Merma</p>
-          <p className="tabular text-lg font-semibold">{periodo(f.mermaCantidad)}</p>
-          <p className="text-xs text-muted-foreground">Salidas por notas de inventario</p>
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-muted-foreground">Actividad</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Metrica label="Vendido" total={f.vendidoCantidad.total} ultimos30={f.vendidoCantidad.ultimos30} pie={`${money(f.vendidoMonto.total)} en ventas`} />
+          <Metrica label="Comprado" total={f.compradoCantidad.total} ultimos30={f.compradoCantidad.ultimos30} pie={`${f.pedidosDistintos} pedido${f.pedidosDistintos !== 1 ? "s" : ""} · recibido ${num(f.cantidadRecibida)}`} />
+          <Metrica label="Merma" total={f.mermaCantidad.total} ultimos30={f.mermaCantidad.ultimos30} pie="salidas por notas de inventario" />
         </div>
       </section>
 
@@ -116,6 +108,20 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
           <ResponsiveTable items={f.mermas} getKey={(m) => m.id} columns={colsMerma} />
         </section>
       )}
+    </div>
+  );
+}
+
+/** Una métrica de actividad: número grande + contexto + lo de los últimos 30 días. */
+function Metrica({ label, total, ultimos30, pie }: { label: string; total: number; ultimos30: number; pie: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="tabular text-2xl font-bold tracking-tight">{num(total)}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{pie}</p>
+      <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
+        Últimos 30 días: <span className="tabular font-medium text-foreground">{num(ultimos30)}</span>
+      </p>
     </div>
   );
 }
