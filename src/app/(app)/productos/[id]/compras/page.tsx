@@ -23,16 +23,20 @@ export default async function ComprasProductoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; desde?: string; hasta?: string }>;
 }) {
   await requirePermiso("productos.ver");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, desde, hasta } = await searchParams;
   const productoId = parseId(id);
   const producto = await obtenerProducto(empresaId, productoId);
   if (!producto) notFound();
 
+  const filtros = [
+    { key: "desde", label: "Desde", tipo: "fecha" as const },
+    { key: "hasta", label: "Hasta", tipo: "fecha" as const },
+  ];
   const todas = await comprasDeProducto(empresaId, productoId);
   const totalCant = todas.reduce((s, c) => s + c.cantidad, 0);
   const totalRecibida = todas.reduce((s, c) => s + c.recibida, 0);
@@ -41,6 +45,7 @@ export default async function ComprasProductoPage({
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (c) => `${c.numero} ${c.proveedor}`,
+    filtro: (c) => (!desde || c.fecha >= desde) && (!hasta || c.fecha <= hasta),
   });
 
   const cols: Columna<CompraDeProducto>[] = [
@@ -68,6 +73,7 @@ export default async function ComprasProductoPage({
         columns={cols}
         getKey={(c) => c.pedidoId}
         rowHref={(c) => `/pedidos/${c.pedidoId}`}
+        filtros={filtros}
         searchPlaceholder="Buscar por pedido o proveedor…"
         hayDatos={todas.length > 0}
         vacio={{ icon: ShoppingCart, titulo: "Este producto aún no se ha comprado", texto: "Cuando lo pidas a un proveedor, los pedidos aparecerán aquí." }}

@@ -7,7 +7,7 @@ import { obtenerBodega } from "@/lib/services/bodegas";
 import { movimientosDeBodega, type FichaBodegaMovimiento } from "@/lib/services/fichas";
 import { origenDocumento } from "@/lib/domain/kardex";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
-import { fechaInstante } from "@/lib/fecha";
+import { fechaInstante, fechaEnColombia } from "@/lib/fecha";
 import { PageHeader } from "@/components/page-header";
 import { ListaFiltrable } from "@/components/lista-filtrable";
 import { type Columna } from "@/components/responsive-table";
@@ -25,22 +25,35 @@ export default async function MovimientosBodegaPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; flujo?: string; desde?: string; hasta?: string }>;
 }) {
   await requirePermiso("bodegas.ver");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, flujo, desde, hasta } = await searchParams;
   const bodegaId = parseId(id);
   const bodega = await obtenerBodega(empresaId, bodegaId);
   if (!bodega) notFound();
 
+  const esEntrada = (m: FichaBodegaMovimiento) => ENTRADAS.includes(m.tipo) || (m.tipo === "ajuste" && m.cantidad > 0);
+  const filtros = [
+    { key: "flujo", label: "Movimiento", tipo: "select" as const, opciones: [{ value: "entradas", label: "Entradas" }, { value: "salidas", label: "Salidas" }] },
+    { key: "desde", label: "Desde", tipo: "fecha" as const },
+    { key: "hasta", label: "Hasta", tipo: "fecha" as const },
+  ];
   const todos = await movimientosDeBodega(empresaId, bodegaId);
   const { items, total, page } = filtrarPaginar(todos, {
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (m) => `${m.tipo} ${m.productoNombre} ${m.referencia ?? ""}`,
+    filtro: (m) => {
+      if (flujo && (flujo === "entradas" ? !esEntrada(m) : esEntrada(m))) return false;
+      const f = fechaEnColombia(m.fecha);
+      if (desde && f < desde) return false;
+      if (hasta && f > hasta) return false;
+      return true;
+    },
   });
 
   const cols: Columna<FichaBodegaMovimiento>[] = [
@@ -78,6 +91,7 @@ export default async function MovimientosBodegaPage({
         items={items}
         columns={cols}
         getKey={(m) => m.id}
+        filtros={filtros}
         searchPlaceholder="Buscar por tipo, producto o documento…"
         hayDatos={todos.length > 0}
         vacio={{ icon: Route, titulo: "Sin movimientos", texto: "Esta bodega aún no tiene entradas ni salidas." }}

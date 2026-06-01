@@ -23,16 +23,20 @@ export default async function VentasProductoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; desde?: string; hasta?: string }>;
 }) {
   await requirePermiso("productos.ver");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, desde, hasta } = await searchParams;
   const productoId = parseId(id);
   const producto = await obtenerProducto(empresaId, productoId);
   if (!producto) notFound();
 
+  const filtros = [
+    { key: "desde", label: "Desde", tipo: "fecha" as const },
+    { key: "hasta", label: "Hasta", tipo: "fecha" as const },
+  ];
   const todas = await ventasDeProducto(empresaId, productoId);
   const totalCant = todas.reduce((s, v) => s + v.cantidad, 0);
   const totalMonto = todas.reduce((s, v) => s + v.subtotal, 0);
@@ -41,6 +45,7 @@ export default async function VentasProductoPage({
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (v) => `${v.numero} ${v.cliente}`,
+    filtro: (v) => (!desde || v.fecha >= desde) && (!hasta || v.fecha <= hasta),
   });
 
   const cols: Columna<VentaDeProducto>[] = [
@@ -67,6 +72,7 @@ export default async function VentasProductoPage({
         columns={cols}
         getKey={(v) => v.facturaId}
         rowHref={(v) => `/facturas/${v.facturaId}`}
+        filtros={filtros}
         searchPlaceholder="Buscar por factura o cliente…"
         hayDatos={todas.length > 0}
         vacio={{ icon: Receipt, titulo: "Este producto aún no se ha vendido", texto: "Cuando lo vendas, las facturas aparecerán aquí." }}

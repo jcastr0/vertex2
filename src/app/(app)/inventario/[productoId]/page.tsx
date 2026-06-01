@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fechaHora } from "@/lib/fecha";
+import { fechaHora, fechaEnColombia } from "@/lib/fecha";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
@@ -27,18 +27,20 @@ export default async function KardexPage({
   searchParams,
 }: {
   params: Promise<{ productoId: string }>;
-  searchParams: Promise<{ q?: string; page?: string; flujo?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; flujo?: string; desde?: string; hasta?: string }>;
 }) {
   await requirePermiso("inventario.ver");
   const { empresaId } = await requireEmpresa();
   const { productoId } = await params;
-  const { q = "", page: pageRaw, flujo } = await searchParams;
+  const { q = "", page: pageRaw, flujo, desde, hasta } = await searchParams;
   const producto = await obtenerProducto(empresaId, parseId(productoId));
   if (!producto) notFound();
 
   const esEntrada = (m: MovimientoKardex) => ENTRADAS.includes(m.tipo) || (m.tipo === "ajuste" && Number(m.cantidad) > 0);
   const filtros = [
     { key: "flujo", label: "Movimiento", tipo: "select" as const, opciones: [{ value: "entradas", label: "Entradas" }, { value: "salidas", label: "Salidas" }] },
+    { key: "desde", label: "Desde", tipo: "fecha" as const },
+    { key: "hasta", label: "Hasta", tipo: "fecha" as const },
   ];
   const todos = await kardexProducto(empresaId, producto.id);
   const { items, total, page } = filtrarPaginar(todos, {
@@ -46,7 +48,13 @@ export default async function KardexPage({
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (m) => `${m.tipo} ${m.referencia ?? ""} ${m.bodegaNombre}`,
-    filtro: (m) => (!flujo ? true : flujo === "entradas" ? esEntrada(m) : !esEntrada(m)),
+    filtro: (m) => {
+      if (flujo && (flujo === "entradas" ? !esEntrada(m) : esEntrada(m))) return false;
+      const f = fechaEnColombia(m.fecha); // fecha del movimiento en Colombia (YYYY-MM-DD)
+      if (desde && f < desde) return false;
+      if (hasta && f > hasta) return false;
+      return true;
+    },
   });
 
   const columnas: Columna<MovimientoKardex>[] = [
