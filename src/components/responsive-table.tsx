@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { RowNavigation } from "@/components/row-navigation";
 import { cn } from "@/lib/utils";
 
 export interface Columna<T> {
@@ -49,36 +50,42 @@ export function ResponsiveTable<T>({ items, columns, getKey, actions, rowClassNa
     <>
       {/* Escritorio: tabla */}
       <div className="hidden rounded-lg border border-border bg-card md:block">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((c) => (
-                <TableHead key={c.header} className={c.className}>
-                  {c.header}
-                </TableHead>
-              ))}
-              {actions && <TableHead className="w-12" />}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((row) => (
-              <TableRow key={getKey(row)} className={cn(rowHref && "relative cursor-pointer hover:bg-muted/40", rowClassName?.(row))}>
-                {columns.map((c, idx) => (
-                  <TableCell key={c.header} className={c.className}>
-                    {rowHref && idx === 0 ? (
-                      <Link href={rowHref(row)} className="font-medium text-primary after:absolute after:inset-0 after:content-[''] hover:underline">
-                        {c.cell(row)}
-                      </Link>
-                    ) : (
-                      c.cell(row)
-                    )}
-                  </TableCell>
+        <RowNavigation>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columns.map((c) => (
+                  <TableHead key={c.header} className={c.className}>
+                    {c.header}
+                  </TableHead>
                 ))}
-                {actions && <TableCell className={cn(rowHref && "relative z-[1]")}>{actions(row)}</TableCell>}
+                {actions && <TableHead className="w-12" />}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {items.map((row) => (
+                <TableRow
+                  key={getKey(row)}
+                  data-row-href={rowHref?.(row)}
+                  className={cn(rowHref && "cursor-pointer hover:bg-muted/40", rowClassName?.(row))}
+                >
+                  {columns.map((c, idx) => (
+                    <TableCell key={c.header} className={c.className}>
+                      {rowHref && idx === 0 ? (
+                        <Link href={rowHref(row)} className="font-medium text-primary hover:underline">
+                          {c.cell(row)}
+                        </Link>
+                      ) : (
+                        c.cell(row)
+                      )}
+                    </TableCell>
+                  ))}
+                  {actions && <TableCell>{actions(row)}</TableCell>}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </RowNavigation>
       </div>
 
       {/* Móvil: tarjetas */}
