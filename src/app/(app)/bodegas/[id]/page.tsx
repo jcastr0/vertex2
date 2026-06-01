@@ -80,7 +80,12 @@ export default async function BodegaDetallePage({ params }: { params: Promise<{ 
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">Movimientos de la bodega</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground">Movimientos recientes</h2>
+          <Link href={`/bodegas/${f.bodega.id}/movimientos`} className="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline">
+            Ver todos <ArrowUpRight className="size-3" />
+          </Link>
+        </div>
         {f.ultimosMovimientos.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border py-12 text-center text-sm text-muted-foreground">Sin movimientos recientes.</div>
         ) : (

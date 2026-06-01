@@ -65,7 +65,8 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
       .from(movimientosInventario)
       .innerJoin(productos, eq(movimientosInventario.productoId, productos.id))
       .where(and(eq(movimientosInventario.empresaId, empresaId), eq(movimientosInventario.bodegaId, bodegaId)))
-      .orderBy(desc(movimientosInventario.fecha)),
+      .orderBy(desc(movimientosInventario.fecha))
+      .limit(8), // preview en la ficha; el listado completo (paginado) está en /bodegas/[id]/movimientos
   ]);
 
   const productosFicha: FichaBodegaProducto[] = filas.map((f) => ({
@@ -239,4 +240,23 @@ export async function comprasDeProducto(empresaId: number, productoId: number): 
     .groupBy(pedidos.id, pedidos.numero, pedidos.fecha, terceros.razonSocial)
     .orderBy(desc(pedidos.fecha), desc(pedidos.id));
   return rows.map((r) => ({ ...r, cantidad: Number(r.cantidad), recibida: Number(r.recibida), subtotal: Number(r.subtotal) }));
+}
+
+/** Todos los movimientos de inventario de una bodega (para el listado paginado). */
+export async function movimientosDeBodega(empresaId: number, bodegaId: number): Promise<FichaBodegaMovimiento[]> {
+  const rows = await db
+    .select({
+      id: movimientosInventario.id, fecha: movimientosInventario.fecha, tipo: movimientosInventario.tipo,
+      productoNombre: productos.nombre, cantidad: movimientosInventario.cantidad, referencia: movimientosInventario.referencia,
+      facturaId: movimientosInventario.facturaId, pedidoId: movimientosInventario.pedidoId, trasladoId: movimientosInventario.trasladoId,
+    })
+    .from(movimientosInventario)
+    .innerJoin(productos, eq(movimientosInventario.productoId, productos.id))
+    .where(and(eq(movimientosInventario.empresaId, empresaId), eq(movimientosInventario.bodegaId, bodegaId)))
+    .orderBy(desc(movimientosInventario.fecha));
+  return rows.map((m) => ({
+    id: m.id, fecha: m.fecha, tipo: m.tipo, productoNombre: m.productoNombre,
+    cantidad: Number(m.cantidad ?? 0), referencia: m.referencia,
+    facturaId: m.facturaId, pedidoId: m.pedidoId, trasladoId: m.trasladoId,
+  }));
 }
