@@ -12,9 +12,9 @@ import { listarProductos, listarUnidadesMedida } from "@/lib/services/productos"
 import { cuentaPorPagarDePedido } from "@/lib/services/cartera";
 import { nombreUsuario } from "@/lib/services/usuarios";
 import { CreadoPor } from "@/components/creado-por";
+import { fechaLarga } from "@/lib/fecha";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PedidoAcciones } from "./pedido-acciones";
 import { RegistrarFacturaProveedor } from "../../cuentas-pagar/registrar-factura";
@@ -46,17 +46,40 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader title={`Pedido ${pedido.numero}`} description={prov?.razonSocial ?? ""}>
-        <Badge className="font-normal capitalize">{pedido.estado}</Badge>
+        <Badge variant={pedido.estado === "recibido" ? "default" : pedido.estado === "parcial" ? "secondary" : "outline"} className="font-normal capitalize">
+          {pedido.estado}
+        </Badge>
       </PageHeader>
 
-      <Card>
-        <CardContent className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-4">
-          <div><div className="text-xs text-muted-foreground">Proveedor</div><div className="font-medium">{prov?.razonSocial ?? "—"}</div></div>
-          <div><div className="text-xs text-muted-foreground">Bodega destino</div><div className="font-medium">{bod?.nombre ?? "—"}</div></div>
-          <div><div className="text-xs text-muted-foreground">Fecha</div><div className="font-medium tabular">{pedido.fecha}</div></div>
-          <div><div className="text-xs text-muted-foreground">Total</div><div className="font-semibold tabular">{money(pedido.total)}</div></div>
-        </CardContent>
-      </Card>
+      {/* Lo principal: cuánto cuesta este pedido */}
+      <section className="rounded-2xl border border-border bg-gradient-to-br from-primary/[0.08] to-transparent p-5">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total del pedido</p>
+        <p className="tabular text-4xl font-bold tracking-tight">{money(pedido.total)}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {prov?.razonSocial ?? "—"} · {bod?.nombre ?? "—"} · {fechaLarga(pedido.fecha)}
+        </p>
+      </section>
+
+      {/* Cómo se compone el total */}
+      {Number(pedido.costosAdicionales) > 0 && (
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <h2 className="mb-3 text-sm font-semibold">Cómo se compone el total</h2>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Productos (subtotal)</span>
+              <span className="tabular">{money(pedido.subtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">+ Costos adicionales (flete, etc.)</span>
+              <span className="tabular text-primary">+{money(pedido.costosAdicionales)}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between border-t border-border pt-2 font-semibold">
+              <span>= Total</span>
+              <span className="tabular">{money(pedido.total)}</span>
+            </div>
+          </div>
+        </section>
+      )}
 
       <div>
         <h3 className="mb-2 text-sm font-semibold">Productos</h3>

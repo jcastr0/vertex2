@@ -48,11 +48,7 @@ export default async function PedidosPage({
     {
       header: "Número",
       primary: true,
-      cell: (f) => (
-        <Link href={`/pedidos/${f.pedido.id}`} className="tabular font-medium text-primary hover:underline">
-          {f.pedido.numero}
-        </Link>
-      ),
+      cell: (f) => <span className="tabular font-medium">{f.pedido.numero}</span>,
     },
     { header: "Proveedor", cell: (f) => f.proveedor },
     { header: "Fecha", cell: (f) => f.pedido.fecha },
@@ -85,6 +81,7 @@ export default async function PedidosPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.pedido.id}
+        rowHref={(f) => `/pedidos/${f.pedido.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o proveedor…"
         hayDatos={todos.length > 0}
