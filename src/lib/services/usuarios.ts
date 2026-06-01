@@ -168,3 +168,10 @@ export async function cambiarEstadoUsuario(id: number, activo: boolean, ctx: Con
     ipOrigen: ctx.ip,
   });
 }
+
+/** Nombre de un usuario por id (para mostrar "creado por"). null si no existe. */
+export async function nombreUsuario(id: number | null | undefined): Promise<string | null> {
+  if (!id) return null;
+  const [u] = await db.select({ nombre: usuarios.nombre }).from(usuarios).where(eq(usuarios.id, id)).limit(1);
+  return u?.nombre ?? null;
+}

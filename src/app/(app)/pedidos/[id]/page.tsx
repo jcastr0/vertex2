@@ -10,6 +10,8 @@ import { obtenerTercero } from "@/lib/services/terceros";
 import { obtenerBodega } from "@/lib/services/bodegas";
 import { listarProductos, listarUnidadesMedida } from "@/lib/services/productos";
 import { cuentaPorPagarDePedido } from "@/lib/services/cartera";
+import { nombreUsuario } from "@/lib/services/usuarios";
+import { CreadoPor } from "@/components/creado-por";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +41,7 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
   const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
   const undPorId = new Map(unidades.map((u) => [u.id, u.abreviatura]));
   const cxp = await cuentaPorPagarDePedido(empresaId, pedido.id);
+  const creadoPor = await nombreUsuario(pedido.usuarioCreaId);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -147,6 +150,8 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
           }))}
         />
       )}
+
+      <CreadoPor nombre={creadoPor} fecha={pedido.createdAt} />
     </div>
   );
 }

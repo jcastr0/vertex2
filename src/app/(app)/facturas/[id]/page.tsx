@@ -8,10 +8,12 @@ import { puede } from "@/lib/auth/roles";
 import { obtenerFactura } from "@/lib/services/facturas";
 import { obtenerTercero } from "@/lib/services/terceros";
 import { listarProductos } from "@/lib/services/productos";
+import { nombreUsuario } from "@/lib/services/usuarios";
 import { cuentaPorCobrarDeFactura } from "@/lib/services/cartera";
 import { cuentasPropiasActivas } from "@/lib/services/tesoreria";
 import { abonarFacturaAction } from "../actions";
 import { AnularButton } from "../anular-button";
+import { CreadoPor } from "@/components/creado-por";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,6 +49,7 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
   const puedeCobrar = puede(permisos, "recaudos.crear");
   const puedeAnular = puede(permisos, "facturas.eliminar");
 
+  const creadoPor = await nombreUsuario(factura.usuarioId);
   const [emp] = await db.select({ nombre: empresas.nombre, nit: empresas.nit }).from(empresas).where(eq(empresas.id, empresaId));
   const datosRecibo = {
     empresa: emp?.nombre ?? "Vertex", nit: emp?.nit ?? "",
@@ -134,6 +137,8 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
         <h3 className="mb-3 text-sm font-semibold print:hidden">Recibo</h3>
         <ReciboPrint datos={datosRecibo} />
       </div>
+
+      <CreadoPor nombre={creadoPor} fecha={factura.createdAt} />
     </div>
   );
 }

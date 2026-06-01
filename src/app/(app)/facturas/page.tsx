@@ -80,9 +80,14 @@ export default async function FacturasPage({
     {
       header: "Tipo",
       cell: (f) => (
-        <Badge variant={f.factura.tipoVenta === "credito" ? "secondary" : "outline"} className="font-normal capitalize">
-          {f.factura.tipoVenta}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant={f.factura.tipoVenta === "credito" ? "secondary" : "outline"} className="font-normal capitalize">
+            {f.factura.tipoVenta}
+          </Badge>
+          {f.factura.estado === "anulada" && (
+            <Badge variant="destructive" className="font-normal">Anulada</Badge>
+          )}
+        </div>
       ),
     },
     { header: "Total", className: "text-right", cell: (f) => <span className="tabular">{money(f.factura.total)}</span> },
@@ -106,6 +111,7 @@ export default async function FacturasPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.factura.id}
+        rowClassName={(f) => (f.factura.estado === "anulada" ? "opacity-60" : "")}
         rowHref={(f) => `/facturas/${f.factura.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o cliente…"
