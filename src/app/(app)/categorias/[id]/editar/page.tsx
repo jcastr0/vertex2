@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerCategoria, listarCategorias } from "@/lib/services/categorias";
 import { PageHeader } from "@/components/page-header";
@@ -15,7 +16,7 @@ export default async function EditarCategoriaPage({
   await requirePermiso("categorias.editar");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const categoria = await obtenerCategoria(empresaId, Number(id));
+  const categoria = await obtenerCategoria(empresaId, parseId(id));
   if (!categoria) notFound();
   const categorias = await listarCategorias(empresaId);
 

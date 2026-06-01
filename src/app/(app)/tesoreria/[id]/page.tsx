@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import Link from "next/link";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
@@ -31,7 +32,7 @@ export default async function ExtractoPage({ params }: { params: Promise<{ id: s
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;
-  const cuentaId = Number(id);
+  const cuentaId = parseId(id);
   const cuenta = await obtenerCuentaPropia(empresaId, cuentaId);
   if (!cuenta) notFound();
   const movimientos = await extractoCuenta(empresaId, cuentaId);

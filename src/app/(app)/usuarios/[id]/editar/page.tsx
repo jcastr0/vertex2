@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerUsuario, listarRolesAsignables } from "@/lib/services/usuarios";
 import { PageHeader } from "@/components/page-header";
@@ -11,7 +12,7 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
   await requirePermiso("usuarios.editar");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const u = await obtenerUsuario(empresaId, Number(id));
+  const u = await obtenerUsuario(empresaId, parseId(id));
   if (!u) notFound();
   const roles = await listarRolesAsignables();
   return (

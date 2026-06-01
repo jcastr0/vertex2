@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
@@ -19,7 +20,7 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
   await requirePermiso("productos.ver");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const f = await fichaProducto(empresaId, Number(id));
+  const f = await fichaProducto(empresaId, parseId(id));
   if (!f) notFound();
   const permisos = await getPermisos();
   const puedeEditar = puede(permisos, "productos.editar");

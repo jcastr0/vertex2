@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerBodega } from "@/lib/services/bodegas";
 import { PageHeader } from "@/components/page-header";
@@ -15,7 +16,7 @@ export default async function EditarBodegaPage({
   await requirePermiso("bodegas.editar");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const bodega = await obtenerBodega(empresaId, Number(id));
+  const bodega = await obtenerBodega(empresaId, parseId(id));
   if (!bodega) notFound();
 
   return (

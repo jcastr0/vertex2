@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerCuentaPropia } from "@/lib/services/tesoreria";
 import { listarBancos } from "@/lib/services/bancos";
@@ -12,7 +13,7 @@ export default async function EditarCuentaPage({ params }: { params: Promise<{ i
   await requirePermiso("tesoreria.editar");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const cuenta = await obtenerCuentaPropia(empresaId, Number(id));
+  const cuenta = await obtenerCuentaPropia(empresaId, parseId(id));
   if (!cuenta) notFound();
   const bancos = await listarBancos();
   return (

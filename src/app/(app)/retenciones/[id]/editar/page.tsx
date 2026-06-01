@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerRetencion } from "@/lib/services/retenciones";
 import { PageHeader } from "@/components/page-header";
@@ -15,7 +16,7 @@ export default async function EditarRetencionPage({
   await requirePermiso("retenciones.editar");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const retencion = await obtenerRetencion(empresaId, Number(id));
+  const retencion = await obtenerRetencion(empresaId, parseId(id));
   if (!retencion) notFound();
 
   return (

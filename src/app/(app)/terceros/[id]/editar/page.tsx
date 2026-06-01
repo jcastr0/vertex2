@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { obtenerTercero } from "@/lib/services/terceros";
 import { listarRecaudadores } from "@/lib/services/usuarios";
@@ -16,7 +17,7 @@ export default async function EditarTerceroPage({
   await requirePermiso("terceros.editar");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const t = await obtenerTercero(empresaId, Number(id));
+  const t = await obtenerTercero(empresaId, parseId(id));
   if (!t) notFound();
   const recaudadores = await listarRecaudadores(empresaId);
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
@@ -19,7 +20,7 @@ export default async function TrasladoDetallePage({ params }: { params: Promise<
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;
-  const traslado = await obtenerTraslado(empresaId, Number(id));
+  const traslado = await obtenerTraslado(empresaId, parseId(id));
   if (!traslado) notFound();
 
   const [origen, destino, productos] = await Promise.all([

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
@@ -74,7 +75,7 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;
-  const t = await obtenerTercero(empresaId, Number(id));
+  const t = await obtenerTercero(empresaId, parseId(id));
   if (!t) notFound();
 
   const esProveedor = t.tipo === "proveedor" || t.tipo === "ambos";

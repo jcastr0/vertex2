@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso } from "@/lib/auth/guard";
 import { obtenerEmpresa } from "@/lib/services/empresas";
 import { PageHeader } from "@/components/page-header";
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "Editar empresa — Vertex" };
 export default async function EditarEmpresaPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermiso("empresas.editar");
   const { id } = await params;
-  const e = await obtenerEmpresa(Number(id));
+  const e = await obtenerEmpresa(parseId(id));
   if (!e) notFound();
   return (
     <div className="mx-auto max-w-5xl">

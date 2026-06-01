@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { kardexProducto } from "@/lib/services/inventario";
 import { obtenerProducto } from "@/lib/services/productos";
@@ -19,7 +20,7 @@ export default async function KardexPage({ params }: { params: Promise<{ product
   await requirePermiso("inventario.ver");
   const { empresaId } = await requireEmpresa();
   const { productoId } = await params;
-  const producto = await obtenerProducto(empresaId, Number(productoId));
+  const producto = await obtenerProducto(empresaId, parseId(productoId));
   if (!producto) notFound();
   const movimientos = await kardexProducto(empresaId, producto.id);
 

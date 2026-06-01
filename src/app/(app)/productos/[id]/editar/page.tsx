@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import {
   obtenerProducto,
@@ -22,7 +23,7 @@ export default async function EditarProductoPage({
   await requirePermiso("productos.editar");
   const { empresaId } = await requireEmpresa();
   const { id } = await params;
-  const producto = await obtenerProducto(empresaId, Number(id));
+  const producto = await obtenerProducto(empresaId, parseId(id));
   if (!producto) notFound();
 
   const [categorias, unidades, presentaciones] = await Promise.all([

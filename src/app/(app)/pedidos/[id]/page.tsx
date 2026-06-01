@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
@@ -26,7 +27,7 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;
-  const pedido = await obtenerPedido(empresaId, Number(id));
+  const pedido = await obtenerPedido(empresaId, parseId(id));
   if (!pedido) notFound();
 
   const [prov, bod, productos, unidades] = await Promise.all([

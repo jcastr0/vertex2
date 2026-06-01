@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso } from "@/lib/auth/guard";
 import { obtenerRol } from "@/lib/services/roles";
 import { PageHeader } from "@/components/page-header";
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "Rol — Vertex" };
 export default async function RolPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermiso("roles.editar");
   const { id } = await params;
-  const rol = await obtenerRol(Number(id));
+  const rol = await obtenerRol(parseId(id));
   if (!rol) notFound();
   const esSuper = rol.nombre === "SuperAdmin";
   return (

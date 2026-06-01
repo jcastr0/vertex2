@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
@@ -30,7 +31,7 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
   const { empresaId } = await requireEmpresa();
   const permisos = await getPermisos();
   const { id } = await params;
-  const factura = await obtenerFactura(empresaId, Number(id));
+  const factura = await obtenerFactura(empresaId, parseId(id));
   if (!factura) notFound();
 
   const [cli, productos, cxc, cuentasDestino] = await Promise.all([
