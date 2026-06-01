@@ -80,6 +80,7 @@ export default async function NotasInventarioPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.nota.id}
+        rowHref={(f) => `/notas-inventario/${f.nota.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número, producto o bodega…"
         hayDatos={todos.length > 0}

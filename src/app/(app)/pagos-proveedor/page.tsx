@@ -52,6 +52,7 @@ export default async function PagosProveedorPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.pago.id}
+        rowHref={(f) => `/pagos-proveedor/${f.pago.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o proveedor…"
         hayDatos={todos.length > 0}

@@ -50,6 +50,7 @@ export default async function RecaudosPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.recaudo.id}
+        rowHref={(f) => `/recaudos/${f.recaudo.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o cliente…"
         hayDatos={todos.length > 0}

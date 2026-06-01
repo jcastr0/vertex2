@@ -30,6 +30,17 @@ export async function listarNotasInventario(empresaId: number) {
     .orderBy(desc(notasInventario.createdAt));
 }
 
+export async function obtenerNotaInventario(empresaId: number, id: number) {
+  const [row] = await db
+    .select({ nota: notasInventario, producto: productos.nombre, bodega: bodegas.nombre })
+    .from(notasInventario)
+    .innerJoin(productos, eq(notasInventario.productoId, productos.id))
+    .innerJoin(bodegas, eq(notasInventario.bodegaId, bodegas.id))
+    .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.id, id)))
+    .limit(1);
+  return row ?? null;
+}
+
 async function siguienteNumero(empresaId: number): Promise<string> {
   const [{ c }] = await db
     .select({ c: count() })

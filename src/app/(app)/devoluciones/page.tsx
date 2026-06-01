@@ -63,6 +63,7 @@ export default async function DevolucionesPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.devolucion.id}
+        rowHref={(f) => `/devoluciones/${f.devolucion.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o cliente…"
         hayDatos={todos.length > 0}

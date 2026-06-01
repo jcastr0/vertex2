@@ -49,6 +49,26 @@ export async function listarNotasCredito(empresaId: number) {
     .orderBy(desc(notasCredito.createdAt));
 }
 
+export async function obtenerDevolucion(empresaId: number, id: number) {
+  const [d] = await db
+    .select()
+    .from(devoluciones)
+    .where(and(eq(devoluciones.empresaId, empresaId), eq(devoluciones.id, id)))
+    .limit(1);
+  if (!d) return null;
+  const detalles = await db.select().from(devolucionDetalles).where(eq(devolucionDetalles.devolucionId, id));
+  return { ...d, detalles };
+}
+
+export async function obtenerNotaCredito(empresaId: number, id: number) {
+  const [n] = await db
+    .select()
+    .from(notasCredito)
+    .where(and(eq(notasCredito.empresaId, empresaId), eq(notasCredito.id, id)))
+    .limit(1);
+  return n ?? null;
+}
+
 /**
  * Procesa una devolución de cliente: reingresa los productos al inventario,
  * genera la nota crédito y reduce la cuenta por cobrar de la factura (si existe).

@@ -12,6 +12,7 @@ import {
   cuentasBeneficiario,
   cuentasPropias,
   facturas,
+  retenciones,
 } from "@/lib/db/schema";
 import { movimientoDesdePago, type BeneficiarioSnapshot } from "@/lib/domain/tesoreria";
 import { registrarAuditoria } from "@/lib/audit";
@@ -61,6 +62,23 @@ export async function listarPagos(empresaId: number) {
     .leftJoin(cuentasPropias, eq(pagosProveedor.cuentaOrigenId, cuentasPropias.id))
     .where(eq(pagosProveedor.empresaId, empresaId))
     .orderBy(desc(pagosProveedor.createdAt));
+}
+
+export async function obtenerPago(empresaId: number, id: number) {
+  const [row] = await db
+    .select({ pago: pagosProveedor, proveedor: terceros.razonSocial, cuentaOrigen: cuentasPropias.nombre })
+    .from(pagosProveedor)
+    .innerJoin(terceros, eq(pagosProveedor.proveedorId, terceros.id))
+    .leftJoin(cuentasPropias, eq(pagosProveedor.cuentaOrigenId, cuentasPropias.id))
+    .where(and(eq(pagosProveedor.empresaId, empresaId), eq(pagosProveedor.id, id)))
+    .limit(1);
+  if (!row) return null;
+  const retenciones_ = await db
+    .select({ ret: pagoRetenciones, nombre: retenciones.nombre })
+    .from(pagoRetenciones)
+    .leftJoin(retenciones, eq(pagoRetenciones.retencionId, retenciones.id))
+    .where(eq(pagoRetenciones.pagoId, id));
+  return { ...row.pago, proveedor: row.proveedor, cuentaOrigen: row.cuentaOrigen, retenciones: retenciones_ };
 }
 
 export async function registrarPago(
@@ -285,6 +303,17 @@ export async function listarRecaudos(empresaId: number) {
     .innerJoin(terceros, eq(recaudosClientes.clienteId, terceros.id))
     .where(eq(recaudosClientes.empresaId, empresaId))
     .orderBy(desc(recaudosClientes.createdAt));
+}
+
+export async function obtenerRecaudo(empresaId: number, id: number) {
+  const [row] = await db
+    .select({ recaudo: recaudosClientes, cliente: terceros.razonSocial, cuentaDestino: cuentasPropias.nombre })
+    .from(recaudosClientes)
+    .innerJoin(terceros, eq(recaudosClientes.clienteId, terceros.id))
+    .leftJoin(cuentasPropias, eq(recaudosClientes.cuentaDestinoId, cuentasPropias.id))
+    .where(and(eq(recaudosClientes.empresaId, empresaId), eq(recaudosClientes.id, id)))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function registrarRecaudo(

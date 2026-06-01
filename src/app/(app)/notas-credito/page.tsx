@@ -60,6 +60,7 @@ export default async function NotasCreditoPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.nota.id}
+        rowHref={(f) => `/notas-credito/${f.nota.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o cliente…"
         hayDatos={todos.length > 0}
