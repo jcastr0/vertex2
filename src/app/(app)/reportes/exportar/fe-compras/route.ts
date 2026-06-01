@@ -1,4 +1,5 @@
 import { requireEmpresa } from "@/lib/auth/guard";
+import { hoyColombia } from "@/lib/fecha";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { comprasElectronicasCsv } from "@/lib/services/export-fe";
@@ -9,7 +10,7 @@ export async function GET(req: Request) {
   const permisos = await getPermisos();
   if (!puede(permisos, "reportes.ver")) return new Response("No autorizado", { status: 403 });
   const url = new URL(req.url);
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const desde = url.searchParams.get("desde") || hoy.slice(0, 8) + "01";
   const hasta = url.searchParams.get("hasta") || hoy;
   const csv = await comprasElectronicasCsv(empresaId, desde, hasta);

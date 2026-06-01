@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, desc, count, inArray } from "drizzle-orm";
+import { sumarDias } from "@/lib/fecha";
 import { db } from "@/lib/db";
 import {
   pedidos,
@@ -300,15 +301,13 @@ export async function recibirPedido(
       }, 0) + (recepciones ? 0 : Number(pedido.costosAdicionales));
     const valorCxP = recepciones ? totalRecibido : Number(pedido.total);
 
-    const venc = new Date(pedido.fecha);
-    venc.setDate(venc.getDate() + diasCredito);
     await tx.insert(cuentasPorPagar).values({
       empresaId: ctx.empresaId,
       proveedorId: pedido.proveedorId,
       pedidoId: pedido.id,
       numeroFactura: pedido.numero,
       fechaFactura: pedido.fecha,
-      fechaVencimiento: venc.toISOString().slice(0, 10),
+      fechaVencimiento: sumarDias(pedido.fecha, diasCredito),
       valorTotal: String(valorCxP),
       saldoPendiente: String(valorCxP),
     });

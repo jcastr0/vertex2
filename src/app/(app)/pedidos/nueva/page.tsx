@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { listarTerceros } from "@/lib/services/terceros";
 import { listarBodegas } from "@/lib/services/bodegas";
@@ -20,7 +21,7 @@ export default async function NuevoPedidoPage() {
     listarCategorias(empresaId, "gasto"),
   ]);
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
 
   return (
     <div className="mx-auto max-w-5xl">

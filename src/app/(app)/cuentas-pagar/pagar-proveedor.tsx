@@ -13,6 +13,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { METODOS_PAGO } from "@/lib/domain/cartera";
 import { distribuirFIFO } from "@/lib/domain/cobro";
 import { calcularRetenciones, type RetencionConfig } from "@/lib/domain/retenciones";
+import { fechaCorta } from "@/lib/fecha";
 import { PagarDoc } from "./pagar-doc";
 import { RegistrarFacturaProveedor } from "./registrar-factura";
 import { AlertCircle, Loader2, ChevronDown, Wallet, FileText } from "lucide-react";
@@ -40,7 +41,7 @@ type Beneficiario = {
 };
 
 const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
-const fmtFecha = (s: string) => new Date(s + "T00:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+const fmtFecha = (s: string) => fechaCorta(s);
 
 function Confirmar() {
   const { pending } = useFormStatus();

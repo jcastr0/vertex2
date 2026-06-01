@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { hoyColombia } from "@/lib/fecha";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
 import { parseAbonoForm } from "@/lib/validation/abono";
@@ -20,7 +21,7 @@ export async function cobrarClienteAction(clienteId: number, _prev: AbonoState, 
   const monto = Number(form.get("monto"));
   if (!monto || monto <= 0) return { error: "Escribe cuánto te pagó." };
   const metodoPago = String(form.get("metodoPago") || "efectivo");
-  const fecha = String(form.get("fecha") || new Date().toISOString().slice(0, 10));
+  const fecha = String(form.get("fecha") || hoyColombia());
   const cuentaDestinoId = Number(form.get("cuentaDestinoId")) || undefined;
   if (!cuentaDestinoId) return { error: "Elige a dónde entró el dinero." };
 

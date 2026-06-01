@@ -4,6 +4,7 @@ import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { REPORTES } from "@/lib/reportes/registry";
 import { kpis, stockBajo, cxcVencidas, novedadesPorProveedor, type FilaStockBajo, type FilaVencida } from "@/lib/services/reportes";
 import { rangoMes } from "@/lib/domain/periodo";
+import { hoyColombia, partesColombia } from "@/lib/fecha";
 import { PageHeader } from "@/components/page-header";
 import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,9 +23,9 @@ const NOVEDAD_LABEL: Record<string, string> = {
 export default async function ReportesPage() {
   await requirePermiso("reportes.ver");
   const { empresaId } = await requireEmpresa();
-  const now = new Date();
-  const { desde, hasta } = rangoMes(now.getFullYear(), now.getMonth());
-  const hoy = now.toISOString().slice(0, 10);
+  const { anio, mes } = partesColombia();
+  const { desde, hasta } = rangoMes(anio, mes);
+  const hoy = hoyColombia();
 
   const [k, stock, vencidas, novedades] = await Promise.all([
     kpis(empresaId, desde, hasta),

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
@@ -41,7 +42,7 @@ export default async function FacturaDetallePage({ params }: { params: Promise<{
     cuentasPropiasActivas(empresaId),
   ]);
   const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const saldo = cxc?.saldo ?? 0;
   const puedeCobrar = puede(permisos, "recaudos.crear");
   const puedeAnular = puede(permisos, "facturas.eliminar");

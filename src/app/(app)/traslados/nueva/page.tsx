@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { listarBodegas } from "@/lib/services/bodegas";
 import { listarProductos } from "@/lib/services/productos";
@@ -14,7 +15,7 @@ export default async function NuevoTrasladoPage() {
     listarBodegas(empresaId),
     listarProductos(empresaId),
   ]);
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title="Nuevo traslado" description="Mueve productos entre dos bodegas." />

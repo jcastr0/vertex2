@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, ne, desc, count, inArray } from "drizzle-orm";
+import { sumarDias } from "@/lib/fecha";
 import { db } from "@/lib/db";
 import {
   facturas,
@@ -253,14 +254,12 @@ export async function crearFactura(data: NuevaFactura, ctx: Contexto): Promise<F
     }
 
     if (data.tipoVenta === "credito") {
-      const venc = new Date(data.fecha);
-      venc.setDate(venc.getDate() + diasCredito);
       await tx.insert(cuentasPorCobrar).values({
         empresaId: ctx.empresaId,
         clienteId: data.clienteId,
         facturaId: factura.id,
         fechaFactura: data.fecha,
-        fechaVencimiento: venc.toISOString().slice(0, 10),
+        fechaVencimiento: sumarDias(data.fecha, diasCredito),
         valorTotal: String(total),
         saldoPendiente: String(total),
       });

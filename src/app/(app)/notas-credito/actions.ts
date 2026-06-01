@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { hoyColombia } from "@/lib/fecha";
 import { redirect } from "next/navigation";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
@@ -26,7 +27,7 @@ export async function guardarNotaCreditoAction(_prev: NotaCreditoState, form: Fo
   const facturaId = Number(form.get("facturaId"));
   const valor = Number(form.get("valor"));
   const motivo = String(form.get("motivo") || "").trim();
-  const fecha = String(form.get("fecha") || new Date().toISOString().slice(0, 10));
+  const fecha = String(form.get("fecha") || hoyColombia());
   if (!clienteId) return { error: "Elige el cliente." };
   if (!facturaId) return { error: "Elige la factura." };
   if (!motivo) return { error: "Escribe el motivo." };

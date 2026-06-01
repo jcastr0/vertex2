@@ -12,6 +12,7 @@ import { Field } from "@/components/ui/field";
 import { SearchSelect } from "@/components/ui/search-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { METODOS_PAGO } from "@/lib/domain/cartera";
+import { fechaCorta } from "@/lib/fecha";
 import { AlertCircle, Loader2, ChevronDown, HandCoins } from "lucide-react";
 
 interface Doc { id: number; numero: string; fecha: string; vence: string; total: number; saldo: number }
@@ -26,7 +27,7 @@ interface Props {
 }
 
 const money = (n: number) => "$" + n.toLocaleString("es-CO");
-const fmtFecha = (s: string) => new Date(s + "T00:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+const fmtFecha = (s: string) => fechaCorta(s);
 
 function Confirmar() {
   const { pending } = useFormStatus();

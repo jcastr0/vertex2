@@ -4,6 +4,7 @@ import { requireSesion } from "@/lib/auth/guard";
 import { empresaActivaId } from "@/lib/auth/empresa";
 import { kpis, stockBajo, cxcVencidas, novedadesPorProveedor } from "@/lib/services/reportes";
 import { rangoMes } from "@/lib/domain/periodo";
+import { hoyColombia, partesColombia, nombreMes } from "@/lib/fecha";
 import {
   ShoppingBag,
   HandCoins,
@@ -18,15 +19,16 @@ import {
 export const metadata: Metadata = { title: "Inicio — Vertex" };
 
 const money = (n: number) => "$" + n.toLocaleString("es-CO", { maximumFractionDigits: 0 });
-const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
 export default async function InicioPage() {
   const sesion = await requireSesion();
   const empresaId = await empresaActivaId(sesion);
 
-  const now = new Date();
-  const { desde, hasta } = rangoMes(now.getFullYear(), now.getMonth());
-  const hoy = now.toISOString().slice(0, 10);
+  // Mes/día efectivos en Colombia (el servidor corre en UTC).
+  const { anio, mes } = partesColombia();
+  const mesNombre = nombreMes(mes);
+  const { desde, hasta } = rangoMes(anio, mes);
+  const hoy = hoyColombia();
 
   const datos = empresaId
     ? await Promise.all([kpis(empresaId, desde, hasta), stockBajo(empresaId), cxcVencidas(empresaId, hoy), novedadesPorProveedor(empresaId)])
@@ -63,14 +65,14 @@ export default async function InicioPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <TareaCard href="/cuentas-cobrar" icon={HandCoins} titulo="Cobrar" desc="Quién te debe y registrar abonos" dato="Te deben" valor={money(k.porCobrar)} />
         <TareaCard href="/pedidos" icon={Truck} titulo="Comprar y pagar" desc="Pedidos y pagos a proveedores" dato="Debes" valor={money(k.porPagar)} />
-        <TareaCard href="/reportes" icon={TrendingUp} titulo="Cómo va el negocio" desc="Ventas, ganancia y existencias" dato={`Ganancia de ${MESES[now.getMonth()]}`} valor={money(k.utilidad)} />
+        <TareaCard href="/reportes" icon={TrendingUp} titulo="Cómo va el negocio" desc="Ventas, ganancia y existencias" dato={`Ganancia de ${mesNombre}`} valor={money(k.utilidad)} />
       </div>
 
       {/* Resumen del mes, en cristiano */}
       <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3">
-        <Resumen label={`Vendiste en ${MESES[now.getMonth()]}`} valor={money(k.ventas)} />
+        <Resumen label={`Vendiste en ${mesNombre}`} valor={money(k.ventas)} />
         <Resumen label="Mercancía en bodega" valor={money(k.inventario)} />
-        <Resumen label={`Compraste en ${MESES[now.getMonth()]}`} valor={money(k.compras)} />
+        <Resumen label={`Compraste en ${mesNombre}`} valor={money(k.compras)} />
       </div>
 
       {/* Avisos: solo si hay algo que atender */}

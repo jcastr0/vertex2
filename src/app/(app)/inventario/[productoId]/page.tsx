@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { fechaHora } from "@/lib/fecha";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
@@ -28,7 +29,7 @@ export default async function KardexPage({ params }: { params: Promise<{ product
     {
       header: "Fecha",
       primary: true,
-      cell: (m) => <span className="tabular">{new Date(m.fecha).toLocaleString("es-CO")}</span>,
+      cell: (m) => <span className="tabular">{fechaHora(m.fecha)}</span>,
     },
     {
       header: "Tipo",

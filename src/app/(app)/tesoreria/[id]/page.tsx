@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
 import Link from "next/link";
@@ -40,7 +41,7 @@ export default async function ExtractoPage({ params }: { params: Promise<{ id: s
   const otras = (await cuentasPropiasActivas(empresaId))
     .filter((c) => c.id !== cuentaId)
     .map((c) => ({ id: c.id, nombre: c.nombre }));
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const puedeCrear = puede(permisos, "tesoreria.crear");
 
   type Mov = (typeof movimientos)[number];

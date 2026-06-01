@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { listarTerceros } from "@/lib/services/terceros";
 import { listarBodegas } from "@/lib/services/bodegas";
@@ -19,7 +20,7 @@ export default async function NuevaFacturaPage() {
     cuentasPropiasActivas(empresaId),
   ]);
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const bodegasActivas = bodegas.filter((b) => b.activo);
   // Bodega principal primero (preseleccionada).
   bodegasActivas.sort((a, b) => Number(b.esPrincipal) - Number(a.esPrincipal));

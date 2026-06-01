@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { fechaInstante } from "@/lib/fecha";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
@@ -31,7 +32,7 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
     { header: "Valor", className: "text-right", cell: (x) => <span className="tabular">{money(x.valor)}</span> },
   ];
   const colsMerma: Columna<FichaProductoMerma>[] = [
-    { header: "Fecha", primary: true, cell: (m) => <span className="tabular">{new Date(m.fecha).toLocaleDateString("es-CO")}</span> },
+    { header: "Fecha", primary: true, cell: (m) => <span className="tabular">{fechaInstante(m.fecha)}</span> },
     { header: "Bodega", cell: (m) => m.bodegaNombre },
     { header: "Cantidad", className: "text-right", cell: (m) => <span className="tabular">{num(m.cantidad)}</span> },
     { header: "Motivo", cell: (m) => m.motivo },

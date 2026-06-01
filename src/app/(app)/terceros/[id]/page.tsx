@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia, fechaLarga } from "@/lib/fecha";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
@@ -26,8 +27,7 @@ export const metadata: Metadata = { title: "Tercero — Vertex" };
 const money = (s: string | null) => "$" + Number(s ?? 0).toLocaleString("es-CO");
 const TIPO: Record<string, string> = { cliente: "Cliente", proveedor: "Proveedor", ambos: "Cliente y proveedor" };
 const DIAS = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-const fmtFecha = (s: string | null) =>
-  s ? new Date(s + "T00:00:00").toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" }) : "—";
+const fmtFecha = (s: string | null) => (s ? fechaLarga(s) : "—");
 
 function Dato({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -86,7 +86,7 @@ export default async function TerceroPage({ params }: { params: Promise<{ id: st
   const bancos = esProveedor ? await listarBancos() : [];
   const puedeEditar = puede(permisos, "terceros.editar");
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const desdeMes = hoy.slice(0, 8) + "01";
   const [resCli, resProv, facturasCli, pedidosProv] = await Promise.all([
     esCliente ? resumenCliente(empresaId, t.id, hoy, desdeMes) : null,

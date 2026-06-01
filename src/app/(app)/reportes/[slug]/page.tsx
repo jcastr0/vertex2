@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { notFound } from "next/navigation";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getReporte, filtrosConDefaults } from "@/lib/reportes/registry";
@@ -16,7 +17,7 @@ export default async function ReporteSlugPage({ params, searchParams }: { params
   const rep = getReporte(slug);
   if (!rep) notFound();
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const sp = await searchParams;
   const filtros = filtrosConDefaults(sp, hoy);
   const [datos, filtrosSpec] = await Promise.all([rep.cargar(empresaId, filtros), rep.filtros(empresaId)]);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { fechaInstante } from "@/lib/fecha";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
@@ -34,7 +35,7 @@ export default async function BodegaDetallePage({ params }: { params: Promise<{ 
     { header: "Valor", className: "text-right", cell: (p) => <span className="tabular">{money(p.valor)}</span> },
   ];
   const colsMovs: Columna<FichaBodegaMovimiento>[] = [
-    { header: "Fecha", primary: true, cell: (m) => <span className="tabular">{new Date(m.fecha).toLocaleDateString("es-CO")}</span> },
+    { header: "Fecha", primary: true, cell: (m) => <span className="tabular">{fechaInstante(m.fecha)}</span> },
     { header: "Tipo", cell: (m) => <Badge variant="secondary" className="font-normal capitalize">{m.tipo.replace("_", " ")}</Badge> },
     { header: "Producto", cell: (m) => m.productoNombre },
     { header: "Cantidad", className: "text-right", cell: (m) => <span className="tabular">{num(m.cantidad)}</span> },

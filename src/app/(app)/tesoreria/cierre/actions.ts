@@ -1,6 +1,7 @@
 // src/app/(app)/tesoreria/cierre/actions.ts
 "use server";
 import { revalidatePath } from "next/cache";
+import { hoyColombia } from "@/lib/fecha";
 import { redirect } from "next/navigation";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
@@ -11,7 +12,7 @@ export async function registrarCierreAction(_prev: CierreState, form: FormData):
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
   if (!puede(c.permisos, "tesoreria.crear")) return { error: "No tienes permiso." };
-  const fecha = String(form.get("fecha") || new Date().toISOString().slice(0, 10));
+  const fecha = String(form.get("fecha") || hoyColombia());
   const observaciones = String(form.get("observaciones") || "") || null;
   let conteos: { cuentaId: number; montoContado?: number }[] = [];
   try { conteos = JSON.parse(String(form.get("conteosJson") ?? "[]")); } catch { /* ignore */ }

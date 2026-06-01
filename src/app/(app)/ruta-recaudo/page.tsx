@@ -4,7 +4,8 @@ import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { listarRecaudadores } from "@/lib/services/usuarios";
 import { rutaDelRecaudador } from "@/lib/services/ruta-recaudo";
-import { diaSemana, DIAS_COBRO } from "@/lib/domain/ruta-recaudo";
+import { DIAS_COBRO } from "@/lib/domain/ruta-recaudo";
+import { hoyColombia, diaSemanaColombia } from "@/lib/fecha";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,9 +35,8 @@ export default async function RutaRecaudoPage({
     ? Number(recParam) || recaudadores[0]?.id || sesion.uid
     : sesion.uid;
 
-  const now = new Date();
-  const hoyDia = diaSemana(now);
-  const hoyISO = now.toISOString().slice(0, 10);
+  const hoyDia = diaSemanaColombia();
+  const hoyISO = hoyColombia();
   const hoyLabel = DIAS_COBRO.find((d) => d.value === hoyDia)?.label ?? "Hoy";
 
   const { paradas, recaudadoHoy } = await rutaDelRecaudador(empresaId, recaudadorId, hoyDia, hoyISO);

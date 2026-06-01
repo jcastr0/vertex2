@@ -1,4 +1,5 @@
 import { requireEmpresa } from "@/lib/auth/guard";
+import { hoyColombia } from "@/lib/fecha";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { getReporte, filtrosConDefaults } from "@/lib/reportes/registry";
@@ -14,7 +15,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   if (!rep) return new Response("Reporte no encontrado", { status: 404 });
 
   const url = new URL(req.url);
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const sp = Object.fromEntries(url.searchParams.entries());
   const filtros = filtrosConDefaults(sp, hoy);
   const { detalle } = await rep.cargar(empresaId, filtros);

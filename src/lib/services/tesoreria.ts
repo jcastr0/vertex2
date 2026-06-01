@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, asc, sql } from "drizzle-orm";
+import { hoyColombia } from "@/lib/fecha";
 import { db } from "@/lib/db";
 import { cuentasPropias, movimientosTesoreria } from "@/lib/db/schema";
 import { registrarAuditoria } from "@/lib/audit";
@@ -77,7 +78,7 @@ export async function crearCuentaPropia(data: CuentaPropiaInput, ctx: Contexto):
       await tx.insert(movimientosTesoreria).values({
         empresaId: ctx.empresaId,
         cuentaPropiaId: c.id,
-        fecha: new Date().toISOString().slice(0, 10),
+        fecha: hoyColombia(),
         tipo: data.saldoInicial >= 0 ? "entrada" : "salida",
         origen: "saldo_inicial",
         valor: String(Math.abs(data.saldoInicial)),

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { hoyColombia } from "@/lib/fecha";
 import { redirect } from "next/navigation";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
@@ -84,7 +85,7 @@ export async function abonarFacturaAction(
       {
         valor,
         metodoPago: String(form.get("metodoPago") || "efectivo"),
-        fecha: String(form.get("fecha") || new Date().toISOString().slice(0, 10)),
+        fecha: String(form.get("fecha") || hoyColombia()),
         referencia: String(form.get("referencia") || "") || undefined,
         cuentaDestinoId,
       },

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
@@ -26,7 +27,7 @@ export default async function CobrarPage({
     cuentasPropiasActivas(empresaId),
     cuentasPorCobrarAbiertasPorCliente(empresaId),
   ]);
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const puedeCobrar = puede(permisos, "recaudos.crear");
 
   const t = q.trim().toLowerCase();

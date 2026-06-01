@@ -1,5 +1,6 @@
 // src/app/(app)/tesoreria/cierre/page.tsx
 import type { Metadata } from "next";
+import { hoyColombia } from "@/lib/fecha";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { cuentasParaCierre, listarCierres } from "@/lib/services/cierre";
 import { PageHeader } from "@/components/page-header";
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "Cierre de caja — Vertex" };
 export default async function CierrePage() {
   await requirePermiso("tesoreria.ver");
   const { empresaId } = await requireEmpresa();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyColombia();
   const [cuentas, cierres] = await Promise.all([cuentasParaCierre(empresaId), listarCierres(empresaId)]);
 
   return (
