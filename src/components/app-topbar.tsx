@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -102,10 +103,12 @@ export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, emp
             <ChevronDown className="size-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="font-medium">{nombre}</div>
-              <div className="text-xs font-normal text-muted-foreground">{email}</div>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <div className="font-medium">{nombre}</div>
+                <div className="text-xs font-normal text-muted-foreground">{email}</div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <form action={logoutAction}>
               <button
