@@ -65,7 +65,7 @@ export default async function BodegaDetallePage({ params }: { params: Promise<{ 
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">Últimos movimientos</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground">Movimientos de la bodega</h2>
         {f.ultimosMovimientos.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border py-12 text-center text-sm text-muted-foreground">Sin movimientos recientes.</div>
         ) : (

@@ -56,6 +56,33 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
         { label: "Merma (total)", valor: f.mermaCantidad.total, formato: "num" },
       ]} />
 
+      {/* Cómo se forma el stock — reconciliación desde el kardex (siempre cuadra) */}
+      <section className="rounded-2xl border border-border bg-card p-4">
+        <h2 className="mb-3 text-sm font-semibold">Cómo se forma el stock</h2>
+        <div className="space-y-1.5 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Existencia inicial / ajustes</span>
+            <span className="tabular">{num(f.reconciliacion.inicial)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">+ Entradas (compras, devoluciones)</span>
+            <span className="tabular text-primary">+{num(f.reconciliacion.entradas)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">− Salidas (ventas, mermas, traslados)</span>
+            <span className="tabular text-destructive">−{num(f.reconciliacion.salidas)}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between border-t border-border pt-2 font-semibold">
+            <span>= Stock actual</span>
+            <span className="tabular">{num(f.reconciliacion.stock)}</span>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          El stock sale del <strong>kardex</strong> (todos los movimientos), no de “comprado − vendido”: también cuentan la
+          existencia inicial, las devoluciones, las mermas y los traslados.
+        </p>
+      </section>
+
       <section className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-xs text-muted-foreground">Vendido</p>

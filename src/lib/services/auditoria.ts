@@ -16,7 +16,8 @@ export interface FilaAuditoria {
 
 /** Últimos N registros de auditoría de la empresa (más recientes primero).
  *  El nombre legible del módulo se resuelve desde vx00 (nomenclatura). */
-export async function listarAuditoria(empresaId: number, limite = 500): Promise<FilaAuditoria[]> {
+export async function listarAuditoria(empresaId: number): Promise<FilaAuditoria[]> {
+  // Sin límite: la auditoría refleja TODOS los registros (la paginación se hace en la UI).
   return db
     .select({
       id: auditoria.id,
@@ -32,6 +33,5 @@ export async function listarAuditoria(empresaId: number, limite = 500): Promise<
     .leftJoin(usuarios, eq(auditoria.usuarioId, usuarios.id))
     .leftJoin(nomenclatura, eq(nomenclatura.codigo, auditoria.tablaAfectada))
     .where(eq(auditoria.empresaId, empresaId))
-    .orderBy(desc(auditoria.createdAt))
-    .limit(limite);
+    .orderBy(desc(auditoria.createdAt));
 }

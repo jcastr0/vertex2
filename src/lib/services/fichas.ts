@@ -63,8 +63,7 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
       .from(movimientosInventario)
       .innerJoin(productos, eq(movimientosInventario.productoId, productos.id))
       .where(and(eq(movimientosInventario.empresaId, empresaId), eq(movimientosInventario.bodegaId, bodegaId)))
-      .orderBy(desc(movimientosInventario.fecha))
-      .limit(10),
+      .orderBy(desc(movimientosInventario.fecha)),
   ]);
 
   const productosFicha: FichaBodegaProducto[] = filas.map((f) => ({
@@ -93,6 +92,12 @@ const TIPOS_SALIDA = TIPOS_NOTA.filter((t) => t.signo === -1).map((t) => t.value
 export interface KpiPeriodo { total: number; ultimos30: number }
 export interface FichaProductoExistencia { bodegaId: number; bodegaNombre: string; existencia: number; valor: number }
 export interface FichaProductoMerma { id: number; fecha: Date; bodegaNombre: string; cantidad: number; motivo: string }
+/**
+ * Reconciliación del stock desde el kardex (la verdad de las existencias):
+ * `inicial + entradas − salidas = stock`. Siempre cuadra. `inicial` es la
+ * existencia inicial (o ajuste no registrado como movimiento) = stock − entradas + salidas.
+ */
+export interface ReconciliacionStock { inicial: number; entradas: number; salidas: number; stock: number }
 export interface FichaProducto {
   producto: Producto;
   vendidoCantidad: KpiPeriodo; vendidoMonto: KpiPeriodo; compradoCantidad: KpiPeriodo; mermaCantidad: KpiPeriodo;
@@ -100,14 +105,15 @@ export interface FichaProducto {
   existencias: FichaProductoExistencia[];
   pedidosDistintos: number; cantidadRecibida: number;
   mermas: FichaProductoMerma[];
+  reconciliacion: ReconciliacionStock;
 }
 
 export async function fichaProducto(empresaId: number, productoId: number): Promise<FichaProducto | null> {
   const producto = await obtenerProducto(empresaId, productoId);
   if (!producto) return null;
 
-  // Las cinco consultas son independientes (solo dependen de empresaId/productoId) → en paralelo.
-  const [ventaRows, compraRows, mermaRows, exist, mermasDet] = await Promise.all([
+  // Consultas independientes (solo dependen de empresaId/productoId) → en paralelo.
+  const [ventaRows, compraRows, mermaRows, exist, mermasDet, kardexRows] = await Promise.all([
     db
       .select({
         cantTotal: sql<string>`coalesce(sum(${facturaDetalles.cantidadBase}), 0)`,
@@ -146,14 +152,30 @@ export async function fichaProducto(empresaId: number, productoId: number): Prom
       .from(notasInventario)
       .innerJoin(bodegas, eq(notasInventario.bodegaId, bodegas.id))
       .where(and(eq(notasInventario.empresaId, empresaId), eq(notasInventario.productoId, productoId), inArray(notasInventario.tipo, TIPOS_SALIDA)))
-      .orderBy(desc(notasInventario.fecha))
-      .limit(5),
+      .orderBy(desc(notasInventario.fecha)),
+    // Kardex: entradas y salidas reales (con su signo) — la verdad del stock.
+    db
+      .select({
+        entradas: sql<string>`coalesce(sum(case when ${movimientosInventario.tipo} in ('entrada','traslado_entrada') then ${movimientosInventario.cantidad} when ${movimientosInventario.tipo} = 'ajuste' and ${movimientosInventario.cantidad} > 0 then ${movimientosInventario.cantidad} else 0 end), 0)`,
+        salidas: sql<string>`coalesce(sum(case when ${movimientosInventario.tipo} in ('salida','traslado_salida') then ${movimientosInventario.cantidad} when ${movimientosInventario.tipo} = 'ajuste' and ${movimientosInventario.cantidad} < 0 then -${movimientosInventario.cantidad} else 0 end), 0)`,
+      })
+      .from(movimientosInventario)
+      .where(and(eq(movimientosInventario.empresaId, empresaId), eq(movimientosInventario.productoId, productoId))),
   ]);
   const [venta] = ventaRows;
   const [compra] = compraRows;
   const [merma] = mermaRows;
+  const [kardex] = kardexRows;
 
   const existencias = exist.map((x) => ({ bodegaId: x.bodegaId, bodegaNombre: x.bodegaNombre, existencia: Number(x.existencia ?? 0), valor: Number(x.valor ?? 0) }));
+  const stockTotal = existencias.reduce((s, x) => s + x.existencia, 0);
+
+  // Reconciliación: stock = inicial + entradas − salidas. `inicial` = lo que el
+  // kardex no explica (existencia inicial / ajustes). Siempre cuadra por construcción.
+  const entradas = Number(kardex.entradas);
+  const salidas = Number(kardex.salidas);
+  const redondear = (n: number) => Math.round(n * 10000) / 10000;
+  const inicial = redondear(stockTotal - entradas + salidas);
 
   return {
     producto,
@@ -161,10 +183,11 @@ export async function fichaProducto(empresaId: number, productoId: number): Prom
     vendidoMonto: { total: Number(venta.montoTotal), ultimos30: Number(venta.monto30) },
     compradoCantidad: { total: Number(compra.cantTotal), ultimos30: Number(compra.cant30) },
     mermaCantidad: { total: Number(merma.total), ultimos30: Number(merma.u30) },
-    stockTotal: existencias.reduce((s, x) => s + x.existencia, 0),
+    stockTotal,
     existencias,
     pedidosDistintos: Number(compra.pedidos),
     cantidadRecibida: Number(compra.recibida),
     mermas: mermasDet.map((m) => ({ id: m.id, fecha: m.fecha, bodegaNombre: m.bodegaNombre, cantidad: Number(m.cantidad ?? 0), motivo: m.motivo })),
+    reconciliacion: { inicial, entradas: redondear(entradas), salidas: redondear(salidas), stock: stockTotal },
   };
 }

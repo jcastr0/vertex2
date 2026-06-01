@@ -12,7 +12,7 @@ export async function cargarCompras(empresaId: number, f: Filtros): Promise<Dato
     f.proveedor ? eq(pedidos.proveedorId, Number(f.proveedor)) : undefined);
   const [tot] = await db.select({ compras: sql<string>`coalesce(sum(${pedidos.total}),0)`, n: sql<number>`count(*)`, costos: sql<string>`coalesce(sum(${pedidos.costosAdicionales}),0)` }).from(pedidos).where(cond);
   const porDia = await db.select({ x: pedidos.fecha, y: sql<string>`sum(${pedidos.total})` }).from(pedidos).where(cond).groupBy(pedidos.fecha).orderBy(pedidos.fecha);
-  const topProv = await db.select({ etiqueta: terceros.razonSocial, y: sql<string>`sum(${pedidos.total})` }).from(pedidos).innerJoin(terceros, eq(pedidos.proveedorId, terceros.id)).where(cond).groupBy(terceros.razonSocial).orderBy(desc(sql`sum(${pedidos.total})`)).limit(10);
+  const topProv = await db.select({ etiqueta: terceros.razonSocial, y: sql<string>`sum(${pedidos.total})` }).from(pedidos).innerJoin(terceros, eq(pedidos.proveedorId, terceros.id)).where(cond).groupBy(terceros.razonSocial).orderBy(desc(sql`sum(${pedidos.total})`));
   const costos = await db.select({ etiqueta: pedidoCostos.tipo, y: sql<string>`sum(${pedidoCostos.valor})` }).from(pedidoCostos).innerJoin(pedidos, eq(pedidoCostos.pedidoId, pedidos.id)).where(cond).groupBy(pedidoCostos.tipo).orderBy(desc(sql`sum(${pedidoCostos.valor})`));
   const det = await db.select({ fecha: pedidos.fecha, numero: pedidos.numero, proveedor: terceros.razonSocial, estado: pedidos.estado, total: pedidos.total }).from(pedidos).innerJoin(terceros, eq(pedidos.proveedorId, terceros.id)).where(cond).orderBy(desc(pedidos.fecha));
 

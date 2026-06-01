@@ -39,7 +39,7 @@ export async function cargarVentas(empresaId: number, f: Filtros): Promise<Datos
   const topCli = await db
     .select({ etiqueta: terceros.razonSocial, y: sql<string>`sum(${facturas.total})` })
     .from(facturas).innerJoin(terceros, eq(facturas.clienteId, terceros.id))
-    .where(cond).groupBy(terceros.razonSocial).orderBy(desc(sql`sum(${facturas.total})`)).limit(10);
+    .where(cond).groupBy(terceros.razonSocial).orderBy(desc(sql`sum(${facturas.total})`));
 
   // Top productos (por líneas de las facturas del filtro)
   const condDet = and(eq(facturas.empresaId, empresaId), ne(facturas.estado, "anulada"), gte(facturas.fecha, f.desde!), lte(facturas.fecha, f.hasta!),
@@ -51,7 +51,7 @@ export async function cargarVentas(empresaId: number, f: Filtros): Promise<Datos
     .from(facturaDetalles)
     .innerJoin(facturas, eq(facturaDetalles.facturaId, facturas.id))
     .innerJoin(productos, eq(facturaDetalles.productoId, productos.id))
-    .where(condDet).groupBy(productos.nombre).orderBy(desc(sql`sum(${facturaDetalles.subtotal})`)).limit(10);
+    .where(condDet).groupBy(productos.nombre).orderBy(desc(sql`sum(${facturaDetalles.subtotal})`));
 
   // Detalle: líneas de venta
   const det = await db

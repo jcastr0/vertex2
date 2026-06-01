@@ -345,6 +345,11 @@ async function main() {
 
   // ── 7. Inventario (vx16) ─────────────────────────────────────────────────────
   console.log("→ Sembrando inventario…");
+  const [usrInv] = await db
+    .select({ id: schema.usuarios.id })
+    .from(schema.usuarios)
+    .where(eq(schema.usuarios.email, "admin@demo.co"))
+    .limit(1);
   for (const p of PRODUCTOS_DEMO) {
     const prod = prodMap[p.sku];
     if (!prod) {
@@ -355,7 +360,7 @@ async function main() {
     const costo = p.costoPromedio;
     const valorTotal = String(Number(cantidad) * Number(costo));
 
-    await db
+    const creado = await db
       .insert(schema.inventario)
       .values({
         empresaId: E,
@@ -368,7 +373,24 @@ async function main() {
       })
       .onConflictDoNothing({
         target: [schema.inventario.empresaId, schema.inventario.bodegaId, schema.inventario.productoId],
+      })
+      .returning({ id: schema.inventario.id });
+
+    // El stock inicial queda como movimiento 'saldo_inicial' en el kardex, para que
+    // el inventario SIEMPRE sea = suma del kardex (entradas − salidas) y todo cuadre.
+    // Solo si la fila de inventario es nueva (no duplicar en re-seeds).
+    if (creado.length > 0 && usrInv && Number(cantidad) !== 0) {
+      await db.insert(schema.movimientosInventario).values({
+        empresaId: E,
+        bodegaId: bodega.id,
+        productoId: prod.id,
+        tipo: "saldo_inicial",
+        cantidad: cantidad,
+        costoUnitario: costo,
+        referencia: "Saldo inicial",
+        usuarioId: usrInv.id,
       });
+    }
   }
   console.log(`  ✓ Inventario sembrado`);
 
