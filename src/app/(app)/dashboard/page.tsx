@@ -68,11 +68,11 @@ export default async function InicioPage() {
         <TareaCard href="/reportes" icon={TrendingUp} titulo="Cómo va el negocio" desc="Ventas, ganancia y existencias" dato={`Ganancia de ${mesNombre}`} valor={money(k.utilidad)} />
       </div>
 
-      {/* Resumen del mes, en cristiano */}
+      {/* Resumen del mes, en cristiano — cada cifra abre su detalle */}
       <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3">
-        <Resumen label={`Vendiste en ${mesNombre}`} valor={money(k.ventas)} />
-        <Resumen label="Mercancía en bodega" valor={money(k.inventario)} />
-        <Resumen label={`Compraste en ${mesNombre}`} valor={money(k.compras)} />
+        <Resumen label={`Vendiste en ${mesNombre}`} valor={money(k.ventas)} href="/facturas" />
+        <Resumen label="Mercancía en bodega" valor={money(k.inventario)} href="/inventario" />
+        <Resumen label={`Compraste en ${mesNombre}`} valor={money(k.compras)} href="/pedidos" />
       </div>
 
       {/* Avisos: solo si hay algo que atender */}
@@ -142,11 +142,16 @@ function TareaCard({ href, icon: Icon, titulo, desc, dato, valor }: { href: stri
   );
 }
 
-function Resumen({ label, valor }: { label: string; valor: string }) {
-  return (
-    <div className="px-1">
+function Resumen({ label, valor, href }: { label: string; valor: string; href?: string }) {
+  const cuerpo = (
+    <>
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="tabular text-xl font-bold tracking-tight">{valor}</p>
-    </div>
+    </>
+  );
+  return href ? (
+    <Link href={href} className="rounded-lg px-1 py-1 transition-colors hover:bg-muted/50">{cuerpo}</Link>
+  ) : (
+    <div className="px-1">{cuerpo}</div>
   );
 }
