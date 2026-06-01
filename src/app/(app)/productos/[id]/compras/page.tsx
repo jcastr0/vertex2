@@ -30,8 +30,8 @@ export default async function ComprasProductoPage({ params }: { params: Promise<
     { header: "Pedido", primary: true, cell: (c) => <span className="tabular font-medium">{c.numero}</span> },
     { header: "Fecha", cell: (c) => <span className="tabular">{fechaCorta(c.fecha)}</span> },
     { header: "Proveedor", cell: (c) => c.proveedor },
-    { header: "Pedido", className: "text-right", cell: (c) => <span className="tabular">{num(c.cantidad)}</span> },
-    { header: "Recibido", className: "text-right", cell: (c) => <span className="tabular">{num(c.recibida)}</span> },
+    { header: "Cant. pedida", className: "text-right", cell: (c) => <span className="tabular">{num(c.cantidad)}</span> },
+    { header: "Recibida", className: "text-right", cell: (c) => <span className="tabular">{num(c.recibida)}</span> },
     { header: "Subtotal", className: "text-right", cell: (c) => <span className="tabular">{money(c.subtotal)}</span> },
   ];
 
@@ -40,7 +40,7 @@ export default async function ComprasProductoPage({ params }: { params: Promise<
       <Link href={`/productos/${productoId}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
         <ArrowLeft className="size-4" /> {producto.nombre}
       </Link>
-      <PageHeader title="Compras del producto" description={`${num(totalCant)} pedido · ${num(totalRecibida)} recibido en ${compras.length} pedido${compras.length !== 1 ? "s" : ""}`} />
+      <PageHeader title="Compras del producto" description={`${num(totalCant)} unidades en ${compras.length} pedido${compras.length !== 1 ? "s" : ""} · recibidas ${num(totalRecibida)}`} />
       {compras.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border py-16 text-center text-sm text-muted-foreground">Este producto aún no se ha comprado en pedidos.</div>
       ) : (
