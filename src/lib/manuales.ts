@@ -127,9 +127,16 @@ Tus pedidos a proveedores se ven así (en el computador y en el celular):
 5. Guarda el pedido.
 
 ## Recibir el pedido
-En el detalle del pedido toca **Recibir e ingresar a inventario**:
-- El inventario sube y se recalcula el **costo promedio ponderado**.
-- Se genera la **cuenta por pagar** al proveedor.
+En el detalle del pedido tienes dos formas de recibir, según lo que llegó:
+
+- **Recibí todo** — llegó completo, tal cual se pidió. Ingresa todas las cantidades de una.
+- **Vino diferente** — llegó incompleto o distinto. Abre **"¿Qué llegó?"** y ajustas la cantidad que **realmente** llegó por cada producto. El pedido queda **parcial** y puedes recibir el resto más adelante (vuelve a entrar y recibe lo que faltaba).
+
+En ambos casos, al recibir:
+- El inventario sube (solo lo que llegó) y se recalcula el **costo promedio ponderado**.
+- Se genera (o ajusta) la **cuenta por pagar** al proveedor.
+
+> Antes de recibir, un pedido en **borrador** puede **Confirmarse**. Recibir es lo que mueve el inventario.
 `,
   },
   {
