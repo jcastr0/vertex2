@@ -30,6 +30,7 @@ export interface FichaBodegaProducto {
 }
 export interface FichaBodegaMovimiento {
   id: number; fecha: Date; tipo: string; productoNombre: string; cantidad: number; referencia: string | null;
+  facturaId: number | null; pedidoId: number | null; trasladoId: number | null;
 }
 export interface FichaBodega {
   bodega: Bodega;
@@ -59,6 +60,7 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
       .select({
         id: movimientosInventario.id, fecha: movimientosInventario.fecha, tipo: movimientosInventario.tipo,
         productoNombre: productos.nombre, cantidad: movimientosInventario.cantidad, referencia: movimientosInventario.referencia,
+        facturaId: movimientosInventario.facturaId, pedidoId: movimientosInventario.pedidoId, trasladoId: movimientosInventario.trasladoId,
       })
       .from(movimientosInventario)
       .innerJoin(productos, eq(movimientosInventario.productoId, productos.id))
@@ -80,6 +82,7 @@ export async function fichaBodega(empresaId: number, bodegaId: number): Promise<
     ultimosMovimientos: movs.map((m) => ({
       id: m.id, fecha: m.fecha, tipo: m.tipo, productoNombre: m.productoNombre,
       cantidad: Number(m.cantidad ?? 0), referencia: m.referencia,
+      facturaId: m.facturaId, pedidoId: m.pedidoId, trasladoId: m.trasladoId,
     })),
   };
 }

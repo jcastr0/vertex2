@@ -7,11 +7,13 @@ import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { getPermisos } from "@/lib/auth/permisos";
 import { puede } from "@/lib/auth/roles";
 import { fichaBodega } from "@/lib/services/fichas";
+import { origenDocumento } from "@/lib/domain/kardex";
 import { PageHeader } from "@/components/page-header";
 import { KpiFila } from "@/components/reportes/kpi";
 import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
 import type { FichaBodegaProducto, FichaBodegaMovimiento } from "@/lib/services/fichas";
 
 export const metadata: Metadata = { title: "Bodega — Vertex" };
@@ -39,6 +41,19 @@ export default async function BodegaDetallePage({ params }: { params: Promise<{ 
     { header: "Tipo", cell: (m) => <Badge variant="secondary" className="font-normal capitalize">{m.tipo.replace("_", " ")}</Badge> },
     { header: "Producto", cell: (m) => m.productoNombre },
     { header: "Cantidad", className: "text-right", cell: (m) => <span className="tabular">{num(m.cantidad)}</span> },
+    {
+      header: "Origen",
+      cell: (m) => {
+        const o = origenDocumento(m);
+        return o ? (
+          <Link href={o.href} className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline">
+            {o.label} <ArrowUpRight className="size-3" />
+          </Link>
+        ) : (
+          <span className="text-muted-foreground">{m.referencia ?? "—"}</span>
+        );
+      },
+    },
   ];
 
   return (

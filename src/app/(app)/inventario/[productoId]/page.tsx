@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { fechaHora } from "@/lib/fecha";
 import { notFound } from "next/navigation";
 import { parseId } from "@/lib/route-params";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { kardexProducto } from "@/lib/services/inventario";
 import { obtenerProducto } from "@/lib/services/productos";
+import { origenDocumento } from "@/lib/domain/kardex";
 import { PageHeader } from "@/components/page-header";
 import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { Badge } from "@/components/ui/badge";
+import { ArrowUpRight } from "lucide-react";
 import type { MovimientoKardex } from "@/lib/services/inventario";
 
 export const metadata: Metadata = { title: "Kardex — Vertex" };
@@ -42,7 +45,19 @@ export default async function KardexPage({ params }: { params: Promise<{ product
     { header: "Bodega", cell: (m) => m.bodegaNombre },
     { header: "Cantidad", className: "text-right", cell: (m) => <span className="tabular">{num(m.cantidad)}</span> },
     { header: "Costo unit.", className: "text-right", cell: (m) => <span className="tabular">{money(m.costoUnitario)}</span> },
-    { header: "Ref.", cell: (m) => m.referencia ?? "—" },
+    {
+      header: "Origen",
+      cell: (m) => {
+        const o = origenDocumento(m);
+        return o ? (
+          <Link href={o.href} className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline">
+            {o.label} <ArrowUpRight className="size-3" />
+          </Link>
+        ) : (
+          <span className="text-muted-foreground">{m.referencia ?? "—"}</span>
+        );
+      },
+    },
   ];
 
   return (

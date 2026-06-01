@@ -51,6 +51,9 @@ export interface MovimientoKardex {
   cantidad: string;
   costoUnitario: string | null;
   referencia: string | null;
+  facturaId: number | null;
+  pedidoId: number | null;
+  trasladoId: number | null;
 }
 
 export async function kardexProducto(
@@ -66,6 +69,9 @@ export async function kardexProducto(
       cantidad: movimientosInventario.cantidad,
       costoUnitario: movimientosInventario.costoUnitario,
       referencia: movimientosInventario.referencia,
+      facturaId: movimientosInventario.facturaId,
+      pedidoId: movimientosInventario.pedidoId,
+      trasladoId: movimientosInventario.trasladoId,
     })
     .from(movimientosInventario)
     .innerJoin(bodegas, eq(movimientosInventario.bodegaId, bodegas.id))
