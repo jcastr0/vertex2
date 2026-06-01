@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { TIPOS_NOTA } from "@/lib/domain/nota-inventario";
 import {
   inventario, productos, bodegas, unidadesMedida, movimientosInventario,
-  facturas, facturaDetalles, pedidos, pedidoDetalles, notasInventario,
+  facturas, facturaDetalles, pedidos, pedidoDetalles, notasInventario, terceros,
 } from "@/lib/db/schema";
 import { obtenerBodega, type Bodega } from "./bodegas";
 import { obtenerProducto, type Producto } from "./productos";
@@ -190,4 +190,50 @@ export async function fichaProducto(empresaId: number, productoId: number): Prom
     mermas: mermasDet.map((m) => ({ id: m.id, fecha: m.fecha, bodegaNombre: m.bodegaNombre, cantidad: Number(m.cantidad ?? 0), motivo: m.motivo })),
     reconciliacion: { inicial, entradas: redondear(entradas), salidas: redondear(salidas), stock: stockTotal },
   };
+}
+
+// ── Drill-down: el detalle detrás de cada cifra del producto ────────────────
+
+export interface VentaDeProducto { facturaId: number; numero: string; fecha: string; cliente: string; cantidad: number; subtotal: number }
+export interface CompraDeProducto { pedidoId: number; numero: string; fecha: string; proveedor: string; cantidad: number; recibida: number; subtotal: number }
+
+/** Las facturas (emitidas) donde se vendió este producto. La suma reconstruye "Vendido". */
+export async function ventasDeProducto(empresaId: number, productoId: number): Promise<VentaDeProducto[]> {
+  const rows = await db
+    .select({
+      facturaId: facturas.id,
+      numero: facturas.numero,
+      fecha: facturas.fecha,
+      cliente: terceros.razonSocial,
+      cantidad: sql<string>`sum(${facturaDetalles.cantidadBase})`,
+      subtotal: sql<string>`sum(${facturaDetalles.subtotal})`,
+    })
+    .from(facturaDetalles)
+    .innerJoin(facturas, eq(facturaDetalles.facturaId, facturas.id))
+    .innerJoin(terceros, eq(facturas.clienteId, terceros.id))
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturaDetalles.productoId, productoId), eq(facturas.estado, "emitida")))
+    .groupBy(facturas.id, facturas.numero, facturas.fecha, terceros.razonSocial)
+    .orderBy(desc(facturas.fecha), desc(facturas.id));
+  return rows.map((r) => ({ ...r, cantidad: Number(r.cantidad), subtotal: Number(r.subtotal) }));
+}
+
+/** Los pedidos donde se compró este producto. La suma reconstruye "Comprado". */
+export async function comprasDeProducto(empresaId: number, productoId: number): Promise<CompraDeProducto[]> {
+  const rows = await db
+    .select({
+      pedidoId: pedidos.id,
+      numero: pedidos.numero,
+      fecha: pedidos.fecha,
+      proveedor: terceros.razonSocial,
+      cantidad: sql<string>`sum(${pedidoDetalles.cantidad})`,
+      recibida: sql<string>`sum(${pedidoDetalles.cantidadRecibida})`,
+      subtotal: sql<string>`sum(${pedidoDetalles.subtotal})`,
+    })
+    .from(pedidoDetalles)
+    .innerJoin(pedidos, eq(pedidoDetalles.pedidoId, pedidos.id))
+    .innerJoin(terceros, eq(pedidos.proveedorId, terceros.id))
+    .where(and(eq(pedidos.empresaId, empresaId), eq(pedidoDetalles.productoId, productoId)))
+    .groupBy(pedidos.id, pedidos.numero, pedidos.fecha, terceros.razonSocial)
+    .orderBy(desc(pedidos.fecha), desc(pedidos.id));
+  return rows.map((r) => ({ ...r, cantidad: Number(r.cantidad), recibida: Number(r.recibida), subtotal: Number(r.subtotal) }));
 }

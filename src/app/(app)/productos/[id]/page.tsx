@@ -10,6 +10,7 @@ import { fichaProducto } from "@/lib/services/fichas";
 import { PageHeader } from "@/components/page-header";
 import { ResponsiveTable, type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
 import type { FichaProductoExistencia, FichaProductoMerma } from "@/lib/services/fichas";
 
 export const metadata: Metadata = { title: "Producto — Vertex" };
@@ -87,8 +88,8 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-muted-foreground">Actividad</h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Metrica label="Vendido" total={f.vendidoCantidad.total} ultimos30={f.vendidoCantidad.ultimos30} pie={`${money(f.vendidoMonto.total)} en ventas`} />
-          <Metrica label="Comprado" total={f.compradoCantidad.total} ultimos30={f.compradoCantidad.ultimos30} pie={`${f.pedidosDistintos} pedido${f.pedidosDistintos !== 1 ? "s" : ""} · recibido ${num(f.cantidadRecibida)}`} />
+          <Metrica label="Vendido" total={f.vendidoCantidad.total} ultimos30={f.vendidoCantidad.ultimos30} pie={`${money(f.vendidoMonto.total)} en ventas`} href={`/productos/${f.producto.id}/ventas`} />
+          <Metrica label="Comprado" total={f.compradoCantidad.total} ultimos30={f.compradoCantidad.ultimos30} pie={`${f.pedidosDistintos} pedido${f.pedidosDistintos !== 1 ? "s" : ""} · recibido ${num(f.cantidadRecibida)}`} href={`/productos/${f.producto.id}/compras`} />
           <Metrica label="Merma" total={f.mermaCantidad.total} ultimos30={f.mermaCantidad.ultimos30} pie="salidas por notas de inventario" />
         </div>
       </section>
@@ -112,16 +113,30 @@ export default async function ProductoDetallePage({ params }: { params: Promise<
   );
 }
 
-/** Una métrica de actividad: número grande + contexto + lo de los últimos 30 días. */
-function Metrica({ label, total, ultimos30, pie }: { label: string; total: number; ultimos30: number; pie: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
+/**
+ * Una métrica de actividad: número grande + contexto + últimos 30 días.
+ * Con `href`, toda la tarjeta abre el detalle (en qué facturas/pedidos) — descubrimiento en profundidad.
+ */
+function Metrica({ label, total, ultimos30, pie, href }: { label: string; total: number; ultimos30: number; pie: string; href?: string }) {
+  const cuerpo = (
+    <>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        {href && <span className="inline-flex items-center gap-0.5 text-xs text-primary opacity-0 transition-opacity group-hover:opacity-100">Ver detalle <ChevronRight className="size-3" /></span>}
+      </div>
       <p className="tabular text-2xl font-bold tracking-tight">{num(total)}</p>
       <p className="mt-0.5 text-xs text-muted-foreground">{pie}</p>
       <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
         Últimos 30 días: <span className="tabular font-medium text-foreground">{num(ultimos30)}</span>
       </p>
-    </div>
+    </>
   );
+  if (href) {
+    return (
+      <Link href={href} className="group rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
+        {cuerpo}
+      </Link>
+    );
+  }
+  return <div className="rounded-2xl border border-border bg-card p-4">{cuerpo}</div>;
 }
