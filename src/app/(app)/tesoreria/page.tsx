@@ -71,6 +71,7 @@ export default async function TesoreriaPage({ searchParams }: { searchParams: Pr
             pageSize={PAGE_SIZE}
             items={items}
             getKey={(c) => c.id}
+            rowHref={(c) => `/tesoreria/${c.id}`}
             rowClassName={(c) => (c.activa ? "" : "opacity-60")}
             columns={columnas}
             searchPlaceholder="Buscar cuenta…"

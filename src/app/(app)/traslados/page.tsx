@@ -48,11 +48,7 @@ export default async function TrasladosPage({
     {
       header: "Número",
       primary: true,
-      cell: (f) => (
-        <Link href={`/traslados/${f.traslado.id}`} className="tabular font-medium text-primary hover:underline">
-          {f.traslado.numero}
-        </Link>
-      ),
+      cell: (f) => <span className="tabular font-medium">{f.traslado.numero}</span>,
     },
     { header: "Origen", cell: (f) => f.origen },
     { header: "Destino", cell: (f) => bodPorId.get(f.traslado.bodegaDestinoId) ?? "—" },
@@ -84,6 +80,7 @@ export default async function TrasladosPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.traslado.id}
+        rowHref={(f) => `/traslados/${f.traslado.id}`}
         columns={columnas}
         searchPlaceholder="Buscar por número o bodega…"
         hayDatos={todos.length > 0}

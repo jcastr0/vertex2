@@ -39,11 +39,7 @@ export default async function InventarioPage({
     {
       header: "Producto",
       primary: true,
-      cell: (f) => (
-        <Link href={`/inventario/${f.productoId}`} className="font-medium text-primary hover:underline">
-          {f.productoNombre}
-        </Link>
-      ),
+      cell: (f) => <span className="font-medium">{f.productoNombre}</span>,
     },
     { header: "Bodega", cell: (f) => f.bodegaNombre },
     { header: "Existencia", className: "text-right", cell: (f) => <span className="tabular">{num(f.cantidadActual)} {f.unidad}</span> },
@@ -68,6 +64,7 @@ export default async function InventarioPage({
         pageSize={PAGE_SIZE}
         items={items}
         getKey={(f) => f.id}
+        rowHref={(f) => `/inventario/${f.productoId}`}
         columns={columnas}
         searchPlaceholder="Buscar por producto, SKU o bodega…"
         hayDatos={todos.length > 0}
