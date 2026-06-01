@@ -27,21 +27,26 @@ export default async function KardexPage({
   searchParams,
 }: {
   params: Promise<{ productoId: string }>;
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; flujo?: string }>;
 }) {
   await requirePermiso("inventario.ver");
   const { empresaId } = await requireEmpresa();
   const { productoId } = await params;
-  const { q = "", page: pageRaw } = await searchParams;
+  const { q = "", page: pageRaw, flujo } = await searchParams;
   const producto = await obtenerProducto(empresaId, parseId(productoId));
   if (!producto) notFound();
 
+  const esEntrada = (m: MovimientoKardex) => ENTRADAS.includes(m.tipo) || (m.tipo === "ajuste" && Number(m.cantidad) > 0);
+  const filtros = [
+    { key: "flujo", label: "Movimiento", tipo: "select" as const, opciones: [{ value: "entradas", label: "Entradas" }, { value: "salidas", label: "Salidas" }] },
+  ];
   const todos = await kardexProducto(empresaId, producto.id);
   const { items, total, page } = filtrarPaginar(todos, {
     q,
     page: parsePage(pageRaw),
     pageSize: PAGE_SIZE,
     texto: (m) => `${m.tipo} ${m.referencia ?? ""} ${m.bodegaNombre}`,
+    filtro: (m) => (!flujo ? true : flujo === "entradas" ? esEntrada(m) : !esEntrada(m)),
   });
 
   const columnas: Columna<MovimientoKardex>[] = [
@@ -84,6 +89,7 @@ export default async function KardexPage({
         items={items}
         columns={columnas}
         getKey={(m) => m.id}
+        filtros={filtros}
         searchPlaceholder="Buscar por tipo, documento o bodega…"
         hayDatos={todos.length > 0}
         vacio={{ icon: PackageSearch, titulo: "Sin movimientos", texto: "Este producto aún no tiene entradas ni salidas registradas." }}
