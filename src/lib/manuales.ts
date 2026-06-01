@@ -47,7 +47,9 @@ Vertex te ayuda a administrar **compras, inventario, ventas y cartera** de tu em
 
 Así se mueve la plata y la mercancía en Vertex, de principio a fin. Cada paso tiene su manual detallado.
 
-![El panel de inicio de Vertex](/manuales/dashboard-desktop.png)
+![El inicio en el computador](/manuales/dashboard-desktop.png)
+
+![El inicio en el celular](/manuales/dashboard-movil.png)
 
 ## 1. Compras a tu proveedor
 Creas un **pedido** (qué le compras y a qué bodega entra) y, cuando llega, lo **recibes**: el inventario sube, se recalcula el **costo promedio** y nace una **cuenta por pagar**.
@@ -108,10 +110,19 @@ Al elegir el cliente, si está marcado como que **requiere factura electrónica*
     modulo: "pedidos",
     contenido: `# Compras y pedidos
 
-![Crear un pedido a un proveedor](/manuales/compras-desktop.png)
+Tus pedidos a proveedores se ven así (en el computador y en el celular):
+
+![Lista de pedidos en el computador](/manuales/compras-lista-desktop.png)
+
+![Lista de pedidos en el celular](/manuales/compras-lista-movil.png)
 
 ## Crear un pedido
 1. **Pedidos → Nuevo pedido**.
+
+![Nuevo pedido en el computador](/manuales/compras-desktop.png)
+
+![Nuevo pedido en el celular](/manuales/compras-movil.png)
+
 2. Elige **proveedor** y **bodega destino**.
 3. Agrega productos con su **unidad**, **cantidad** y **precio**.
 4. (Opcional) Agrega **costos adicionales** (flete, gasolina…). Se reparten entre los productos.
@@ -131,7 +142,9 @@ En el detalle del pedido toca **Recibir e ingresar a inventario**:
     modulo: "inventario",
     contenido: `# Inventario
 
-![Existencias por bodega](/manuales/inventario-desktop.png)
+![Inventario en el computador](/manuales/inventario-desktop.png)
+
+![Inventario en el celular](/manuales/inventario-movil.png)
 
 ## Existencias
 **Inventario** muestra el stock por bodega, valorizado al **costo promedio**. Toca un producto para ver su **kardex** (todos los movimientos).
@@ -153,7 +166,9 @@ Usa **Notas de inventario** para registrar **mermas, daños o diferencias**. El 
     modulo: "cuentas_cobrar",
     contenido: `# Cartera
 
-![Cuentas por cobrar](/manuales/cartera-desktop.png)
+![Cuentas por cobrar en el computador](/manuales/cartera-desktop.png)
+
+![Cuentas por cobrar en el celular](/manuales/cartera-movil.png)
 
 ## Cuentas por cobrar
 Se crean al **facturar a crédito**. En **Cuentas por cobrar** verás el saldo y el estado (pendiente, vencida, pagada). Toca **Recaudar** para registrar un abono del cliente.
@@ -172,7 +187,9 @@ Se crean al **recibir un pedido**. En **Cuentas por pagar** toca **Pagar** para 
     modulo: "productos",
     contenido: `# Productos y unidades
 
-![Catálogo de productos](/manuales/productos-desktop.png)
+![Catálogo de productos en el computador](/manuales/productos-desktop.png)
+
+![Catálogo de productos en el celular](/manuales/productos-movil.png)
 
 ## Crear un producto
 **Productos → Nuevo producto**: SKU, nombre, **unidad base** (la que se lleva en inventario) y categoría.
@@ -203,6 +220,8 @@ Necesitas el permiso para programar (rol Admin o superior).
 
 ![Programar la ruta en el computador](/manuales/recaudo-asignar-desktop.png)
 
+![Programar la ruta en el celular](/manuales/recaudo-asignar-movil.png)
+
 > ¿Quién ve qué? Si tienes permiso de usuarios, puedes elegir de qué recaudador ver la ruta. Si eres recaudador, ves solo la tuya.
 
 ## En el celular — cobrar en la calle
@@ -228,7 +247,9 @@ En **"Hoy te toca"** aparece cada cliente como una tarjeta. En cada una puede:
 
 Cuando recibes un pedido, Vertex crea una **cuenta por pagar** al proveedor. Aquí está todo lo necesario para pagarle bien.
 
-![Cuentas por pagar](/manuales/pagar-proveedor-desktop.png)
+![Cuentas por pagar en el computador](/manuales/pagar-proveedor-desktop.png)
+
+![Cuentas por pagar en el celular](/manuales/pagar-proveedor-movil.png)
 
 ## 1. Guarda las cuentas bancarias del proveedor
 Para no escribir el número de cuenta cada vez, guárdalo una vez:
@@ -237,6 +258,10 @@ Para no escribir el número de cuenta cada vez, guárdalo una vez:
 2. En el panel de **Cuentas de pago** toca **Agregar cuenta**.
 3. Elige el **banco** (de la lista), el **tipo** y el **N° de cuenta**.
 4. Por defecto la cuenta es **del mismo proveedor**. Si la cuenta está a nombre de otro (factoring o cesión), pon el **NIT y nombre del titular**.
+
+![Agregar una cuenta de pago al proveedor (computador)](/manuales/beneficiarios-desktop.png)
+
+![Agregar una cuenta de pago al proveedor (celular)](/manuales/beneficiarios-movil.png)
 
 Esas cuentas aparecerán al momento de pagar.
 
@@ -265,7 +290,9 @@ En **Cuentas por pagar** toca **Pagar**:
 
 Las retenciones se descuentan del pago a un proveedor según la ley. En Vertex se configuran una vez y se aplican solas.
 
-![Crear una retención](/manuales/retenciones-desktop.png)
+![Crear una retención en el computador](/manuales/retenciones-desktop.png)
+
+![Crear una retención en el celular](/manuales/retenciones-movil.png)
 
 ## Crear una retención
 1. Entra a **Retenciones → Nueva**.
