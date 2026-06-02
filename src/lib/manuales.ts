@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Rocket, ShoppingBag, ShoppingCart, Boxes, Wallet, Package, Workflow, Route, Banknote, Percent } from "lucide-react";
+import { Rocket, ShoppingBag, ShoppingCart, Boxes, Wallet, Package, Workflow, Route, Banknote, Percent, ShieldCheck } from "lucide-react";
 import type { Modulo } from "./auth/roles";
 
 export interface Manual {
@@ -320,6 +320,62 @@ Las retenciones se calculan **automáticamente al pagar a un proveedor**, sobre 
 → Ver el flujo completo en [Pagar a un proveedor](/manuales/pagar-proveedor).
 `,
   },
+  {
+    slug: "administracion",
+    titulo: "Administración",
+    descripcion: "Crea usuarios, asigna roles, gestiona empresas y el tema de colores.",
+    icon: ShieldCheck,
+    modulo: "usuarios",
+    contenido: `# Administración
+
+Aquí decides **quién entra, qué puede hacer cada persona y cómo se ve** la empresa. Son tareas de dueño o administrador.
+
+## Crear un usuario
+
+Ve a **Administración → Usuarios → Nuevo usuario** y llena:
+
+- **Nombre** y **Correo electrónico** (obligatorios; el correo no se puede repetir).
+- **Contraseña** (mínimo 8 caracteres). Al **editar** un usuario, deja la contraseña en blanco para no cambiarla.
+- **Rol** — uno solo por usuario. Es lo que define qué puede hacer (ver más abajo).
+- **Usuario activo** — viene activado. Si lo desactivas, esa persona no puede entrar (pero su historial se conserva).
+- **Es recaudador** — actívalo si la persona va a **cobrar en la calle**. Así puede tener clientes asignados y entra a la ruta de recaudo desde el celular. → Ver [Cobrar en ruta](/manuales/recaudo).
+
+Para **desactivar o reactivar** a alguien, usa el menú de la fila en la lista de usuarios.
+
+## Por qué un rol y no otro
+
+Un **rol** es un paquete de permisos: qué módulos ve y si puede **ver, crear, editar o eliminar** en cada uno. Los roles que ya vienen listos:
+
+- **Admin** — maneja toda la operación. Reportes, auditoría y tablero los ve, pero no los modifica.
+- **Operador** — el día a día: productos, pedidos, inventario, facturas, recaudos y pagos (crea y edita, no borra). No toca usuarios ni empresas.
+- **Vendedor** — factura y registra clientes; ve productos y la cartera. No entra a inventario ni a compras.
+- **Bodega** — inventario, traslados y notas de inventario; ve productos y pedidos. Ideal para quien recibe y mueve mercancía.
+- **Contador** — **solo lectura** en todo. Perfecto para revisar sin riesgo de cambiar nada.
+- **SuperAdmin** — acceso total y a todas las empresas. No se edita desde la pantalla.
+
+**Regla práctica:** dale a cada persona **el rol más limitado que le deje hacer su trabajo**. ¿Solo factura? Vendedor. ¿Solo recibe mercancía? Bodega. ¿Solo revisa números? Contador. Así reduces errores y proteges la información.
+
+## Roles a la medida
+
+Si ninguno calza, ve a **Administración → Roles → Nuevo rol**. Le pones un nombre y marcas los permisos en una **matriz**: las filas son los módulos y las columnas son **Ver, Crear, Editar y Eliminar**. Puedes activar una fila completa (todo un módulo) o una columna completa (una acción en todos los módulos) con un clic. Guardas y ya lo puedes asignar a los usuarios.
+
+## Crear una empresa
+
+Solo el **superadministrador** gestiona empresas. En **Administración → Empresas → Nueva empresa**:
+
+- **Identificación** — Nombre, Razón social, NIT y Email (obligatorios).
+- **Contacto y ubicación** — Teléfono, Ciudad, Dirección y País (opcionales; el país viene en Colombia).
+- **Apariencia** — la paleta de colores (ver abajo).
+
+Si manejas **varias empresas**, el superadmin cambia la **empresa activa** con el selector de la parte de arriba. Cada empresa tiene sus propios datos, usuarios y tema.
+
+## Asignar el tema (los colores)
+
+En el formulario de la empresa, sección **Apariencia**, eliges una **paleta** entre las 24 disponibles (Esmeralda, Bosque, Océano, Mandarina, Violeta, y más). Hay una **vista previa en vivo** que te muestra cómo quedarán la barra lateral y los botones antes de guardar. Eliges, guardas, y al recargar la app **toda la interfaz** toma esos colores.
+
+> El tema es **por empresa**: si manejas varias, dale a cada una un color distinto para reconocerlas de un vistazo. El botón "Usar tema por defecto" deja el verde esmeralda base.
+`,
+  },
 ];
 
 export function getManual(slug: string): Manual | null {
@@ -342,6 +398,7 @@ export const ORDEN_MANUALES = [
   "recaudo",
   "pagar-proveedor",
   "retenciones",
+  "administracion",
 ] as const;
 
 /** Manuales visibles para el usuario, en el orden de lectura. */

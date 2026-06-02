@@ -28,9 +28,16 @@ describe("catálogo de manuales", () => {
     }
   });
   it("existen los manuales narrativos nuevos", () => {
-    for (const slug of ["ciclo-negocio", "recaudo", "pagar-proveedor", "retenciones"]) {
+    for (const slug of ["ciclo-negocio", "recaudo", "pagar-proveedor", "retenciones", "administracion"]) {
       expect(getManual(slug), `falta el manual ${slug}`).not.toBeNull();
     }
+  });
+  it("'administracion' documenta usuarios, roles, empresas y tema", () => {
+    const c = getManual("administracion")!.contenido.toLowerCase();
+    expect(c).toContain("usuario");
+    expect(c).toContain("rol");
+    expect(c).toContain("empresa");
+    expect(c).toMatch(/tema|paleta/);
   });
   it("el manual de recaudo documenta las DOS formas (computador y celular)", () => {
     const c = getManual("recaudo")!.contenido.toLowerCase();
