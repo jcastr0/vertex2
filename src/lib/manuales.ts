@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Rocket, ShoppingBag, ShoppingCart, Boxes, Wallet, Package, Workflow, Route, Banknote, Percent, ShieldCheck } from "lucide-react";
+import { Rocket, ShoppingBag, ShoppingCart, Boxes, Wallet, Package, Workflow, Route, Banknote, Percent, ShieldCheck, Landmark, ArrowLeftRight, Undo2 } from "lucide-react";
 import type { Modulo } from "./auth/roles";
 
 export interface Manual {
@@ -388,6 +388,122 @@ En el formulario de la empresa, sección **Apariencia**, eliges una **paleta** e
 > El tema es **por empresa**: si manejas varias, dale a cada una un color distinto para reconocerlas de un vistazo. El botón "Usar tema por defecto" deja el verde esmeralda base.
 `,
   },
+  {
+    slug: "traslados",
+    titulo: "Traslados entre bodegas",
+    descripcion: "Mueve mercancía de una bodega a otra en dos pasos: enviar y recibir.",
+    icon: ArrowLeftRight,
+    modulo: "traslados",
+    contenido: `# Traslados entre bodegas
+
+Cuando mueves mercancía de una bodega a otra (sin comprar ni vender), usas un **traslado**. Se hace en **dos pasos** para que el inventario refleje lo que va "en camino".
+
+## 1. Crear el traslado
+
+![Crear un traslado en el computador](/manuales/traslados-nueva-desktop.png)
+
+![Crear un traslado en el celular](/manuales/traslados-nueva-movil.png)
+
+Ve a **Compras e inventario → Traslados → Nuevo traslado** y elige:
+
+- **Bodega origen** y **Bodega destino**.
+- **Fecha** y, si quieres, **Observaciones**.
+- Los **productos** con su **cantidad** (agrega las líneas que necesites).
+
+Al **Crear traslado** queda en estado **Pendiente**: todavía **no** mueve existencias.
+
+## 2. Enviar (sale del origen)
+
+Abre el traslado y pulsa **Enviar**. El sistema **descuenta** la mercancía de la bodega origen (verifica que haya existencias) y el traslado pasa a **Enviado**.
+
+## 3. Recibir en destino (entra al destino)
+
+Cuando la mercancía llega, abre el traslado y pulsa **Recibir en destino**. El stock **sube** en la bodega destino al costo promedio, y el traslado queda **Recibido**.
+
+> Se recibe la **misma cantidad** que se envió. Cada movimiento queda en el **kardex** de cada producto. → Ver [Inventario](/manuales/inventario).
+`,
+  },
+  {
+    slug: "devoluciones",
+    titulo: "Devoluciones y notas",
+    descripcion: "Devoluciones de clientes, notas crédito y ajustes de inventario (merma, sobrante).",
+    icon: Undo2,
+    modulo: "devoluciones",
+    contenido: `# Devoluciones y notas
+
+Para cuando un cliente **regresa mercancía**, hay que **corregir la cartera** o ajustar las **existencias**.
+
+## Devolución de un cliente
+
+![Procesar una devolución en el computador](/manuales/devolucion-nueva-desktop.png)
+
+![Procesar una devolución en el celular](/manuales/devolucion-nueva-movil.png)
+
+Ve a **Ventas → Devoluciones → Nueva** y elige:
+
+- **Cliente** y, si aplica, la **Factura** (opcional — así se le reduce la cuenta por cobrar).
+- **Bodega de reingreso**, **Fecha** y el **Motivo**.
+- Los **productos** con **cantidad** y **precio c/u**.
+
+Al **Procesar devolución**, el sistema hace tres cosas de una vez:
+
+1. **Reingresa** los productos al inventario de esa bodega.
+2. Genera una **nota crédito** automática por el total.
+3. Si elegiste factura, **baja su saldo** en la cartera. → Ver [Cartera](/manuales/cartera).
+
+## Nota crédito manual
+
+Si no hay mercancía de por medio (un **descuento**, un **error de precio**), ve a **Ventas → Notas crédito → Nueva**: eliges el cliente, una factura **con saldo**, el valor y el motivo. Solo **reduce la cartera**; no toca el inventario.
+
+## Notas de inventario (merma, sobrante, ajustes)
+
+![Registrar una nota de inventario en el computador](/manuales/nota-inventario-desktop.png)
+
+![Registrar una nota de inventario en el celular](/manuales/nota-inventario-movil.png)
+
+Para **corregir existencias** ve a **Compras e inventario → Notas de inventario → Nueva**. Eliges **Bodega**, **Producto**, **Tipo de novedad**, **Cantidad**, **Proveedor** (se sugiere el último que surtió) y **Motivo**.
+
+- **Restan** existencias: **Merma**, **Daño**, **Diferencia negativa (faltante)** y **Ajuste de salida**.
+- **Suman** existencias: **Diferencia positiva (sobrante)** y **Ajuste de entrada**.
+
+> Cada ajuste queda en el **kardex** del producto, para que siempre sepas por qué cambió el stock.
+`,
+  },
+  {
+    slug: "tesoreria",
+    titulo: "Tesorería y cierre de caja",
+    descripcion: "Tus cuentas de dinero, sus movimientos y el arqueo del día.",
+    icon: Landmark,
+    modulo: "tesoreria",
+    contenido: `# Tesorería y cierre de caja
+
+Aquí están tus **cuentas de dinero** —la caja de efectivo y las cuentas de banco—, sus movimientos y el **arqueo** del día.
+
+## Tus cuentas
+
+![Extracto de una cuenta en el computador](/manuales/tesoreria-cuenta-desktop.png)
+
+![Extracto de una cuenta en el celular](/manuales/tesoreria-cuenta-movil.png)
+
+Ve a **Cartera → Tesorería**. Cada cuenta es una **caja de efectivo** o una **cuenta bancaria**. Con **Nueva cuenta** registras: **Nombre / alias**, **Tipo** (Ahorros, Corriente o Caja / efectivo), **Banco**, **N° de cuenta**, el **titular** y el **Saldo inicial** (solo al crear; después se corrige con un movimiento).
+
+Al abrir una cuenta ves su **saldo actual** y el **extracto**: cada **entrada** y **salida** con su concepto (Saldo inicial, Pago a proveedor, Recaudo, Traslado, Comisión, Ajuste…). El saldo se alimenta **solo**: cada venta de contado, recaudo y pago cae aquí.
+
+## Movimientos manuales
+
+Con **Nuevo movimiento** registras lo que el sistema no genera solo: **Consignación** (entrada), **Retiro** (salida), **Comisión bancaria** (salida), **Traslado a otra cuenta** (salida, eliges la cuenta destino) o un **Ajuste** (entrada).
+
+## Cierre de caja (arqueo)
+
+![Cierre de caja en el computador](/manuales/cierre-caja-desktop.png)
+
+![Cierre de caja en el celular](/manuales/cierre-caja-movil.png)
+
+Al final del día, ve a **Cartera → Tesorería → Cierre de caja**. Para cada cuenta verás el **saldo esperado**. En las cuentas de **efectivo** escribes el **monto contado** y el sistema muestra la **diferencia** al instante (verde si cuadra, rojo si no). Agregas observaciones y pulsas **Cerrar día**.
+
+> El arqueo **no cambia** los saldos: deja constancia de cuánto contaste frente a cuánto debía haber, para auditoría. → Ver [Cartera](/manuales/cartera).
+`,
+  },
 ];
 
 export function getManual(slug: string): Manual | null {
@@ -405,11 +521,14 @@ export const ORDEN_MANUALES = [
   "productos",
   "compras",
   "inventario",
+  "traslados",
   "vender",
   "cartera",
+  "devoluciones",
   "recaudo",
   "pagar-proveedor",
   "retenciones",
+  "tesoreria",
   "administracion",
 ] as const;
 

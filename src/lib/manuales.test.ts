@@ -28,9 +28,24 @@ describe("catálogo de manuales", () => {
     }
   });
   it("existen los manuales narrativos nuevos", () => {
-    for (const slug of ["ciclo-negocio", "recaudo", "pagar-proveedor", "retenciones", "administracion"]) {
+    for (const slug of ["ciclo-negocio", "recaudo", "pagar-proveedor", "retenciones", "administracion", "traslados", "devoluciones", "tesoreria"]) {
       expect(getManual(slug), `falta el manual ${slug}`).not.toBeNull();
     }
+  });
+  it("'traslados' explica los dos pasos (enviar y recibir)", () => {
+    const c = getManual("traslados")!.contenido.toLowerCase();
+    expect(c).toContain("enviar");
+    expect(c).toContain("recibir");
+  });
+  it("'devoluciones' menciona nota crédito y notas de inventario", () => {
+    const c = getManual("devoluciones")!.contenido.toLowerCase();
+    expect(c).toContain("nota crédito");
+    expect(c).toMatch(/merma|sobrante/);
+  });
+  it("'tesoreria' documenta el cierre de caja / arqueo", () => {
+    const c = getManual("tesoreria")!.contenido.toLowerCase();
+    expect(c).toMatch(/cierre|arqueo/);
+    expect(c).toContain("saldo esperado");
   });
   it("'administracion' documenta usuarios, roles, empresas y tema", () => {
     const c = getManual("administracion")!.contenido.toLowerCase();
@@ -95,8 +110,8 @@ describe("navegación entre manuales", () => {
   });
 
   it("salta los manuales no visibles al calcular vecinos", () => {
-    // Sin 'inventario' visible, el siguiente de 'compras' es 'vender'.
-    const visibles = todos.filter((s) => s !== "inventario");
+    // Sin 'inventario' ni 'traslados' visibles, el siguiente de 'compras' es 'vender'.
+    const visibles = todos.filter((s) => s !== "inventario" && s !== "traslados");
     expect(vecinosManual("compras", visibles).siguiente?.slug).toBe("vender");
   });
 });
