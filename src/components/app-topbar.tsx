@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmpresaSwitcher } from "@/components/empresa-switcher";
+import { BusquedaGlobal } from "@/components/busqueda-global";
+import { AlertasCampana, type AlertaItem } from "@/components/alertas-campana";
 import { Building2, LogOut, ChevronDown, ChevronRight } from "lucide-react";
 
 interface Props {
@@ -26,6 +28,7 @@ interface Props {
   empresa: string | null;
   empresas: { id: number; nombre: string }[];
   empresaActivaId: number | null;
+  alertas: AlertaItem[];
 }
 
 /** Migas de pan: Grupo (enlaza a su página) › Página actual. */
@@ -66,7 +69,7 @@ function iniciales(nombre: string) {
     .toUpperCase();
 }
 
-export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, empresaActivaId }: Props) {
+export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, empresaActivaId, alertas }: Props) {
   const pathname = usePathname();
   const esSuperadmin = empresas.length > 0;
   return (
@@ -81,7 +84,9 @@ export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, emp
         )}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <BusquedaGlobal />
+        <AlertasCampana items={alertas} />
         {esSuperadmin ? (
           <EmpresaSwitcher empresas={empresas} activaId={empresaActivaId} />
         ) : (
