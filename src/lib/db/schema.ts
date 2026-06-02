@@ -1058,3 +1058,56 @@ export const cierreCuentas = pgTable(
   },
   (t) => [index("vx38_cierre_idx").on(t.cierreId)],
 );
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx39 — Cotizaciones (pedidos de cliente)
+// ──────────────────────────────────────────────────────────────────────────
+export const cotizaciones = pgTable("vx39",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" })
+      .notNull()
+      .references(() => empresas.id),
+    clienteId: bigint("cliente_id", { mode: "number" })
+      .notNull()
+      .references(() => terceros.id),
+    numero: varchar("numero", { length: 20 }).notNull(),
+    fecha: date("fecha").notNull(),
+    estado: varchar("estado", { length: 20 }).notNull().default("pendiente"),
+    total: money("total").notNull().default("0"),
+    observaciones: text("observaciones"),
+    motivoAnulacion: text("motivo_anulacion"),
+    // Se llena al convertir la cotización en factura.
+    facturaId: bigint("factura_id", { mode: "number" }).references((): AnyPgColumn => facturas.id),
+    usuarioId: bigint("usuario_id", { mode: "number" })
+      .notNull()
+      .references(() => usuarios.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("vx39_empresa_numero_uq").on(t.empresaId, t.numero),
+    index("vx39_cliente_idx").on(t.clienteId),
+    index("vx39_empresa_estado_idx").on(t.empresaId, t.estado),
+  ],
+);
+
+export const cotizacionDetalles = pgTable("vx40",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    cotizacionId: bigint("cotizacion_id", { mode: "number" })
+      .notNull()
+      .references(() => cotizaciones.id, { onDelete: "cascade" }),
+    productoId: bigint("producto_id", { mode: "number" })
+      .notNull()
+      .references(() => productos.id),
+    cantidad: qty("cantidad").notNull(),
+    precioUnitario: price("precio_unitario").notNull(),
+    subtotal: money("subtotal").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("vx40_cotizacion_idx").on(t.cotizacionId)],
+);
+
+export type Cotizacion = typeof cotizaciones.$inferSelect;
+export type CotizacionDetalle = typeof cotizacionDetalles.$inferSelect;

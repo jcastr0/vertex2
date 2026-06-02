@@ -53,4 +53,6 @@ export const CATALOGO: EntradaNomenclatura[] = [
   { codigo: "vx36", nombreModelo: "Banco", descripcion: "Bancos y entidades financieras de Colombia", modulo: "Maestros", tieneEmpresaId: false, esCatalogo: true },
   { codigo: "vx37", nombreModelo: "Cierre", descripcion: "Cierres de caja (arqueo)", modulo: "Cartera", tieneEmpresaId: true, esCatalogo: false },
   { codigo: "vx38", nombreModelo: "CierreCuenta", descripcion: "Detalle de cierre por cuenta", modulo: "Cartera", tieneEmpresaId: false, esCatalogo: false },
+  { codigo: "vx39", nombreModelo: "Cotizacion", descripcion: "Cotizaciones (pedidos de cliente)", modulo: "Ventas", tieneEmpresaId: true, esCatalogo: false },
+  { codigo: "vx40", nombreModelo: "CotizacionDetalle", descripcion: "Detalle de cotizaciones", modulo: "Ventas", tieneEmpresaId: false, esCatalogo: false },
 ];
