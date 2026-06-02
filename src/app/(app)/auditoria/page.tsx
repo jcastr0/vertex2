@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { fechaHora } from "@/lib/fecha";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
 import { listarAuditoria, type FilaAuditoria } from "@/lib/services/auditoria";
 import { filtrarPaginar, parsePage } from "@/lib/domain/listado";
@@ -36,7 +37,7 @@ export default async function AuditoriaPage({
   });
 
   const columnas: Columna<FilaAuditoria>[] = [
-    { header: "Fecha", primary: true, cell: (a) => <span className="tabular">{new Date(a.fecha).toLocaleString("es-CO")}</span> },
+    { header: "Fecha", primary: true, cell: (a) => <span className="tabular">{fechaHora(a.fecha)}</span> },
     { header: "Usuario", cell: (a) => a.usuario ?? "—" },
     {
       header: "Acción",
