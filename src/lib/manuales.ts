@@ -332,6 +332,10 @@ Aquí decides **quién entra, qué puede hacer cada persona y cómo se ve** la e
 
 ## Crear un usuario
 
+![Crear usuario en el computador](/manuales/admin-usuario-desktop.png)
+
+![Crear usuario en el celular](/manuales/admin-usuario-movil.png)
+
 Ve a **Administración → Usuarios → Nuevo usuario** y llena:
 
 - **Nombre** y **Correo electrónico** (obligatorios; el correo no se puede repetir).
@@ -357,6 +361,10 @@ Un **rol** es un paquete de permisos: qué módulos ve y si puede **ver, crear, 
 
 ## Roles a la medida
 
+![Permisos de un rol en el computador](/manuales/admin-roles-desktop.png)
+
+![Permisos de un rol en el celular](/manuales/admin-roles-movil.png)
+
 Si ninguno calza, ve a **Administración → Roles → Nuevo rol**. Le pones un nombre y marcas los permisos en una **matriz**: las filas son los módulos y las columnas son **Ver, Crear, Editar y Eliminar**. Puedes activar una fila completa (todo un módulo) o una columna completa (una acción en todos los módulos) con un clic. Guardas y ya lo puedes asignar a los usuarios.
 
 ## Crear una empresa
@@ -370,6 +378,10 @@ Solo el **superadministrador** gestiona empresas. En **Administración → Empre
 Si manejas **varias empresas**, el superadmin cambia la **empresa activa** con el selector de la parte de arriba. Cada empresa tiene sus propios datos, usuarios y tema.
 
 ## Asignar el tema (los colores)
+
+![Elegir el tema en el computador](/manuales/admin-tema-desktop.png)
+
+![Elegir el tema en el celular](/manuales/admin-tema-movil.png)
 
 En el formulario de la empresa, sección **Apariencia**, eliges una **paleta** entre las 24 disponibles (Esmeralda, Bosque, Océano, Mandarina, Violeta, y más). Hay una **vista previa en vivo** que te muestra cómo quedarán la barra lateral y los botones antes de guardar. Eliges, guardas, y al recargar la app **toda la interfaz** toma esos colores.
 
