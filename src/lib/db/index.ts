@@ -33,7 +33,18 @@ export function getDb(): PostgresJsDatabase<typeof schema> {
   if (!_db) {
     _client = postgres(getConnectionString(), {
       prepare: false, // compatible con el pooler de Supabase (Supavisor) en modo transaction
-      max: 5, // pool pequeño: evita deadlocks si una operación anida consultas fuera del tx
+      // Pool por instancia serverless. Debe cubrir la concurrencia de UNA request:
+      // el layout (alertas) + el Promise.all de la página pueden pedir ~7-8
+      // conexiones a la vez; con 5 se agotaba y la última consulta se colgaba.
+      // 10 da holgura sin acercarse al límite del pooler de Supabase (Supavisor
+      // multiplexa, soporta muchas conexiones de cliente). Las transacciones
+      // siempre usan `tx` (auditado), así que no anidan conexiones.
+      max: 10,
+      // Timeouts: sin esto, una conexión atascada o el pooler con hipo dejan la
+      // request colgada indefinidamente. Con estos límites falla rápido y libera.
+      connect_timeout: 10, // s para establecer conexión; si no, error (no cuelgue eterno)
+      idle_timeout: 20, // s: cierra conexiones ociosas y libera cupo en el pooler
+      max_lifetime: 60 * 30, // s: recicla conexiones cada 30 min (sano en serverless)
     });
     _db = drizzle(_client, { schema });
   }

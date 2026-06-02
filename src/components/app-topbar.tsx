@@ -15,9 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { ReactNode } from "react";
 import { EmpresaSwitcher } from "@/components/empresa-switcher";
 import { BusquedaGlobal } from "@/components/busqueda-global";
-import { AlertasCampana, type AlertaItem } from "@/components/alertas-campana";
 import { Building2, LogOut, ChevronDown, ChevronRight } from "lucide-react";
 
 interface Props {
@@ -28,7 +28,8 @@ interface Props {
   empresa: string | null;
   empresas: { id: number; nombre: string }[];
   empresaActivaId: number | null;
-  alertas: AlertaItem[];
+  /** Campanita de alertas (server component en <Suspense>, inyectado desde el layout). */
+  alertasSlot: ReactNode;
 }
 
 /** Migas de pan: Grupo (enlaza a su página) › Página actual. */
@@ -69,7 +70,7 @@ function iniciales(nombre: string) {
     .toUpperCase();
 }
 
-export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, empresaActivaId, alertas }: Props) {
+export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, empresaActivaId, alertasSlot }: Props) {
   const pathname = usePathname();
   const esSuperadmin = empresas.length > 0;
   return (
@@ -86,7 +87,7 @@ export function AppTopbar({ nombre, email, rol, permisos, empresa, empresas, emp
 
       <div className="flex items-center gap-2 sm:gap-3">
         <BusquedaGlobal />
-        <AlertasCampana items={alertas} />
+        {alertasSlot}
         {esSuperadmin ? (
           <EmpresaSwitcher empresas={empresas} activaId={empresaActivaId} />
         ) : (
