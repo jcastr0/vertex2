@@ -20,6 +20,8 @@ export interface NuevaCotizacion {
   fecha: string;
   observaciones?: string;
   lineas: LineaNuevaCotizacion[];
+  origen?: "manual" | "bot";
+  requiereRevision?: boolean;
 }
 
 export async function listarCotizaciones(empresaId: number) {
@@ -64,6 +66,8 @@ export async function crearCotizacion(data: NuevaCotizacion, ctx: Contexto): Pro
         estado: "pendiente",
         total: String(total),
         observaciones: data.observaciones ?? null,
+        origen: data.origen ?? "manual",
+        requiereRevision: data.requiereRevision ?? false,
         usuarioId: ctx.usuarioId,
       })
       .returning();

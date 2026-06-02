@@ -1077,6 +1077,9 @@ export const cotizaciones = pgTable("vx39",
     total: money("total").notNull().default("0"),
     observaciones: text("observaciones"),
     motivoAnulacion: text("motivo_anulacion"),
+    // Origen: 'manual' (creada en la app) o 'bot' (asistente de pedidos).
+    origen: varchar("origen", { length: 10 }).notNull().default("manual"),
+    requiereRevision: boolean("requiere_revision").notNull().default(false),
     // Se llena al convertir la cotización en factura.
     facturaId: bigint("factura_id", { mode: "number" }).references((): AnyPgColumn => facturas.id),
     usuarioId: bigint("usuario_id", { mode: "number" })

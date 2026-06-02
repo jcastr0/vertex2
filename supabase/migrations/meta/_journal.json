@@ -78,6 +78,13 @@
       "when": 1780432932661,
       "tag": "0010_futuristic_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780438876750,
+      "tag": "0011_stiff_sentinels",
+      "breakpoints": true
     }
   ]
 }
