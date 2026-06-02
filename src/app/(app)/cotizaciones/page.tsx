@@ -45,7 +45,12 @@ export default async function CotizacionesPage({
     { header: "Número", primary: true, cell: (f) => <span className="tabular font-medium">{f.cotizacion.numero}</span> },
     { header: "Cliente", cell: (f) => f.cliente },
     { header: "Fecha", cell: (f) => <span className="tabular">{f.cotizacion.fecha}</span> },
-    { header: "Estado", cell: (f) => <Badge variant={VARIANTE[f.cotizacion.estado] ?? "outline"} className="font-normal capitalize">{f.cotizacion.estado}</Badge> },
+    { header: "Estado", cell: (f) => (
+      <span className="flex items-center gap-1.5">
+        <Badge variant={VARIANTE[f.cotizacion.estado] ?? "outline"} className="font-normal capitalize">{f.cotizacion.estado}</Badge>
+        {f.cotizacion.requiereRevision && <Badge variant="outline" className="border-amber-500/40 font-normal text-amber-600">revisar</Badge>}
+      </span>
+    ) },
     { header: "Total", className: "text-right", cell: (f) => <span className="tabular">{money(f.cotizacion.total)}</span> },
   ];
 
