@@ -12,13 +12,15 @@ export interface FilaAuditoria {
   modulo: string | null;
   modelId: number | null;
   ip: string | null;
+  anterior: Record<string, unknown> | null;
+  nuevo: Record<string, unknown> | null;
 }
 
 /** Últimos N registros de auditoría de la empresa (más recientes primero).
  *  El nombre legible del módulo se resuelve desde vx00 (nomenclatura). */
 export async function listarAuditoria(empresaId: number): Promise<FilaAuditoria[]> {
   // Sin límite: la auditoría refleja TODOS los registros (la paginación se hace en la UI).
-  return db
+  const rows = await db
     .select({
       id: auditoria.id,
       fecha: auditoria.createdAt,
@@ -28,10 +30,13 @@ export async function listarAuditoria(empresaId: number): Promise<FilaAuditoria[
       modulo: nomenclatura.descripcion,
       modelId: auditoria.modelId,
       ip: auditoria.ipOrigen,
+      anterior: auditoria.registroAnterior,
+      nuevo: auditoria.registroNuevo,
     })
     .from(auditoria)
     .leftJoin(usuarios, eq(auditoria.usuarioId, usuarios.id))
     .leftJoin(nomenclatura, eq(nomenclatura.codigo, auditoria.tablaAfectada))
     .where(eq(auditoria.empresaId, empresaId))
     .orderBy(desc(auditoria.createdAt));
+  return rows as FilaAuditoria[];
 }
