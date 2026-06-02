@@ -23,6 +23,7 @@ import {
   Receipt,
   Undo2,
   FileMinus,
+  FileText,
   HandCoins,
   Wallet,
   BarChart3,
@@ -93,6 +94,7 @@ export const NAV: GrupoNav[] = [
     icon: Receipt,
     items: [
       { modulo: "facturas", label: "Facturas", href: "/facturas", icon: Receipt, listo: true, desc: "Vender y emitir facturas." },
+      { modulo: "cotizaciones", label: "Cotizaciones", href: "/cotizaciones", icon: FileText, listo: true, desc: "Pedidos de clientes / cotizaciones." },
       { modulo: "devoluciones", label: "Devoluciones", href: "/devoluciones", icon: Undo2, listo: true, desc: "Devoluciones de clientes." },
       { modulo: "notas_credito", label: "Notas crédito", href: "/notas-credito", icon: FileMinus, listo: true, desc: "Ajustes y notas crédito." },
     ],
