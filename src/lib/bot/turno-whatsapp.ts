@@ -87,6 +87,11 @@ export async function procesarTurnoWhatsApp(
   // 3) Guardar/actualizar el borrador. Si hay pedido claro, queda esperando confirmación.
   if (lineas.length > 0) {
     await guardarConversacion(empresaId, telefono, lineas, r.completo ? "esperando_confirmacion" : "recolectando");
+    if (r.completo) {
+      // Mensaje de confirmación armado por el sistema, CON precios reales y total
+      // (a Claude le pedimos no dar precios para que no los invente).
+      return `${r.propuesta.resumen}\n\n¿Confirmo tu pedido? Responde *sí* para confirmarlo. 🙂`;
+    }
   } else if (conv) {
     // El cliente escribió algo sin productos y no había nada que confirmar: mantenemos el estado previo.
     await guardarConversacion(empresaId, telefono, conv.lineas, conv.estado);
