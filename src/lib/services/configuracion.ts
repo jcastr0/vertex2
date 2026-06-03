@@ -3,8 +3,14 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { configuracion } from "@/lib/db/schema";
 import { resolverConfig } from "@/lib/domain/configuracion";
+import { cifrar, descifrar } from "@/lib/domain/crypto";
 import { registrarAuditoria } from "@/lib/audit";
 import type { Contexto } from "./bodegas";
+
+interface ValorSecreto { __secreto: true; cifrado: string }
+function esSecreto(v: unknown): v is ValorSecreto {
+  return !!v && typeof v === "object" && (v as ValorSecreto).__secreto === true;
+}
 
 async function leer(clave: string, empresaId: number): Promise<{ emp?: unknown; glob?: unknown }> {
   const rows = await db
@@ -38,6 +44,44 @@ export async function guardarConfig(clave: string, valor: unknown, empresaId: nu
     await db.insert(configuracion).values({ empresaId, clave, valor });
   }
   await registrarAuditoria({ empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx41", accion: "ACTUALIZAR", registroNuevo: { clave, valor }, ipOrigen: ctx.ip });
+}
+
+// ── Secretos (cifrados en reposo) ───────────────────────────────────────────
+
+/** Guarda un secreto cifrado (AES-256-GCM). El valor en claro nunca se audita. */
+export async function guardarSecreto(clave: string, valorPlano: string, empresaId: number, ctx: Contexto): Promise<void> {
+  const valor: ValorSecreto = { __secreto: true, cifrado: cifrar(valorPlano) };
+  const [existente] = await db
+    .select({ id: configuracion.id })
+    .from(configuracion)
+    .where(and(eq(configuracion.clave, clave), eq(configuracion.empresaId, empresaId)))
+    .limit(1);
+  if (existente) {
+    await db.update(configuracion).set({ valor, updatedAt: new Date() }).where(eq(configuracion.id, existente.id));
+  } else {
+    await db.insert(configuracion).values({ empresaId, clave, valor });
+  }
+  await registrarAuditoria({ empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx41", accion: "ACTUALIZAR", registroNuevo: { clave, secreto: true }, ipOrigen: ctx.ip });
+}
+
+/** Lee y descifra un secreto. Devuelve null si no existe o si no se puede descifrar
+ *  (p. ej. CONFIG_SECRET distinto/ausente) — así el llamador cae a su fallback sin romperse. */
+export async function obtenerSecreto(clave: string, empresaId: number): Promise<string | null> {
+  const { emp, glob } = await leer(clave, empresaId);
+  const v = emp ?? glob;
+  if (!esSecreto(v)) return null;
+  try {
+    return descifrar(v.cifrado);
+  } catch (e) {
+    console.error(`[config] no se pudo descifrar el secreto "${clave}":`, (e as Error).message);
+    return null;
+  }
+}
+
+/** ¿Hay un secreto guardado para esa clave? (sin revelar el valor). */
+export async function secretoConfigurado(clave: string, empresaId: number): Promise<boolean> {
+  const { emp, glob } = await leer(clave, empresaId);
+  return esSecreto(emp ?? glob);
 }
 
 export const MENSAJE_NO_REGISTRADO_DEFAULT =
