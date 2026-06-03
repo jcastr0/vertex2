@@ -38,6 +38,16 @@ export interface MensajeEntrante {
   from: string;
   texto?: string;
   imagenMediaId?: string;
+  /** id del botón pulsado (mensaje interactivo), p. ej. "confirmar" / "cancelar". */
+  botonId?: string;
+}
+
+interface MsgMeta {
+  from?: string;
+  type?: string;
+  text?: { body?: string };
+  image?: { id?: string };
+  interactive?: { type?: string; button_reply?: { id?: string; title?: string }; list_reply?: { id?: string; title?: string } };
 }
 
 /** Extrae el primer mensaje útil del payload del webhook de Meta. null si no hay (status, basura). */
@@ -46,8 +56,13 @@ export function parsearMensajeEntrante(payload: unknown): MensajeEntrante | null
     const value = (payload as { entry?: { changes?: { value?: Record<string, unknown> }[] }[] })
       ?.entry?.[0]?.changes?.[0]?.value;
     const phoneNumberId = (value?.metadata as { phone_number_id?: string } | undefined)?.phone_number_id;
-    const msg = (value?.messages as { from?: string; type?: string; text?: { body?: string }; image?: { id?: string } }[] | undefined)?.[0];
+    const msg = (value?.messages as MsgMeta[] | undefined)?.[0];
     if (!phoneNumberId || !msg?.from) return null;
+    // Respuesta de botón/lista interactiva: el id viaja en interactive.*_reply.
+    if (msg.type === "interactive") {
+      const reply = msg.interactive?.button_reply ?? msg.interactive?.list_reply;
+      return { phoneNumberId, from: msg.from, botonId: reply?.id, texto: reply?.title };
+    }
     return {
       phoneNumberId,
       from: msg.from,

@@ -7,6 +7,7 @@ import { conversacionesBot } from "@/lib/db/schema";
 export interface LineaGuardada {
   productoId: number;
   nombre: string;
+  unidad: string;
   cantidad: number;
   precioUnitario: number;
 }

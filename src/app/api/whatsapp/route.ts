@@ -4,7 +4,7 @@ import { empresaPorPhoneNumberId, botActivo, mensajeNoRegistrado } from "@/lib/s
 import { buscarClientePorTelefono } from "@/lib/services/terceros";
 import { registrarSolicitud } from "@/lib/services/solicitudes-registro";
 import { procesarTurnoWhatsApp } from "@/lib/bot/turno-whatsapp";
-import { enviarTexto } from "@/lib/whatsapp/enviar";
+import { enviarTexto, enviarBotones } from "@/lib/whatsapp/enviar";
 import { descargarImagen } from "@/lib/whatsapp/media";
 import type { ImagenEntrada } from "@/lib/bot/cliente-claude";
 
@@ -80,8 +80,8 @@ async function atender(m: MensajeEntrante): Promise<void> {
     if (img) imagenes.push(img);
     else console.log("[wa] no se pudo descargar la imagen", m.imagenMediaId);
   }
-  if (!m.texto && imagenes.length === 0) {
-    console.log("[wa] nada que interpretar (sin texto ni imagen usable)");
+  if (!m.texto && imagenes.length === 0 && !m.botonId) {
+    console.log("[wa] nada que interpretar (sin texto, imagen ni botón usable)");
     return;
   }
 
@@ -89,7 +89,12 @@ async function atender(m: MensajeEntrante): Promise<void> {
   const respuesta = await procesarTurnoWhatsApp(empresaId, cliente.id, nombre, m.from, {
     texto: m.texto,
     imagenes,
+    botonId: m.botonId,
   });
-  const ok = await enviarTexto(empresaId, m.from, respuesta);
-  console.log("[wa] respuesta del bot:", ok ? "enviada" : "FALLÓ el envío", "—", respuesta.slice(0, 80));
+  // Con botones intentamos interactivo; si Meta lo rechaza, caemos a texto plano.
+  let ok = respuesta.botones?.length
+    ? await enviarBotones(empresaId, m.from, respuesta.texto, respuesta.botones)
+    : false;
+  if (!ok) ok = await enviarTexto(empresaId, m.from, respuesta.texto);
+  console.log("[wa] respuesta del bot:", ok ? "enviada" : "FALLÓ el envío", "—", respuesta.texto.slice(0, 80));
 }

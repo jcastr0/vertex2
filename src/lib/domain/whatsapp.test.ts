@@ -46,6 +46,11 @@ describe("parsearMensajeEntrante", () => {
     const r = parsearMensajeEntrante(base({ from: "573162800128", type: "image", image: { id: "MEDIA1" } }));
     expect(r?.imagenMediaId).toBe("MEDIA1");
   });
+  it("parsea la respuesta de un botón interactivo (id + título)", () => {
+    const r = parsearMensajeEntrante(base({ from: "573162800128", type: "interactive", interactive: { type: "button_reply", button_reply: { id: "confirmar", title: "✅ Confirmar" } } }));
+    expect(r?.botonId).toBe("confirmar");
+    expect(r?.texto).toBe("✅ Confirmar");
+  });
   it("devuelve null si no hay mensaje (p. ej. status update o basura)", () => {
     expect(parsearMensajeEntrante({ entry: [{ changes: [{ value: { statuses: [{}] } }] }] })).toBeNull();
     expect(parsearMensajeEntrante({})).toBeNull();

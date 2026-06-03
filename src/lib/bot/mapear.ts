@@ -27,7 +27,16 @@ export interface Propuesta {
   total: number;
 }
 
-const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
+export const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
+
+/** Texto "Entendí: • ... = $... \n\nTotal: $..." para una lista de renglones (con precio). */
+export function resumenLineas(lineas: { nombre: string; unidad: string; cantidad: number; precioUnitario: number }[]): { texto: string; total: number } {
+  const total = lineas.reduce((a, l) => a + l.cantidad * l.precioUnitario, 0);
+  const detalle = lineas
+    .map((l) => `• ${lineaLegible(l.cantidad, l.unidad, l.nombre)} (${money(l.precioUnitario)}) = ${money(l.cantidad * l.precioUnitario)}`)
+    .join("\n");
+  return { texto: `${detalle}\n\nTotal: ${money(total)}`, total };
+}
 
 /**
  * Convierte la salida de Claude en una propuesta lista para mostrar/crear.
