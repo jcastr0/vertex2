@@ -1114,3 +1114,22 @@ export const cotizacionDetalles = pgTable("vx40",
 
 export type Cotizacion = typeof cotizaciones.$inferSelect;
 export type CotizacionDetalle = typeof cotizacionDetalles.$inferSelect;
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx41 — Configuración (key-value; empresaId null = valor global por defecto)
+// ──────────────────────────────────────────────────────────────────────────
+export const configuracion = pgTable("vx41",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" }).references(() => empresas.id),
+    clave: varchar("clave", { length: 80 }).notNull(),
+    valor: jsonb("valor"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("vx41_empresa_clave_uq").on(t.empresaId, t.clave),
+    index("vx41_clave_idx").on(t.clave),
+  ],
+);
+
+export type Configuracion = typeof configuracion.$inferSelect;
