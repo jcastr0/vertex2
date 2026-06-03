@@ -10,7 +10,7 @@ import { ListaFiltrable } from "@/components/lista-filtrable";
 import { type Columna } from "@/components/responsive-table";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = { title: "Cotizaciones — Vertex" };
 const PAGE_SIZE = 10;
@@ -58,9 +58,14 @@ export default async function CotizacionesPage({
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Cotizaciones" description="Pedidos de clientes: arma una cotización y conviértela en factura.">
         {puedeCrear && (
-          <Link href="/cotizaciones/nueva" className={buttonVariants()}>
-            <Plus className="size-4" /> Nueva cotización
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/cotizaciones/asistente" className={buttonVariants({ variant: "outline" })}>
+              <Sparkles className="size-4" /> Asistente de pedidos
+            </Link>
+            <Link href="/cotizaciones/nueva" className={buttonVariants()}>
+              <Plus className="size-4" /> Nueva cotización
+            </Link>
+          </div>
         )}
       </PageHeader>
 
