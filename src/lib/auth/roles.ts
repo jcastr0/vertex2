@@ -32,6 +32,7 @@ export const MODULOS = [
   "manuales",
   "dashboard",
   "roles",
+  "configuracion",
 ] as const;
 
 export const ACCIONES = ["ver", "crear", "editar", "eliminar"] as const;
@@ -49,7 +50,7 @@ export const MODULO_LABEL: Record<Modulo, string> = {
   cuentas_cobrar: "Cuentas por cobrar", ruta_recaudo: "Ruta de recaudo", recaudos: "Recaudos",
   cuentas_pagar: "Cuentas por pagar", pagos_proveedor: "Pagos a proveedor", retenciones: "Retenciones",
   tesoreria: "Tesorería", reportes: "Reportes", auditoria: "Auditoría", manuales: "Manuales",
-  dashboard: "Inicio", roles: "Roles y permisos",
+  dashboard: "Inicio", roles: "Roles y permisos", configuracion: "Configuración",
 };
 
 /** Genera `modulo.accion` para un módulo y un subconjunto de acciones. */
@@ -79,6 +80,7 @@ export const ROLES: Record<string, readonly (Permiso | "*")[]> = {
     ...p("notas_inventario", CRUD),
     ...p("facturas", CRUD),
     ...p("cotizaciones", CRUD),
+    ...p("configuracion", CRUD),
     ...p("devoluciones", CRUD),
     ...p("notas_credito", CRUD),
     ...p("cuentas_cobrar", CRUD),
