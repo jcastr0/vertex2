@@ -1,14 +1,24 @@
 import type { SalidaItem } from "./schema";
 
-export interface CatalogoItem { id: number; nombre: string; sku: string; precio: number; }
+export interface CatalogoItem { id: number; nombre: string; sku: string; precio: number; unidad: string; }
 export type Historial = Record<number, number>;
 
 export interface LineaPropuesta {
   productoId: number;
   nombre: string;
+  unidad: string;
   cantidad: number;
   precioUnitario: number;
   subtotal: number;
+}
+
+/** ¿La unidad es "por unidad" (und)? Entonces no hace falta recalcarla. */
+function esUnidad(u: string): boolean {
+  return /^(und|unid|unidad|u)\b/i.test(u.trim());
+}
+/** "0.5 kg de Cebolla" / "12 Lechuga batavia" (omite la unidad si es 'und'). */
+function lineaLegible(cantidad: number, unidad: string, nombre: string): string {
+  return esUnidad(unidad) ? `${cantidad} ${nombre}` : `${cantidad} ${unidad} de ${nombre}`;
 }
 export interface Propuesta {
   lineas: LineaPropuesta[];
@@ -40,6 +50,7 @@ export function mapearPropuesta(salida: { items: SalidaItem[] }, catalogo: Catal
     lineas.push({
       productoId: cat.id,
       nombre: cat.nombre,
+      unidad: cat.unidad,
       cantidad: it.cantidad,
       precioUnitario,
       subtotal: it.cantidad * precioUnitario,
@@ -49,7 +60,7 @@ export function mapearPropuesta(salida: { items: SalidaItem[] }, catalogo: Catal
   const total = lineas.reduce((a, l) => a + l.subtotal, 0);
   const partes: string[] = [];
   if (lineas.length) {
-    partes.push("Entendí:\n" + lineas.map((l) => `• ${l.cantidad} × ${l.nombre} (${money(l.precioUnitario)}) = ${money(l.subtotal)}`).join("\n"));
+    partes.push("Entendí:\n" + lineas.map((l) => `• ${lineaLegible(l.cantidad, l.unidad, l.nombre)} (${money(l.precioUnitario)}) = ${money(l.subtotal)}`).join("\n"));
     partes.push(`Total: ${money(total)}`);
   }
   if (noReconocidos.length) {

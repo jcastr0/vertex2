@@ -25,7 +25,7 @@ function lineasTexto(arr?: { nombre: string; cantidad: number }[]): string {
 }
 
 function construirPrompt(catalogo: CatalogoItem[], texto: string, ctx: ContextoCliente): string {
-  const lista = catalogo.map((c) => `- id:${c.id} | ${c.nombre} (SKU ${c.sku})`).join("\n");
+  const lista = catalogo.map((c) => `- id:${c.id} | ${c.nombre} — se vende por ${c.unidad} (SKU ${c.sku})`).join("\n");
   return [
     "Eres el asistente de pedidos de una distribuidora, cálido y breve. Atiendes a un cliente conocido.",
     ctx.clienteNombre ? `El cliente se llama ${ctx.clienteNombre}; salúdalo por su nombre de forma natural.` : "",
@@ -34,7 +34,8 @@ function construirPrompt(catalogo: CatalogoItem[], texto: string, ctx: ContextoC
     "",
     "Tarea: extraer productos y cantidades y EMPAREJAR cada uno con el catálogo por su `id`.",
     "Reglas: usa SOLO ids del catálogo; si un ítem no calza, productoId: null. NO inventes productos ni precios. No devuelvas precios.",
-    "`mensajeAsistente`: tu respuesta al cliente (saludo + lo que entendiste o lo que falta).",
+    "UNIDADES (importante): cada producto se vende por una unidad (kg, libra, bulto, und…). En `mensajeAsistente` di SIEMPRE la unidad al listar o confirmar (ej. «0.5 kg de cebolla», «2 bultos de papa»), EXCEPTO cuando la unidad es 'und' (ahí basta el número y el producto, ej. «12 lechugas»). La `cantidad` que devuelves es en esa unidad del producto.",
+    "`mensajeAsistente`: tu respuesta al cliente (saludo + lo que entendiste o lo que falta), con las unidades.",
     "`completo`: true si el pedido está claro y listo; false si falta información (entonces pide lo que falta en mensajeAsistente).",
     "",
     "Catálogo:",
@@ -59,7 +60,7 @@ export async function interpretarPedido(
     listarProductosVenta(empresaId),
     ultimoPrecioPorCliente(empresaId, clienteId),
   ]);
-  const catalogo: CatalogoItem[] = productos.map((p) => ({ id: p.id, nombre: p.nombre, sku: p.sku, precio: p.precio }));
+  const catalogo: CatalogoItem[] = productos.map((p) => ({ id: p.id, nombre: p.nombre, sku: p.sku, precio: p.precio, unidad: p.unidadAbrev }));
   const salida = await pedir(construirPrompt(catalogo, entrada.texto ?? "", ctx), entrada.imagenes ?? []);
   const propuesta = mapearPropuesta(salida, catalogo, historial);
   return { mensajeAsistente: salida.mensajeAsistente, propuesta, completo: salida.completo };
