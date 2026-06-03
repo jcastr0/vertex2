@@ -3,11 +3,12 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { guardarConfigBotAction, type ConfigState } from "./actions";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/components/ui/field";
 import { FormSection } from "@/components/ui/form-section";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, KeyRound, Loader2 } from "lucide-react";
 
 function Guardar() {
   const { pending } = useFormStatus();
@@ -18,7 +19,7 @@ function Guardar() {
   );
 }
 
-export function ConfigForm({ botActivo, mensaje }: { botActivo: boolean; mensaje: string }) {
+export function ConfigForm({ botActivo, mensaje, keyConfigurada }: { botActivo: boolean; mensaje: string; keyConfigurada: boolean }) {
   const [state, action] = useActionState<ConfigState, FormData>(guardarConfigBotAction, {});
   const [activo, setActivo] = useState(botActivo);
   return (
@@ -48,6 +49,25 @@ export function ConfigForm({ botActivo, mensaje }: { botActivo: boolean; mensaje
           </Field>
         </div>
       </FormSection>
+
+      <FormSection title="Conexión con Claude (IA)" description="La API key se guarda cifrada y no se vuelve a mostrar.">
+        <Field
+          label="API key de Claude"
+          hint={keyConfigurada ? "Hay una key configurada. Escribe una nueva solo si quieres reemplazarla." : "Pega tu API key de console.anthropic.com. Se guardará cifrada."}
+        >
+          <div className="relative">
+            <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              name="apiKeyClaude"
+              type="password"
+              autoComplete="off"
+              placeholder={keyConfigurada ? "•••••••••• configurada" : "sk-ant-…"}
+              className="pl-9"
+            />
+          </div>
+        </Field>
+      </FormSection>
+
       <Guardar />
     </form>
   );
