@@ -7,29 +7,30 @@ export function normalizarTelefono(n: string): string {
   return d.length > 10 ? d.slice(-10) : d;
 }
 
+// Palabras de afirmación (para frases donde TODAS las palabras son afirmativas, ej. "si dale").
 const AFIRMACIONES = [
-  "si", "sí", "dale", "listo", "confirmo", "confirmar", "confirma", "ok", "oka", "okay",
-  "vale", "correcto", "eso es", "eso", "hagale", "hágale", "de una", "perfecto", "claro",
-  "asi esta bien", "así está bien", "asi", "así", "de acuerdo", "ya",
+  "si", "dale", "listo", "confirmo", "confirmar", "confirma", "confirmado", "ok", "oka", "okay",
+  "vale", "correcto", "eso", "hagale", "perfecto", "claro", "asi", "ya", "bien", "obvio", "exacto", "sip", "sii",
+  // frases completas (se comparan exactas)
+  "de una", "de acuerdo", "eso es", "esta bien", "asi esta bien", "esta perfecto", "asi esta",
 ];
-/** ¿El texto es una confirmación afirmativa? (sin tildes, comparación laxa). */
-export function esAfirmacion(texto: string): boolean {
-  const t = (texto || "")
-    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
-    .toLowerCase().trim().replace(/[!.¡,]/g, "");
-  if (!t) return false;
-  const set = new Set(AFIRMACIONES.map((a) => a.normalize("NFD").replace(/\p{Diacritic}/gu, "")));
-  return set.has(t) || t.split(/\s+/).every((w) => set.has(w));
-}
+// Palabras de confirmación fuertes: si aparece alguna (y no hay negación), es afirmación
+// aunque la frase tenga relleno ("confirmo el pedido", "listo gracias", "si por favor").
+const FUERTES = new Set(["si", "dale", "listo", "confirmo", "confirmar", "confirma", "confirmado", "ok", "oka", "okay", "correcto", "perfecto", "hagale", "exacto", "obvio", "sip", "sii"]);
+// Señales de que NO es una confirmación simple sino un ajuste/negación → no cerramos el pedido.
+const NEGACIONES = new Set(["no", "mejor", "cambia", "cambiar", "cambio", "quita", "quitar", "quitale", "agrega", "agregar", "agregale", "anade", "espera", "cancela", "cancelar", "pero", "aun", "todavia", "falta", "faltan", "sin"]);
 
-/**
- * Decide si un turno debe CREAR la cotización (cerrar el pedido). Solo se crea
- * cuando el pedido está completo, tiene líneas, y el cliente confirmó: ya sea
- * porque su mensaje fue una afirmación ("sí"), o porque el turno anterior ya le
- * pidió confirmación (estado "esperando_confirmacion") y volvió a escribir.
- */
-export function debeCrearPedido(opts: { completo: boolean; numLineas: number; afirmo: boolean; esperabaConfirmacion: boolean }): boolean {
-  return opts.completo && opts.numLineas > 0 && (opts.afirmo || opts.esperabaConfirmacion);
+const sinTildes = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+
+/** ¿El texto es una confirmación afirmativa? (sin tildes, comparación laxa, veta ajustes). */
+export function esAfirmacion(texto: string): boolean {
+  const t = sinTildes(texto || "").toLowerCase().trim().replace(/[!.¡,?¿]/g, "");
+  if (!t) return false;
+  const palabras = t.split(/\s+/);
+  if (palabras.some((w) => NEGACIONES.has(w))) return false; // "si pero quita...", "no", "mejor..."
+  const set = new Set(AFIRMACIONES.map(sinTildes));
+  if (set.has(t) || palabras.every((w) => set.has(w))) return true; // frase 100% afirmativa
+  return palabras.some((w) => FUERTES.has(w)); // contiene una confirmación fuerte ("confirmo el pedido")
 }
 
 export interface MensajeEntrante {

@@ -31,7 +31,7 @@ function construirPrompt(catalogo: CatalogoItem[], texto: string, ctx: ContextoC
     "Eres el asistente de pedidos de una distribuidora, cálido y breve. Atiendes a un cliente conocido.",
     ctx.clienteNombre ? `El cliente se llama ${ctx.clienteNombre}; salúdalo por su nombre de forma natural.` : "",
     ctx.ultimoPedido?.length ? `Su último pedido fue: ${lineasTexto(ctx.ultimoPedido)}. Si pide "lo mismo", "lo de siempre" o "la vez pasada", usa ese pedido.` : "",
-    ctx.borradorPrevio?.length ? `Pedido en progreso de esta conversación: ${lineasTexto(ctx.borradorPrevio)}. Complétalo o ajústalo con el nuevo mensaje.` : "",
+    ctx.borradorPrevio?.length ? `Pedido en progreso de esta conversación: ${lineasTexto(ctx.borradorPrevio)}. Complétalo o ajústalo con el nuevo mensaje. NO vuelvas a saludar (la conversación ya empezó); ve directo al punto.` : "",
     "",
     "Tarea: extraer productos y cantidades y EMPAREJAR cada uno con el catálogo por su `id`.",
     "Reglas: usa SOLO ids del catálogo; si un ítem no calza, productoId: null. NO inventes productos ni precios. No devuelvas precios.",

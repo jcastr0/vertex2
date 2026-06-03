@@ -3,12 +3,15 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { conversacionesBot } from "@/lib/db/schema";
 
-export interface BorradorLinea {
+/** Línea del pedido en curso, ya resuelta contra el catálogo (lista para crear la cotización). */
+export interface LineaGuardada {
+  productoId: number;
   nombre: string;
   cantidad: number;
+  precioUnitario: number;
 }
 export interface Conversacion {
-  borrador: BorradorLinea[];
+  lineas: LineaGuardada[];
   estado: string;
 }
 
@@ -20,19 +23,19 @@ export async function cargarConversacion(empresaId: number, telefono: string): P
     .where(and(eq(conversacionesBot.empresaId, empresaId), eq(conversacionesBot.telefono, telefono)))
     .limit(1);
   if (!c) return null;
-  return { borrador: (c.borrador as BorradorLinea[] | null) ?? [], estado: c.estado };
+  return { lineas: (c.borrador as LineaGuardada[] | null) ?? [], estado: c.estado };
 }
 
-export async function guardarConversacion(empresaId: number, telefono: string, borrador: BorradorLinea[], estado: string): Promise<void> {
+export async function guardarConversacion(empresaId: number, telefono: string, lineas: LineaGuardada[], estado: string): Promise<void> {
   const [existente] = await db
     .select({ id: conversacionesBot.id })
     .from(conversacionesBot)
     .where(and(eq(conversacionesBot.empresaId, empresaId), eq(conversacionesBot.telefono, telefono)))
     .limit(1);
   if (existente) {
-    await db.update(conversacionesBot).set({ borrador, estado, updatedAt: new Date() }).where(eq(conversacionesBot.id, existente.id));
+    await db.update(conversacionesBot).set({ borrador: lineas, estado, updatedAt: new Date() }).where(eq(conversacionesBot.id, existente.id));
   } else {
-    await db.insert(conversacionesBot).values({ empresaId, telefono, borrador, estado });
+    await db.insert(conversacionesBot).values({ empresaId, telefono, borrador: lineas, estado });
   }
 }
 
