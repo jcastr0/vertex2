@@ -10,6 +10,12 @@ const RUTAS_PUBLICAS = ["/login"];
  */
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // El webhook de WhatsApp lo llama Meta sin sesión: debe pasar sin tocar auth
+  // (ni redirigir a /login ni a /dashboard). La autorización la hace el propio
+  // route handler con el verify token y el phoneNumberId.
+  if (pathname.startsWith("/api/whatsapp")) return NextResponse.next();
+
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const sesion = await verifySession(token);
 
