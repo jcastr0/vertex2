@@ -13,12 +13,13 @@ export interface LineaPropuesta {
 }
 
 /** ¿La unidad es "por unidad" (und)? Entonces no hace falta recalcarla. */
-function esUnidad(u: string): boolean {
-  return /^(und|unid|unidad|u)\b/i.test(u.trim());
+function esUnidad(u: string | undefined | null): boolean {
+  return /^(und|unid|unidad|u)\b/i.test((u ?? "").trim());
 }
-/** "0.5 kg de Cebolla" / "12 Lechuga batavia" (omite la unidad si es 'und'). */
-function lineaLegible(cantidad: number, unidad: string, nombre: string): string {
-  return esUnidad(unidad) ? `${cantidad} ${nombre}` : `${cantidad} ${unidad} de ${nombre}`;
+/** "0.5 kg de Cebolla" / "12 Lechuga batavia" (omite la unidad si es 'und' o falta). */
+function lineaLegible(cantidad: number, unidad: string | undefined | null, nombre: string): string {
+  const u = (unidad ?? "").trim();
+  return !u || esUnidad(u) ? `${cantidad} ${nombre}` : `${cantidad} ${u} de ${nombre}`;
 }
 export interface Propuesta {
   lineas: LineaPropuesta[];

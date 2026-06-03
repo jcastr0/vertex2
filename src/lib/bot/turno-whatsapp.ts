@@ -80,8 +80,10 @@ export async function procesarTurnoWhatsApp(
       console.error("[wa] error al crear cotización:", (e as Error).message);
       return { texto: "Anoté tu pedido, pero hubo un problema al registrarlo. Un asesor te contactará. 🙏" };
     }
-    const { texto: detalle } = resumenLineas(conv.lineas);
+    // Limpiamos ANTES de armar el texto: el pedido ya quedó creado, así no se
+    // duplica aunque algo del resumen fallara.
     await limpiarConversacion(empresaId, telefono);
+    const { texto: detalle } = resumenLineas(conv.lineas);
     return {
       texto: `✅ ¡Pedido confirmado${nombreCorto ? ", " + nombreCorto : ""}! Gracias por tu compra. 🙌\n\n${detalle}\n\nYa lo estamos preparando y te lo despachamos. ¡Que tengas buen día! 🍅🥬`,
     };

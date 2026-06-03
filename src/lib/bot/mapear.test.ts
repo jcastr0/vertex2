@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapearPropuesta } from "./mapear";
+import { mapearPropuesta, resumenLineas } from "./mapear";
 
 const catalogo = [
   { id: 1, nombre: "Tomate chonto", sku: "VRD-001", precio: 3000, unidad: "kg" },
@@ -41,5 +41,21 @@ describe("mapearPropuesta", () => {
     expect(p.resumen).toContain("0.5 kg de Tomate chonto");
     expect(p.resumen).toContain("12 Lechuga batavia");
     expect(p.resumen).not.toContain("12 und de Lechuga");
+  });
+});
+
+describe("resumenLineas", () => {
+  it("arma el resumen con precios y total", () => {
+    const { texto, total } = resumenLineas([
+      { nombre: "Tomate chonto", unidad: "kg", cantidad: 2, precioUnitario: 3000 },
+      { nombre: "Papa", unidad: "bulto", cantidad: 1, precioUnitario: 90000 },
+    ]);
+    expect(texto).toContain("2 kg de Tomate chonto");
+    expect(texto).toContain("Total:");
+    expect(total).toBe(96000);
+  });
+  it("no se rompe si una línea no trae unidad (dato viejo)", () => {
+    const { texto } = resumenLineas([{ nombre: "Yuca", unidad: undefined as unknown as string, cantidad: 10, precioUnitario: 2000 }]);
+    expect(texto).toContain("10 Yuca");
   });
 });
