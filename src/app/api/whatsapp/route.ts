@@ -34,7 +34,10 @@ export async function POST(req: NextRequest) {
   }
   if (mensaje) {
     const m = mensaje;
-    after(() => atender(m).catch((e) => console.error("[whatsapp] error al atender:", (e as Error).message)));
+    console.log("[wa] entrante", { phoneNumberId: m.phoneNumberId, de: m.from, tipo: m.texto ? "texto" : m.imagenMediaId ? "imagen" : "otro" });
+    after(() => atender(m).catch((e) => console.error("[wa] error al atender:", (e as Error).message)));
+  } else {
+    console.log("[wa] POST ignorado (sin mensaje útil: status update o payload no reconocido)");
   }
   // Meta exige 200 rápido; si no, reintenta y duplica mensajes.
   return NextResponse.json({ ok: true });
@@ -42,9 +45,13 @@ export async function POST(req: NextRequest) {
 
 async function atender(m: MensajeEntrante): Promise<void> {
   const empresaId = await empresaPorPhoneNumberId(m.phoneNumberId);
-  if (!empresaId) return; // el número no pertenece a ninguna empresa nuestra
+  if (!empresaId) {
+    console.log("[wa] phoneNumberId sin empresa configurada:", m.phoneNumberId, "→ revisa Configuración > WhatsApp");
+    return;
+  }
 
   const cliente = await buscarClientePorTelefono(empresaId, m.from);
+  console.log("[wa] empresa", empresaId, "cliente", cliente ? `#${cliente.id}` : "DESCONOCIDO");
 
   // Política: solo clientes registrados. Desconocido → mensaje de registro + guardar solicitud.
   if (!cliente) {
@@ -52,23 +59,32 @@ async function atender(m: MensajeEntrante): Promise<void> {
       mensajeNoRegistrado(empresaId),
       registrarSolicitud(empresaId, m.from, m.texto ?? "(imagen)"),
     ]);
-    await enviarTexto(empresaId, m.from, texto);
+    const ok = await enviarTexto(empresaId, m.from, texto);
+    console.log("[wa] respondido mensaje no-registrado:", ok ? "enviado" : "FALLÓ el envío");
     return;
   }
 
-  if (!(await botActivo(empresaId))) return; // bot apagado: no respondemos
+  if (!(await botActivo(empresaId))) {
+    console.log("[wa] bot apagado para empresa", empresaId, "→ no se responde");
+    return;
+  }
 
   const imagenes: ImagenEntrada[] = [];
   if (m.imagenMediaId) {
     const img = await descargarImagen(empresaId, m.imagenMediaId);
     if (img) imagenes.push(img);
+    else console.log("[wa] no se pudo descargar la imagen", m.imagenMediaId);
   }
-  if (!m.texto && imagenes.length === 0) return; // nada que interpretar
+  if (!m.texto && imagenes.length === 0) {
+    console.log("[wa] nada que interpretar (sin texto ni imagen usable)");
+    return;
+  }
 
   const nombre = cliente.nombreComercial ?? cliente.razonSocial;
   const respuesta = await procesarTurnoWhatsApp(empresaId, cliente.id, nombre, m.from, {
     texto: m.texto,
     imagenes,
   });
-  await enviarTexto(empresaId, m.from, respuesta);
+  const ok = await enviarTexto(empresaId, m.from, respuesta);
+  console.log("[wa] respuesta del bot:", ok ? "enviada" : "FALLÓ el envío", "—", respuesta.slice(0, 80));
 }
