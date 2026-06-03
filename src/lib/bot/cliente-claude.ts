@@ -1,6 +1,4 @@
 import "server-only";
-import { generateObject } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { salidaPedidoSchema, type SalidaPedido } from "./schema";
 
 export interface ImagenEntrada {
@@ -13,6 +11,10 @@ export interface ImagenEntrada {
  * de ANTHROPIC_API_KEY (env). Devuelve la salida ya validada por el esquema Zod.
  */
 export async function pedirPedido(prompt: string, imagenes: ImagenEntrada[]): Promise<SalidaPedido> {
+  // Carga diferida: el SDK de IA (ESM) NO se evalúa en build, solo al llamar a Claude en runtime.
+  const { generateObject } = await import("ai");
+  const { anthropic } = await import("@ai-sdk/anthropic");
+
   const content: ({ type: "text"; text: string } | { type: "image"; image: string })[] = [{ type: "text", text: prompt }];
   for (const img of imagenes) content.push({ type: "image", image: img.dataUrl });
 
