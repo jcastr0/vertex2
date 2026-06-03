@@ -1,6 +1,7 @@
 import "server-only";
 import { listarProductosVenta } from "@/lib/services/productos";
 import { ultimoPrecioPorCliente } from "@/lib/services/facturas";
+import { obtenerSecreto } from "@/lib/services/configuracion";
 import { mapearPropuesta, type CatalogoItem, type Propuesta } from "./mapear";
 import { pedirPedido, type ImagenEntrada } from "./cliente-claude";
 import type { SalidaPedido } from "./schema";
@@ -54,14 +55,15 @@ export async function interpretarPedido(
   clienteId: number,
   entrada: EntradaPedido,
   ctx: ContextoCliente = {},
-  pedir: (prompt: string, imagenes: ImagenEntrada[]) => Promise<SalidaPedido> = pedirPedido,
+  pedir: (prompt: string, imagenes: ImagenEntrada[], apiKey?: string) => Promise<SalidaPedido> = pedirPedido,
 ): Promise<ResultadoTurno> {
-  const [productos, historial] = await Promise.all([
+  const [productos, historial, apiKey] = await Promise.all([
     listarProductosVenta(empresaId),
     ultimoPrecioPorCliente(empresaId, clienteId),
+    obtenerSecreto("anthropic.apiKey", empresaId),
   ]);
   const catalogo: CatalogoItem[] = productos.map((p) => ({ id: p.id, nombre: p.nombre, sku: p.sku, precio: p.precio, unidad: p.unidadAbrev }));
-  const salida = await pedir(construirPrompt(catalogo, entrada.texto ?? "", ctx), entrada.imagenes ?? []);
+  const salida = await pedir(construirPrompt(catalogo, entrada.texto ?? "", ctx), entrada.imagenes ?? [], apiKey ?? undefined);
   const propuesta = mapearPropuesta(salida, catalogo, historial);
   return { mensajeAsistente: salida.mensajeAsistente, propuesta, completo: salida.completo };
 }
