@@ -1,5 +1,4 @@
-import { after, type NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { parsearMensajeEntrante, type MensajeEntrante } from "@/lib/domain/whatsapp";
 import { empresaPorPhoneNumberId, botActivo, mensajeNoRegistrado } from "@/lib/services/configuracion";
 import { buscarClientePorTelefono } from "@/lib/services/terceros";
@@ -35,11 +34,17 @@ export async function POST(req: NextRequest) {
   if (mensaje) {
     const m = mensaje;
     console.log("[wa] entrante", { phoneNumberId: m.phoneNumberId, de: m.from, tipo: m.texto ? "texto" : m.imagenMediaId ? "imagen" : "otro" });
-    after(() => atender(m).catch((e) => console.error("[wa] error al atender:", (e as Error).message)));
+    // Procesamos ANTES de responder: en Vercel el trabajo en `after()` se
+    // descarta cuando la función se congela tras el 200. Claude Haiku tarda
+    // pocos segundos, dentro del margen de Meta.
+    try {
+      await atender(m);
+    } catch (e) {
+      console.error("[wa] error al atender:", (e as Error).message);
+    }
   } else {
     console.log("[wa] POST ignorado (sin mensaje útil: status update o payload no reconocido)");
   }
-  // Meta exige 200 rápido; si no, reintenta y duplica mensajes.
   return NextResponse.json({ ok: true });
 }
 
