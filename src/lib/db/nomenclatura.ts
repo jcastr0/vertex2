@@ -56,4 +56,6 @@ export const CATALOGO: EntradaNomenclatura[] = [
   { codigo: "vx39", nombreModelo: "Cotizacion", descripcion: "Cotizaciones (pedidos de cliente)", modulo: "Ventas", tieneEmpresaId: true, esCatalogo: false },
   { codigo: "vx40", nombreModelo: "CotizacionDetalle", descripcion: "Detalle de cotizaciones", modulo: "Ventas", tieneEmpresaId: false, esCatalogo: false },
   { codigo: "vx41", nombreModelo: "Configuracion", descripcion: "Configuración (key-value)", modulo: "Administración", tieneEmpresaId: true, esCatalogo: false },
+  { codigo: "vx42", nombreModelo: "SolicitudRegistro", descripcion: "Solicitudes de registro del bot", modulo: "Ventas", tieneEmpresaId: true, esCatalogo: false },
+  { codigo: "vx43", nombreModelo: "ConversacionBot", descripcion: "Estado de conversaciones del bot", modulo: "Ventas", tieneEmpresaId: true, esCatalogo: false },
 ];

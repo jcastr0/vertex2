@@ -1133,3 +1133,36 @@ export const configuracion = pgTable("vx41",
 );
 
 export type Configuracion = typeof configuracion.$inferSelect;
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx42 — Solicitudes de registro (números desconocidos que escriben al bot)
+// ──────────────────────────────────────────────────────────────────────────
+export const solicitudesRegistro = pgTable("vx42",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" }).notNull().references(() => empresas.id),
+    telefono: varchar("telefono", { length: 30 }).notNull(),
+    mensaje: text("mensaje"),
+    estado: varchar("estado", { length: 20 }).notNull().default("pendiente"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("vx42_empresa_estado_idx").on(t.empresaId, t.estado)],
+);
+
+// ──────────────────────────────────────────────────────────────────────────
+// vx43 — Conversaciones del bot (estado por teléfono: borrador del pedido)
+// ──────────────────────────────────────────────────────────────────────────
+export const conversacionesBot = pgTable("vx43",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    empresaId: bigint("empresa_id", { mode: "number" }).notNull().references(() => empresas.id),
+    telefono: varchar("telefono", { length: 30 }).notNull(),
+    borrador: jsonb("borrador"),
+    estado: varchar("estado", { length: 20 }).notNull().default("recolectando"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("vx43_empresa_telefono_uq").on(t.empresaId, t.telefono)],
+);
+
+export type SolicitudRegistro = typeof solicitudesRegistro.$inferSelect;
+export type ConversacionBot = typeof conversacionesBot.$inferSelect;
