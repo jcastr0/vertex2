@@ -1,15 +1,12 @@
 import "server-only";
 import { salidaPedidoSchema, type SalidaPedido } from "./schema";
+import { sanearHistorial, type MensajeChat } from "@/lib/domain/whatsapp";
+
+export type { MensajeChat };
 
 export interface ImagenEntrada {
   /** data URL (p. ej. "data:image/jpeg;base64,...") o URL http(s). */
   dataUrl: string;
-}
-
-/** Un turno previo del chat, para darle contexto a Claude (entiende "5", "el mismo"…). */
-export interface MensajeChat {
-  rol: "user" | "assistant";
-  texto: string;
 }
 
 /**
@@ -27,7 +24,7 @@ export async function pedirPedido(prompt: string, imagenes: ImagenEntrada[], api
   const content: ({ type: "text"; text: string } | { type: "image"; image: string })[] = [{ type: "text", text: prompt }];
   for (const img of imagenes) content.push({ type: "image", image: img.dataUrl });
 
-  const previos = historial.map((m) => ({ role: m.rol, content: m.texto }));
+  const previos = sanearHistorial(historial).map((m) => ({ role: m.rol, content: m.texto }));
 
   const { object } = await generateObject({
     model: provider("claude-haiku-4-5"),

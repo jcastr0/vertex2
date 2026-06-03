@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizarTelefono, esAfirmacion, parsearMensajeEntrante } from "./whatsapp";
+import { normalizarTelefono, esAfirmacion, parsearMensajeEntrante, sanearHistorial } from "./whatsapp";
 
 describe("normalizarTelefono", () => {
   it("deja los últimos 10 dígitos (ignora prefijo país y separadores)", () => {
@@ -55,5 +55,31 @@ describe("parsearMensajeEntrante", () => {
     expect(parsearMensajeEntrante({ entry: [{ changes: [{ value: { statuses: [{}] } }] }] })).toBeNull();
     expect(parsearMensajeEntrante({})).toBeNull();
     expect(parsearMensajeEntrante(null)).toBeNull();
+  });
+});
+
+describe("sanearHistorial", () => {
+  const u = (texto: string) => ({ rol: "user" as const, texto });
+  const a = (texto: string) => ({ rol: "assistant" as const, texto });
+
+  it("deja un historial bien formado intacto (termina en assistant)", () => {
+    const h = [u("hola"), a("¿qué necesitas?"), u("2 kg papa"), a("¿algo más?")];
+    expect(sanearHistorial(h)).toEqual(h);
+  });
+  it("descarta mensajes 'assistant' al inicio (recorte que dejó empezando mal)", () => {
+    const r = sanearHistorial([a("¿algo más?"), u("5"), a("¿confirmo?")]);
+    expect(r[0].rol).toBe("user");
+  });
+  it("colapsa roles repetidos consecutivos (debe alternar)", () => {
+    const r = sanearHistorial([u("hola"), u("2 kg papa"), a("ok"), a("¿algo más?")]);
+    expect(r.map((m) => m.rol)).toEqual(["user", "assistant"]);
+  });
+  it("quita el último 'user' para dejar espacio al mensaje actual", () => {
+    const r = sanearHistorial([u("hola"), a("dime"), u("otra cosa")]);
+    expect(r[r.length - 1].rol).toBe("assistant");
+  });
+  it("ignora mensajes vacíos", () => {
+    const r = sanearHistorial([u(""), u("hola"), a("dime")]);
+    expect(r).toEqual([u("hola"), a("dime")]);
   });
 });

@@ -33,6 +33,33 @@ export function esAfirmacion(texto: string): boolean {
   return palabras.some((w) => FUERTES.has(w)); // contiene una confirmación fuerte ("confirmo el pedido")
 }
 
+/** Un turno previo del chat, para darle contexto a Claude (entiende "5", "el mismo"…). */
+export interface MensajeChat {
+  rol: "user" | "assistant";
+  texto: string;
+}
+
+/**
+ * Anthropic exige que los mensajes empiecen en "user" y alternen user/assistant.
+ * Al recortar el historial puede quedar empezando en "assistant" o con roles
+ * repetidos → la API revienta. Esto lo deja: arranca en user, alterna, y termina
+ * en assistant (después se agrega el mensaje actual del user).
+ */
+export function sanearHistorial(historial: MensajeChat[]): MensajeChat[] {
+  const out: MensajeChat[] = [];
+  for (const m of historial) {
+    if (m.rol !== "user" && m.rol !== "assistant") continue;
+    if (!m.texto?.trim()) continue;
+    if (out.length === 0) {
+      if (m.rol === "user") out.push(m); // no empezar con assistant
+    } else if (out[out.length - 1].rol !== m.rol) {
+      out.push(m); // alterna; si repite el rol, se ignora
+    }
+  }
+  while (out.length && out[out.length - 1].rol === "user") out.pop(); // dejar espacio al mensaje actual
+  return out;
+}
+
 export interface MensajeEntrante {
   phoneNumberId: string;
   from: string;
