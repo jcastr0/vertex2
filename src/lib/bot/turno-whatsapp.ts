@@ -89,7 +89,7 @@ export async function procesarTurnoWhatsApp(
     };
   }
 
-  // 3) Interpretar el mensaje (pedido nuevo o ajuste sobre el borrador previo).
+  // 3) Interpretar el mensaje (pedido nuevo o ajuste), con el historial del chat como contexto.
   const [ultimo, productos] = await Promise.all([ultimoPedidoCliente(empresaId, clienteId), listarProductos(empresaId)]);
   const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
   const ultimoPedido = ultimo.map((u) => ({ nombre: prodPorId.get(u.productoId) ?? `#${u.productoId}`, cantidad: u.cantidad }));
@@ -98,20 +98,31 @@ export async function procesarTurnoWhatsApp(
     clienteNombre,
     ultimoPedido,
     borradorPrevio: conv?.lineas.length ? conv.lineas.map((l) => ({ nombre: l.nombre, cantidad: l.cantidad })) : undefined,
+    historial: conv?.historial,
   });
 
   const lineas: LineaGuardada[] = r.propuesta.lineas.map((l) => ({ productoId: l.productoId, nombre: l.nombre, unidad: l.unidad, cantidad: l.cantidad, precioUnitario: l.precioUnitario }));
 
-  // 4) Guardar/actualizar el borrador. Si hay pedido claro, pedir confirmación con precios + botones.
-  if (lineas.length > 0) {
-    await guardarConversacion(empresaId, telefono, lineas, r.completo ? "esperando_confirmacion" : "recolectando");
-    if (r.completo) {
-      const cuerpo = `${r.propuesta.resumen}\n\n¿Confirmo tu pedido? Toca un botón o responde *sí*.`;
-      return { texto: cuerpo, botones: [BTN_CONFIRMAR, BTN_CANCELAR] };
-    }
-  } else if (conv) {
-    // El cliente escribió algo sin productos y no había nada que confirmar: mantenemos el estado previo.
-    await guardarConversacion(empresaId, telefono, conv.lineas, conv.estado);
+  // Decidir la respuesta y el estado.
+  let respuesta: RespuestaTurno;
+  let estado = conv?.estado ?? "recolectando";
+  if (lineas.length > 0 && r.completo) {
+    estado = "esperando_confirmacion";
+    respuesta = { texto: `${r.propuesta.resumen}\n\n¿Confirmo tu pedido? Toca un botón o responde *sí*.`, botones: [BTN_CONFIRMAR, BTN_CANCELAR] };
+  } else {
+    if (lineas.length > 0) estado = "recolectando";
+    respuesta = { texto: r.mensajeAsistente };
   }
-  return { texto: r.mensajeAsistente };
+
+  // 4) Guardar borrador + historial del chat (acotado) para el próximo turno.
+  const entradaTexto = entrada.texto ?? (entrada.imagenes?.length ? "(envió una imagen)" : "");
+  const historial = [...(conv?.historial ?? [])];
+  if (entradaTexto) historial.push({ rol: "user", texto: entradaTexto });
+  historial.push({ rol: "assistant", texto: respuesta.texto });
+  const historialAcotado = historial.slice(-8);
+  // Si no hay líneas nuevas pero había borrador, conservamos las líneas previas.
+  const lineasGuardar = lineas.length > 0 ? lineas : conv?.lineas ?? [];
+  await guardarConversacion(empresaId, telefono, lineasGuardar, historialAcotado, estado);
+
+  return respuesta;
 }
