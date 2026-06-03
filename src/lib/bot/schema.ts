@@ -13,6 +13,8 @@ export const salidaItemSchema = z.object({
 
 export const salidaPedidoSchema = z.object({
   items: z.array(salidaItemSchema),
+  mensajeAsistente: z.string(),
+  completo: z.boolean(),
   notas: z.string().optional(),
 });
 
