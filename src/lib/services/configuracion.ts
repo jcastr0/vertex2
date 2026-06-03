@@ -100,7 +100,6 @@ export async function empresaPorPhoneNumberId(phoneNumberId: string): Promise<nu
     .select({ empresaId: configuracion.empresaId, valor: configuracion.valor })
     .from(configuracion)
     .where(eq(configuracion.clave, "whatsapp.phoneNumberId"));
-  console.log("[wa] resolver empresa para", JSON.stringify(objetivo), "candidatos:", JSON.stringify(rows.map((r) => ({ empresaId: r.empresaId, valor: r.valor, tipo: typeof r.valor }))));
   // Comparación robusta: el valor en jsonb puede venir como número o con
   // espacios; normalizamos ambos lados a texto sin espacios.
   const r = rows.find((x) => x.empresaId !== null && String(x.valor ?? "").trim() === objetivo);
