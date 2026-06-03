@@ -90,6 +90,26 @@ export const MENSAJE_NO_REGISTRADO_DEFAULT =
 export function botActivo(empresaId: number): Promise<boolean> {
   return obtenerConfig<boolean>("bot.activo", empresaId, false);
 }
+
+// ── WhatsApp (credenciales configurables desde la UI) ────────────────────────
+
+/** Empresa cuyo número de WhatsApp (phone_number_id) coincide con el entrante. */
+export async function empresaPorPhoneNumberId(phoneNumberId: string): Promise<number | null> {
+  const rows = await db
+    .select({ empresaId: configuracion.empresaId, valor: configuracion.valor })
+    .from(configuracion)
+    .where(eq(configuracion.clave, "whatsapp.phoneNumberId"));
+  const r = rows.find((x) => x.empresaId !== null && x.valor === phoneNumberId);
+  return r?.empresaId ?? null;
+}
+/** Access token de WhatsApp de la empresa (secreto cifrado). */
+export function whatsappToken(empresaId: number): Promise<string | null> {
+  return obtenerSecreto("whatsapp.token", empresaId);
+}
+/** Phone Number ID de WhatsApp de la empresa. */
+export function whatsappPhoneNumberId(empresaId: number): Promise<string | null> {
+  return obtenerConfig<string | null>("whatsapp.phoneNumberId", empresaId, null);
+}
 export function mensajeNoRegistrado(empresaId: number): Promise<string> {
   return obtenerConfig<string>("bot.mensajeNoRegistrado", empresaId, MENSAJE_NO_REGISTRADO_DEFAULT);
 }

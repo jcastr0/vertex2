@@ -5,6 +5,7 @@ import { terceros } from "@/lib/db/schema";
 import { registrarAuditoria } from "@/lib/audit";
 import { digitoVerificacionPara } from "@/lib/domain/nit";
 import { formatearNumero } from "@/lib/domain/numeracion";
+import { normalizarTelefono } from "@/lib/domain/whatsapp";
 import type { TerceroInput } from "@/lib/validation/tercero";
 import type { Contexto } from "./bodegas";
 
@@ -53,6 +54,23 @@ export async function listarTerceros(empresaId: number): Promise<Tercero[]> {
     .from(terceros)
     .where(eq(terceros.empresaId, empresaId))
     .orderBy(desc(terceros.activo), terceros.razonSocial);
+}
+
+/** Busca un cliente activo de la empresa cuyo teléfono/celular coincida (normalizado) con el número entrante. */
+export async function buscarClientePorTelefono(empresaId: number, telefono: string): Promise<Tercero | null> {
+  const objetivo = normalizarTelefono(telefono);
+  if (!objetivo) return null;
+  const candidatos = await db
+    .select()
+    .from(terceros)
+    .where(and(eq(terceros.empresaId, empresaId), eq(terceros.activo, true)));
+  return (
+    candidatos.find(
+      (t) =>
+        (t.tipo === "cliente" || t.tipo === "ambos") &&
+        (normalizarTelefono(t.celular ?? "") === objetivo || normalizarTelefono(t.telefono ?? "") === objetivo),
+    ) ?? null
+  );
 }
 
 export async function obtenerTercero(empresaId: number, id: number): Promise<Tercero | null> {
