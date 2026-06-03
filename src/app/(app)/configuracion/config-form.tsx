@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/components/ui/field";
 import { FormSection } from "@/components/ui/form-section";
-import { AlertCircle, CheckCircle2, KeyRound, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, KeyRound, Loader2, MessageCircle } from "lucide-react";
 
 function Guardar() {
   const { pending } = useFormStatus();
@@ -19,7 +19,19 @@ function Guardar() {
   );
 }
 
-export function ConfigForm({ botActivo, mensaje, keyConfigurada }: { botActivo: boolean; mensaje: string; keyConfigurada: boolean }) {
+export function ConfigForm({
+  botActivo,
+  mensaje,
+  keyConfigurada,
+  whatsappPhoneNumberId,
+  whatsappTokenConfigurado,
+}: {
+  botActivo: boolean;
+  mensaje: string;
+  keyConfigurada: boolean;
+  whatsappPhoneNumberId: string;
+  whatsappTokenConfigurado: boolean;
+}) {
   const [state, action] = useActionState<ConfigState, FormData>(guardarConfigBotAction, {});
   const [activo, setActivo] = useState(botActivo);
   return (
@@ -66,6 +78,32 @@ export function ConfigForm({ botActivo, mensaje, keyConfigurada }: { botActivo: 
             />
           </div>
         </Field>
+      </FormSection>
+
+      <FormSection title="Conexión con WhatsApp" description="Credenciales de Meta para que los clientes pidan por WhatsApp. El token se guarda cifrado.">
+        <div className="space-y-5">
+          <Field label="Phone Number ID" hint="El identificador del número en Meta (WhatsApp → API Setup). No es el número de teléfono.">
+            <div className="relative">
+              <MessageCircle className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input name="whatsappPhoneNumberId" autoComplete="off" placeholder="123456789012345" className="pl-9" defaultValue={whatsappPhoneNumberId} />
+            </div>
+          </Field>
+          <Field
+            label="Token de acceso"
+            hint={whatsappTokenConfigurado ? "Hay un token configurado. Escribe uno nuevo solo si quieres reemplazarlo." : "Token de la app de Meta (temporal o permanente). Se guardará cifrado."}
+          >
+            <div className="relative">
+              <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                name="whatsappToken"
+                type="password"
+                autoComplete="off"
+                placeholder={whatsappTokenConfigurado ? "•••••••••• configurado" : "EAAB…"}
+                className="pl-9"
+              />
+            </div>
+          </Field>
+        </div>
       </FormSection>
 
       <Guardar />

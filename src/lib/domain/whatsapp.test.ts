@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizarTelefono, esAfirmacion, parsearMensajeEntrante } from "./whatsapp";
+import { normalizarTelefono, esAfirmacion, parsearMensajeEntrante, debeCrearPedido } from "./whatsapp";
 
 describe("normalizarTelefono", () => {
   it("deja los últimos 10 dígitos (ignora prefijo país y separadores)", () => {
@@ -39,5 +39,23 @@ describe("parsearMensajeEntrante", () => {
     expect(parsearMensajeEntrante({ entry: [{ changes: [{ value: { statuses: [{}] } }] }] })).toBeNull();
     expect(parsearMensajeEntrante({})).toBeNull();
     expect(parsearMensajeEntrante(null)).toBeNull();
+  });
+});
+
+describe("debeCrearPedido", () => {
+  it("crea si está completo, tiene líneas y el cliente afirmó", () => {
+    expect(debeCrearPedido({ completo: true, numLineas: 2, afirmo: true, esperabaConfirmacion: false })).toBe(true);
+  });
+  it("crea si está completo y veníamos esperando confirmación (aunque el mensaje no sea un 'sí' literal)", () => {
+    expect(debeCrearPedido({ completo: true, numLineas: 2, afirmo: false, esperabaConfirmacion: true })).toBe(true);
+  });
+  it("NO crea si está completo pero el cliente aún no confirma (primer turno con el pedido listo)", () => {
+    expect(debeCrearPedido({ completo: true, numLineas: 2, afirmo: false, esperabaConfirmacion: false })).toBe(false);
+  });
+  it("NO crea si el pedido no está completo, aunque diga que sí", () => {
+    expect(debeCrearPedido({ completo: false, numLineas: 2, afirmo: true, esperabaConfirmacion: true })).toBe(false);
+  });
+  it("NO crea si no hay líneas reconocidas", () => {
+    expect(debeCrearPedido({ completo: true, numLineas: 0, afirmo: true, esperabaConfirmacion: true })).toBe(false);
   });
 });

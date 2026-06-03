@@ -16,10 +16,14 @@ export async function guardarConfigBotAction(_prev: ConfigState, form: FormData)
   const activo = String(form.get("botActivo") || "") === "1";
   const mensaje = String(form.get("mensajeNoRegistrado") || "").trim();
   const apiKey = String(form.get("apiKeyClaude") || "").trim();
+  const waPhoneNumberId = String(form.get("whatsappPhoneNumberId") || "").trim();
+  const waToken = String(form.get("whatsappToken") || "").trim();
   try {
     await guardarConfig("bot.activo", activo, c.ctx.empresaId, c.ctx);
     if (mensaje) await guardarConfig("bot.mensajeNoRegistrado", mensaje, c.ctx.empresaId, c.ctx);
     if (apiKey) await guardarSecreto("anthropic.apiKey", apiKey, c.ctx.empresaId, c.ctx);
+    await guardarConfig("whatsapp.phoneNumberId", waPhoneNumberId, c.ctx.empresaId, c.ctx);
+    if (waToken) await guardarSecreto("whatsapp.token", waToken, c.ctx.empresaId, c.ctx);
   } catch (e) {
     console.error("[config] error:", e);
     return { error: "No se pudo guardar." };

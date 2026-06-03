@@ -39,6 +39,7 @@ import {
   Settings2,
   Home,
   KeyRound,
+  Inbox,
 } from "lucide-react";
 import type { Modulo } from "./auth/roles";
 
@@ -133,6 +134,7 @@ export const NAV: GrupoNav[] = [
       { modulo: "manuales", label: "Manuales", href: "/manuales", icon: BookOpen, listo: true, desc: "Guías de uso del sistema." },
       { modulo: "roles", label: "Roles", href: "/roles", icon: KeyRound, listo: true, desc: "Permisos por rol." },
       { modulo: "configuracion", label: "Configuración", href: "/configuracion", icon: Settings2, listo: true, desc: "Ajustes y activación del asistente." },
+      { modulo: "configuracion", label: "Solicitudes de registro", href: "/solicitudes-registro", icon: Inbox, listo: true, desc: "Números que pidieron registrarse por WhatsApp." },
     ],
   },
 ];

@@ -22,6 +22,16 @@ export function esAfirmacion(texto: string): boolean {
   return set.has(t) || t.split(/\s+/).every((w) => set.has(w));
 }
 
+/**
+ * Decide si un turno debe CREAR la cotización (cerrar el pedido). Solo se crea
+ * cuando el pedido está completo, tiene líneas, y el cliente confirmó: ya sea
+ * porque su mensaje fue una afirmación ("sí"), o porque el turno anterior ya le
+ * pidió confirmación (estado "esperando_confirmacion") y volvió a escribir.
+ */
+export function debeCrearPedido(opts: { completo: boolean; numLineas: number; afirmo: boolean; esperabaConfirmacion: boolean }): boolean {
+  return opts.completo && opts.numLineas > 0 && (opts.afirmo || opts.esperabaConfirmacion);
+}
+
 export interface MensajeEntrante {
   phoneNumberId: string;
   from: string;

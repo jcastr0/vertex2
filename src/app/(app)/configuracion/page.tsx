@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requirePermiso, requireEmpresa } from "@/lib/auth/guard";
-import { botActivo, mensajeNoRegistrado, secretoConfigurado } from "@/lib/services/configuracion";
+import { botActivo, mensajeNoRegistrado, secretoConfigurado, whatsappPhoneNumberId } from "@/lib/services/configuracion";
 import { PageHeader } from "@/components/page-header";
 import { ConfigForm } from "./config-form";
 
@@ -9,15 +9,23 @@ export const metadata: Metadata = { title: "Configuración — Vertex" };
 export default async function ConfiguracionPage() {
   await requirePermiso("configuracion.ver");
   const { empresaId } = await requireEmpresa();
-  const [activo, mensaje, keyConfigurada] = await Promise.all([
+  const [activo, mensaje, keyConfigurada, waPhoneNumberId, waTokenConfigurado] = await Promise.all([
     botActivo(empresaId),
     mensajeNoRegistrado(empresaId),
     secretoConfigurado("anthropic.apiKey", empresaId),
+    whatsappPhoneNumberId(empresaId),
+    secretoConfigurado("whatsapp.token", empresaId),
   ]);
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Configuración" description="Ajustes del asistente de pedidos para esta empresa." />
-      <ConfigForm botActivo={activo} mensaje={mensaje} keyConfigurada={keyConfigurada} />
+      <ConfigForm
+        botActivo={activo}
+        mensaje={mensaje}
+        keyConfigurada={keyConfigurada}
+        whatsappPhoneNumberId={waPhoneNumberId ?? ""}
+        whatsappTokenConfigurado={waTokenConfigurado}
+      />
     </div>
   );
 }
