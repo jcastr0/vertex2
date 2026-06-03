@@ -1,4 +1,4 @@
-import type { SalidaPedido } from "./schema";
+import type { SalidaItem } from "./schema";
 
 export interface CatalogoItem { id: number; nombre: string; sku: string; precio: number; }
 export type Historial = Record<number, number>;
@@ -25,7 +25,7 @@ const money = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
  * - Precio: último a ese cliente (historial) → precio de catálogo → 0.
  * - Items sin id válido → `noReconocidos` (texto "cantidad × nombre").
  */
-export function mapearPropuesta(salida: SalidaPedido, catalogo: CatalogoItem[], historial: Historial): Propuesta {
+export function mapearPropuesta(salida: { items: SalidaItem[] }, catalogo: CatalogoItem[], historial: Historial): Propuesta {
   const porId = new Map(catalogo.map((c) => [c.id, c]));
   const lineas: LineaPropuesta[] = [];
   const noReconocidos: string[] = [];

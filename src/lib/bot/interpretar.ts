@@ -9,41 +9,58 @@ export interface EntradaPedido {
   texto?: string;
   imagenes?: ImagenEntrada[];
 }
+export interface ContextoCliente {
+  clienteNombre?: string;
+  ultimoPedido?: { nombre: string; cantidad: number }[];
+  borradorPrevio?: { nombre: string; cantidad: number }[];
+}
+export interface ResultadoTurno {
+  mensajeAsistente: string;
+  propuesta: Propuesta;
+  completo: boolean;
+}
 
-function construirPrompt(catalogo: CatalogoItem[], texto: string): string {
+function lineasTexto(arr?: { nombre: string; cantidad: number }[]): string {
+  return arr && arr.length ? arr.map((l) => `${l.cantidad} × ${l.nombre}`).join(", ") : "";
+}
+
+function construirPrompt(catalogo: CatalogoItem[], texto: string, ctx: ContextoCliente): string {
   const lista = catalogo.map((c) => `- id:${c.id} | ${c.nombre} (SKU ${c.sku})`).join("\n");
   return [
-    "Eres el asistente de pedidos de una distribuidora. El cliente envía un pedido (texto y/o foto de una lista).",
-    "Tu tarea: extraer los productos y cantidades, y EMPAREJAR cada uno con el catálogo de abajo usando su `id`.",
-    "Reglas estrictas:",
-    "- Usa SOLO los `id` del catálogo. Si un ítem no calza con ningún producto del catálogo, devuélvelo con productoId: null.",
-    "- NO inventes productos ni precios. No devuelvas precios.",
-    "- `cantidad` es un número (interpreta unidades como kg/libras/bultos según el texto, pero devuelve solo el número pedido).",
-    "- `nombre` = lo que el cliente dijo para ese ítem.",
+    "Eres el asistente de pedidos de una distribuidora, cálido y breve. Atiendes a un cliente conocido.",
+    ctx.clienteNombre ? `El cliente se llama ${ctx.clienteNombre}; salúdalo por su nombre de forma natural.` : "",
+    ctx.ultimoPedido?.length ? `Su último pedido fue: ${lineasTexto(ctx.ultimoPedido)}. Si pide "lo mismo", "lo de siempre" o "la vez pasada", usa ese pedido.` : "",
+    ctx.borradorPrevio?.length ? `Pedido en progreso de esta conversación: ${lineasTexto(ctx.borradorPrevio)}. Complétalo o ajústalo con el nuevo mensaje.` : "",
     "",
-    "Catálogo (empareja contra estos id):",
+    "Tarea: extraer productos y cantidades y EMPAREJAR cada uno con el catálogo por su `id`.",
+    "Reglas: usa SOLO ids del catálogo; si un ítem no calza, productoId: null. NO inventes productos ni precios. No devuelvas precios.",
+    "`mensajeAsistente`: tu respuesta al cliente (saludo + lo que entendiste o lo que falta).",
+    "`completo`: true si el pedido está claro y listo; false si falta información (entonces pide lo que falta en mensajeAsistente).",
+    "",
+    "Catálogo:",
     lista,
     "",
-    texto ? `Pedido del cliente (texto): ${texto}` : "El pedido viene en la(s) imagen(es) adjunta(s).",
-  ].join("\n");
+    texto ? `Mensaje del cliente: ${texto}` : "El cliente envió una imagen con su pedido.",
+  ].filter(Boolean).join("\n");
 }
 
 /**
- * Interpreta un pedido (texto/imagen) contra el catálogo de la empresa y el
- * historial de precios del cliente. NO escribe en la base: devuelve una propuesta.
+ * Interpreta un turno del chat de pedidos contra el catálogo de la empresa y el
+ * historial del cliente. NO escribe en la base: devuelve mensaje + propuesta + completo.
  */
 export async function interpretarPedido(
   empresaId: number,
   clienteId: number,
   entrada: EntradaPedido,
+  ctx: ContextoCliente = {},
   pedir: (prompt: string, imagenes: ImagenEntrada[]) => Promise<SalidaPedido> = pedirPedido,
-): Promise<Propuesta> {
+): Promise<ResultadoTurno> {
   const [productos, historial] = await Promise.all([
     listarProductosVenta(empresaId),
     ultimoPrecioPorCliente(empresaId, clienteId),
   ]);
   const catalogo: CatalogoItem[] = productos.map((p) => ({ id: p.id, nombre: p.nombre, sku: p.sku, precio: p.precio }));
-  const prompt = construirPrompt(catalogo, entrada.texto ?? "");
-  const salida = await pedir(prompt, entrada.imagenes ?? []);
-  return mapearPropuesta(salida, catalogo, historial);
+  const salida = await pedir(construirPrompt(catalogo, entrada.texto ?? "", ctx), entrada.imagenes ?? []);
+  const propuesta = mapearPropuesta(salida, catalogo, historial);
+  return { mensajeAsistente: salida.mensajeAsistente, propuesta, completo: salida.completo };
 }

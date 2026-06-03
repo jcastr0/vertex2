@@ -5,43 +5,68 @@ import { redirect } from "next/navigation";
 import { hoyColombia } from "@/lib/fecha";
 import { puede } from "@/lib/auth/roles";
 import { contextoAccion as contexto } from "@/lib/auth/contexto";
-import { interpretarPedido } from "@/lib/bot/interpretar";
+import { obtenerTercero } from "@/lib/services/terceros";
+import { listarProductos } from "@/lib/services/productos";
+import { ultimoPedidoCliente } from "@/lib/services/facturas";
+import { botActivo } from "@/lib/services/configuracion";
+import { interpretarPedido, type ResultadoTurno } from "@/lib/bot/interpretar";
 import { crearCotizacion } from "@/lib/services/cotizaciones";
 import type { Propuesta } from "@/lib/bot/mapear";
 
-export interface InterpretarState {
+export interface TurnoState {
+  mensajeAsistente?: string;
   propuesta?: Propuesta;
+  completo?: boolean;
   clienteId?: number;
-  texto?: string;
   error?: string;
 }
 
-export async function interpretarPedidoAction(_prev: InterpretarState, form: FormData): Promise<InterpretarState> {
+/** Un turno del chat: interpreta el mensaje (con contexto del cliente) y propone. No escribe. */
+export async function enviarMensajeAction(_prev: TurnoState, form: FormData): Promise<TurnoState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };
   if (!puede(c.permisos, "cotizaciones.crear")) return { error: "No tienes permiso." };
+  if (!(await botActivo(c.ctx.empresaId))) return { error: "El asistente está desactivado para esta empresa." };
 
   const clienteId = Number(form.get("clienteId")) || 0;
   if (!clienteId) return { error: "Elige el cliente." };
   const texto = String(form.get("texto") || "").trim();
   const imagenDataUrl = String(form.get("imagenDataUrl") || "").trim();
-  if (!texto && !imagenDataUrl) return { error: "Escribe el pedido o sube una foto." };
+  if (!texto && !imagenDataUrl) return { error: "Escribe un mensaje o sube una foto." };
+
+  let borradorPrevio: { nombre: string; cantidad: number }[] = [];
+  try {
+    borradorPrevio = JSON.parse(String(form.get("borradorJson") || "[]"));
+  } catch {
+    borradorPrevio = [];
+  }
 
   try {
-    const propuesta = await interpretarPedido(c.ctx.empresaId, clienteId, {
-      texto: texto || undefined,
-      imagenes: imagenDataUrl ? [{ dataUrl: imagenDataUrl }] : [],
-    });
-    return { propuesta, clienteId, texto };
+    const [cli, productos, ultimo] = await Promise.all([
+      obtenerTercero(c.ctx.empresaId, clienteId),
+      listarProductos(c.ctx.empresaId),
+      ultimoPedidoCliente(c.ctx.empresaId, clienteId),
+    ]);
+    const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
+    const ultimoPedido = ultimo.map((u) => ({ nombre: prodPorId.get(u.productoId) ?? `#${u.productoId}`, cantidad: u.cantidad }));
+    const r: ResultadoTurno = await interpretarPedido(
+      c.ctx.empresaId,
+      clienteId,
+      { texto: texto || undefined, imagenes: imagenDataUrl ? [{ dataUrl: imagenDataUrl }] : [] },
+      { clienteNombre: cli?.razonSocial, ultimoPedido, borradorPrevio: borradorPrevio.length ? borradorPrevio : undefined },
+    );
+    return { mensajeAsistente: r.mensajeAsistente, propuesta: r.propuesta, completo: r.completo, clienteId };
   } catch (e) {
-    console.error("[bot] error al interpretar:", e);
-    return { error: "No se pudo interpretar el pedido. ¿Está configurada la API key?" };
+    console.error("[bot] error en turno:", e);
+    return { error: "No se pudo procesar. ¿Está configurada la API key?" };
   }
 }
 
 export interface ConfirmarState {
   error?: string;
 }
+
+/** Crea la cotización pendiente con lo que el cliente confirmó (origen bot, requiere revisión). */
 export async function confirmarPedidoAction(_prev: ConfirmarState, form: FormData): Promise<ConfirmarState> {
   const c = await contexto();
   if (!c) return { error: "Sesión sin empresa activa." };

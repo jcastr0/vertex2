@@ -100,6 +100,22 @@ export async function obtenerFactura(empresaId: number, id: number) {
   return { ...f, detalles };
 }
 
+/** Líneas de la última factura no anulada del cliente (para "lo mismo de la vez pasada"). */
+export async function ultimoPedidoCliente(empresaId: number, clienteId: number): Promise<{ productoId: number; cantidad: number }[]> {
+  const [f] = await db
+    .select({ id: facturas.id })
+    .from(facturas)
+    .where(and(eq(facturas.empresaId, empresaId), eq(facturas.clienteId, clienteId), ne(facturas.estado, "anulada")))
+    .orderBy(desc(facturas.fecha), desc(facturas.id))
+    .limit(1);
+  if (!f) return [];
+  const det = await db
+    .select({ productoId: facturaDetalles.productoId, cantidad: facturaDetalles.cantidad })
+    .from(facturaDetalles)
+    .where(eq(facturaDetalles.facturaId, f.id));
+  return det.map((d) => ({ productoId: d.productoId, cantidad: Number(d.cantidad) }));
+}
+
 async function siguienteNumero(empresaId: number): Promise<string> {
   const [{ c }] = await db.select({ c: count() }).from(facturas).where(eq(facturas.empresaId, empresaId));
   return formatearNumero("FAC", Number(c) + 1);
