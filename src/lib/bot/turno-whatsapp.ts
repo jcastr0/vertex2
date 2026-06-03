@@ -46,7 +46,7 @@ async function crearPedido(empresaId: number, clienteId: number, telefono: strin
 /**
  * Procesa un turno del chat de WhatsApp con un cliente registrado.
  *
- * - Botón/texto "confirmar" estando en "esperando_confirmacion" → crea la
+ * - Botón/texto "confirmar" estando en "confirmando" → crea la
  *   cotización DIRECTO desde lo guardado (no re-interpreta el "sí", que daría
  *   cero líneas y haría un bucle) y da un CIERRE claro.
  * - Botón/texto "cancelar" → descarta el borrador.
@@ -72,7 +72,7 @@ export async function procesarTurnoWhatsApp(
   }
 
   // 2) Confirmar un pedido ya armado → crear desde lo guardado + cierre claro.
-  if (conv?.estado === "esperando_confirmacion" && confirmo && conv.lineas.length > 0) {
+  if (conv?.estado === "confirmando" && confirmo && conv.lineas.length > 0) {
     try {
       const ok = await crearPedido(empresaId, clienteId, telefono, conv.lineas);
       if (!ok) return { texto: "Anoté tu pedido, pero no pude registrarlo automáticamente. Un asesor te contactará. 🙏" };
@@ -107,7 +107,7 @@ export async function procesarTurnoWhatsApp(
   let respuesta: RespuestaTurno;
   let estado = conv?.estado ?? "recolectando";
   if (lineas.length > 0 && r.completo) {
-    estado = "esperando_confirmacion";
+    estado = "confirmando";
     respuesta = { texto: `${r.propuesta.resumen}\n\n¿Confirmo tu pedido? Toca un botón o responde *sí*.`, botones: [BTN_CONFIRMAR, BTN_CANCELAR] };
   } else {
     if (lineas.length > 0) estado = "recolectando";
