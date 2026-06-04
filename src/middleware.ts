@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/auth/session";
 
 const RUTAS_PUBLICAS = ["/login"];
+// Páginas/rutas públicas que NO deben tocar la auth (ni redirigir a login ni a dashboard).
+const RUTAS_ABIERTAS = ["/api/whatsapp", "/privacidad", "/eliminacion-datos"];
 
 /**
  * Protege todas las rutas de la app. Verifica el JWT de sesión (jose corre en
@@ -11,10 +13,8 @@ const RUTAS_PUBLICAS = ["/login"];
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // El webhook de WhatsApp lo llama Meta sin sesión: debe pasar sin tocar auth
-  // (ni redirigir a /login ni a /dashboard). La autorización la hace el propio
-  // route handler con el verify token y el phoneNumberId.
-  if (pathname.startsWith("/api/whatsapp")) return NextResponse.next();
+  // Rutas públicas (webhook de Meta, políticas legales): pasan sin tocar auth.
+  if (RUTAS_ABIERTAS.some((r) => pathname.startsWith(r))) return NextResponse.next();
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const sesion = await verifySession(token);
