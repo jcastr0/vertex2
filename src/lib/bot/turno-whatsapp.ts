@@ -8,7 +8,7 @@ import { interpretarPedido, type EntradaPedido } from "./interpretar";
 import { resumenLineas } from "./mapear";
 import { listarProductos } from "@/lib/services/productos";
 import { ultimoPedidoCliente } from "@/lib/services/facturas";
-import { crearCotizacion } from "@/lib/services/cotizaciones";
+import { crearCotizacion, reemplazarLineasCotizacion, obtenerCotizacion } from "@/lib/services/cotizaciones";
 import { cargarConversacion, guardarConversacion, limpiarConversacion, type LineaGuardada } from "@/lib/services/conversaciones";
 import type { Boton } from "@/lib/whatsapp/enviar";
 
@@ -20,38 +20,26 @@ export interface RespuestaTurno {
 
 const BTN_CONFIRMAR: Boton = { id: "confirmar", title: "✅ Confirmar" };
 const BTN_CANCELAR: Boton = { id: "cancelar", title: "❌ Cancelar" };
+const VENTANA_MS = 24 * 60 * 60 * 1000; // un pedido se puede ampliar dentro de 24h
 
-/** Crea la cotización (origen bot, requiere revisión) a partir de líneas ya resueltas. */
-async function crearPedido(empresaId: number, clienteId: number, telefono: string, lineas: LineaGuardada[]): Promise<boolean> {
-  const [ue] = await db
-    .select({ uid: usuariosEmpresas.usuarioId })
-    .from(usuariosEmpresas)
-    .where(eq(usuariosEmpresas.empresaId, empresaId))
-    .limit(1);
-  if (!ue) return false;
-  await crearCotizacion(
-    {
-      clienteId,
-      fecha: hoyColombia(),
-      observaciones: `Pedido por WhatsApp (bot). Tel: ${telefono}.`,
-      lineas: lineas.map((l) => ({ productoId: l.productoId, cantidad: l.cantidad, precioUnitario: l.precioUnitario })),
-      origen: "bot",
-      requiereRevision: true,
-    },
-    { empresaId, usuarioId: ue.uid, ip: null },
-  );
-  return true;
+async function usuarioDeEmpresa(empresaId: number): Promise<number | null> {
+  const [ue] = await db.select({ uid: usuariosEmpresas.usuarioId }).from(usuariosEmpresas).where(eq(usuariosEmpresas.empresaId, empresaId)).limit(1);
+  return ue?.uid ?? null;
 }
+
+const aLineasNuevas = (lineas: LineaGuardada[]) => lineas.map((l) => ({ productoId: l.productoId, cantidad: l.cantidad, precioUnitario: l.precioUnitario }));
 
 /**
  * Procesa un turno del chat de WhatsApp con un cliente registrado.
  *
- * - Botón/texto "confirmar" estando en "confirmando" → crea la
- *   cotización DIRECTO desde lo guardado (no re-interpreta el "sí", que daría
- *   cero líneas y haría un bucle) y da un CIERRE claro.
- * - Botón/texto "cancelar" → descarta el borrador.
- * - En otro caso interpreta el mensaje (pedido nuevo o ajuste), guarda las
- *   líneas y pide confirmación mostrando precios + total y botones.
+ * Estados de la conversación:
+ *  - "recolectando": armando el pedido (incompleto).
+ *  - "confirmando": pedido claro, esperando que el cliente confirme.
+ *  - "confirmado": cotización ya creada; el cliente puede AMPLIARLA el mismo día.
+ *
+ * Al confirmar: si hay una cotización abierta (ampliación) la actualiza; si no,
+ * crea una nueva. Si el pedido del día ya se facturó o pasó de 24h, se arranca
+ * uno nuevo y se avisa.
  */
 export async function procesarTurnoWhatsApp(
   empresaId: number,
@@ -60,69 +48,105 @@ export async function procesarTurnoWhatsApp(
   telefono: string,
   entrada: EntradaPedido & { botonId?: string },
 ): Promise<RespuestaTurno> {
-  const conv = await cargarConversacion(empresaId, telefono);
+  let conv = await cargarConversacion(empresaId, telefono);
   const nombreCorto = clienteNombre ? clienteNombre.split(" ")[0] : "";
   const cancelo = entrada.botonId === "cancelar";
   const confirmo = entrada.botonId === "confirmar" || (entrada.texto ? esAfirmacion(entrada.texto) : false);
 
-  // 1) Cancelar el pedido en curso.
+  // 1) Cancelar lo que esté en curso.
   if (cancelo && conv) {
     await limpiarConversacion(empresaId, telefono);
-    return { texto: `Listo${nombreCorto ? ", " + nombreCorto : ""}, cancelé el pedido. Cuando quieras me escribes. 🙂` };
+    return { texto: `Listo${nombreCorto ? ", " + nombreCorto : ""}, lo dejé así. Cuando quieras me escribes. 🙂` };
   }
 
-  // 2) Confirmar un pedido ya armado → crear desde lo guardado + cierre claro.
+  // 2) Confirmar un pedido armado → crear o (si es ampliación) actualizar la cotización.
   if (conv?.estado === "confirmando" && confirmo && conv.lineas.length > 0) {
     try {
-      const ok = await crearPedido(empresaId, clienteId, telefono, conv.lineas);
-      if (!ok) return { texto: "Anoté tu pedido, pero no pude registrarlo automáticamente. Un asesor te contactará. 🙏" };
+      const uid = await usuarioDeEmpresa(empresaId);
+      if (!uid) return { texto: "Anoté tu pedido, pero no pude registrarlo automáticamente. Un asesor te contactará. 🙏" };
+      const ctx = { empresaId, usuarioId: uid, ip: null };
+      let cotizacionId = conv.cotizacionId;
+      if (cotizacionId) {
+        const ok = await reemplazarLineasCotizacion(empresaId, cotizacionId, aLineasNuevas(conv.lineas), ctx);
+        if (!ok) cotizacionId = undefined; // ya no editable (facturada): caemos a crear nueva
+      }
+      if (!cotizacionId) {
+        cotizacionId = await crearCotizacion(
+          { clienteId, fecha: hoyColombia(), observaciones: `Pedido por WhatsApp (bot). Tel: ${telefono}.`, lineas: aLineasNuevas(conv.lineas), origen: "bot", requiereRevision: true },
+          ctx,
+        );
+      }
+      const { texto: detalle } = resumenLineas(conv.lineas);
+      // Mantenemos la conversación como "confirmado" para permitir ampliar el mismo día.
+      await guardarConversacion(empresaId, telefono, conv.lineas, conv.historial.slice(-8), "confirmado", cotizacionId);
+      return {
+        texto: `✅ ¡Pedido confirmado${nombreCorto ? ", " + nombreCorto : ""}! Gracias por tu compra. 🙌\n\n${detalle}\n\nYa lo estamos preparando. Si se te olvidó algo, dímelo y te lo sumo. 🍅🥬`,
+      };
     } catch (e) {
-      console.error("[wa] error al crear cotización:", (e as Error).message);
+      console.error("[wa] error al confirmar pedido:", (e as Error).message);
       return { texto: "Anoté tu pedido, pero hubo un problema al registrarlo. Un asesor te contactará. 🙏" };
     }
-    // Limpiamos ANTES de armar el texto: el pedido ya quedó creado, así no se
-    // duplica aunque algo del resumen fallara.
-    await limpiarConversacion(empresaId, telefono);
-    const { texto: detalle } = resumenLineas(conv.lineas);
-    return {
-      texto: `✅ ¡Pedido confirmado${nombreCorto ? ", " + nombreCorto : ""}! Gracias por tu compra. 🙌\n\n${detalle}\n\nYa lo estamos preparando y te lo despachamos. ¡Que tengas buen día! 🍅🥬`,
-    };
   }
 
-  // 3) Interpretar el mensaje (pedido nuevo o ajuste), con el historial del chat como contexto.
-  const [ultimo, productos] = await Promise.all([ultimoPedidoCliente(empresaId, clienteId), listarProductos(empresaId)]);
-  const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
-  const ultimoPedido = ultimo.map((u) => ({ nombre: prodPorId.get(u.productoId) ?? `#${u.productoId}`, cantidad: u.cantidad }));
+  // 2b) Si el pedido del día ya está confirmado, decidir si AMPLIAMOS o arrancamos uno nuevo.
+  let ampliando: number | undefined;
+  let baseLineas: LineaGuardada[] = [];
+  if (conv?.estado === "confirmado" && conv.cotizacionId) {
+    const cot = await obtenerCotizacion(empresaId, conv.cotizacionId);
+    const vigente = cot && cot.estado === "pendiente" && cot.createdAt && Date.now() - new Date(cot.createdAt).getTime() < VENTANA_MS;
+    if (vigente) {
+      ampliando = conv.cotizacionId; // sumaremos a esta misma cotización
+      baseLineas = conv.lineas;
+    } else {
+      await limpiarConversacion(empresaId, telefono); // facturada o vieja → pedido nuevo
+      conv = null;
+    }
+  }
+
+  // 3) Interpretar el mensaje. Prioriza el pedido en curso/abierto sobre "lo de siempre".
+  const productos = await listarProductos(empresaId);
+  const enCurso = baseLineas.length ? baseLineas : conv?.lineas ?? [];
+  let ultimoPedido: { nombre: string; cantidad: number }[] | undefined;
+  if (enCurso.length === 0) {
+    const ultimo = await ultimoPedidoCliente(empresaId, clienteId);
+    const prodPorId = new Map(productos.map((p) => [p.id, p.nombre]));
+    ultimoPedido = ultimo.map((u) => ({ nombre: prodPorId.get(u.productoId) ?? `#${u.productoId}`, cantidad: u.cantidad }));
+  }
 
   const r = await interpretarPedido(empresaId, clienteId, entrada, {
     clienteNombre,
     ultimoPedido,
-    borradorPrevio: conv?.lineas.length ? conv.lineas.map((l) => ({ nombre: l.nombre, cantidad: l.cantidad })) : undefined,
+    borradorPrevio: enCurso.length ? enCurso.map((l) => ({ nombre: l.nombre, cantidad: l.cantidad })) : undefined,
     historial: conv?.historial,
   });
 
   const lineas: LineaGuardada[] = r.propuesta.lineas.map((l) => ({ productoId: l.productoId, nombre: l.nombre, unidad: l.unidad, cantidad: l.cantidad, precioUnitario: l.precioUnitario }));
 
-  // Decidir la respuesta y el estado.
+  // 4) Decidir respuesta y estado.
   let respuesta: RespuestaTurno;
-  let estado = conv?.estado ?? "recolectando";
+  let estado = conv?.estado === "confirmado" ? "confirmado" : "recolectando";
+  const lineasGuardar = lineas.length > 0 ? lineas : enCurso;
+
   if (lineas.length > 0 && r.completo) {
     estado = "confirmando";
-    respuesta = { texto: `${r.propuesta.resumen}\n\n¿Confirmo tu pedido? Toca un botón o responde *sí*.`, botones: [BTN_CONFIRMAR, BTN_CANCELAR] };
-  } else {
-    if (lineas.length > 0) estado = "recolectando";
+    const intro = ampliando ? "Actualicé tu pedido:" : "";
+    respuesta = { texto: `${intro ? intro + "\n\n" : ""}${r.propuesta.resumen}\n\n¿Confirmo tu pedido? Toca un botón o responde *sí*.`, botones: [BTN_CONFIRMAR, BTN_CANCELAR] };
+  } else if (lineas.length > 0) {
+    estado = "recolectando";
     respuesta = { texto: r.mensajeAsistente };
+  } else {
+    // Sin productos nuevos. Si hay un pedido confirmado abierto, lo recordamos.
+    respuesta = { texto: ampliando ? `${r.mensajeAsistente}\n\n(Tu pedido de hoy sigue abierto; si quieres, dime qué le sumo.)` : r.mensajeAsistente };
   }
 
-  // 4) Guardar borrador + historial del chat (acotado) para el próximo turno.
+  // 5) Guardar borrador + historial (acotado) para el próximo turno.
   const entradaTexto = entrada.texto ?? (entrada.imagenes?.length ? "(envió una imagen)" : "");
   const historial = [...(conv?.historial ?? [])];
   if (entradaTexto) historial.push({ rol: "user", texto: entradaTexto });
   historial.push({ rol: "assistant", texto: respuesta.texto });
-  const historialAcotado = historial.slice(-8);
-  // Si no hay líneas nuevas pero había borrador, conservamos las líneas previas.
-  const lineasGuardar = lineas.length > 0 ? lineas : conv?.lineas ?? [];
-  await guardarConversacion(empresaId, telefono, lineasGuardar, historialAcotado, estado);
+  // Preservamos la cotización en ampliación aunque aún esté incompleta.
+  const cotizacionId = ampliando ?? conv?.cotizacionId;
+  await guardarConversacion(empresaId, telefono, lineasGuardar, historial.slice(-8), estado, cotizacionId);
 
   return respuesta;
 }

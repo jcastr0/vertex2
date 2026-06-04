@@ -16,18 +16,21 @@ export interface Conversacion {
   lineas: LineaGuardada[];
   historial: MensajeChat[];
   estado: string;
+  /** Si el pedido ya se confirmó, la cotización creada (para poder ampliarla el mismo día). */
+  cotizacionId?: number;
 }
 
-/** Forma nueva del jsonb `borrador`: líneas + historial del chat. (Antes era solo el array de líneas.) */
+/** Forma nueva del jsonb `borrador`: líneas + historial + (opcional) cotización confirmada. */
 interface BorradorGuardado {
   lineas: LineaGuardada[];
   historial: MensajeChat[];
+  cotizacionId?: number;
 }
 
-function leerBorrador(raw: unknown): { lineas: LineaGuardada[]; historial: MensajeChat[] } {
+function leerBorrador(raw: unknown): { lineas: LineaGuardada[]; historial: MensajeChat[]; cotizacionId?: number } {
   if (Array.isArray(raw)) return { lineas: raw as LineaGuardada[], historial: [] }; // formato viejo
   const b = (raw ?? {}) as Partial<BorradorGuardado>;
-  return { lineas: b.lineas ?? [], historial: b.historial ?? [] };
+  return { lineas: b.lineas ?? [], historial: b.historial ?? [], cotizacionId: b.cotizacionId };
 }
 
 /** Estado de la conversación del bot con un teléfono (borrador del pedido + historial). */
@@ -38,12 +41,12 @@ export async function cargarConversacion(empresaId: number, telefono: string): P
     .where(and(eq(conversacionesBot.empresaId, empresaId), eq(conversacionesBot.telefono, telefono)))
     .limit(1);
   if (!c) return null;
-  const { lineas, historial } = leerBorrador(c.borrador);
-  return { lineas, historial, estado: c.estado };
+  const { lineas, historial, cotizacionId } = leerBorrador(c.borrador);
+  return { lineas, historial, estado: c.estado, cotizacionId };
 }
 
-export async function guardarConversacion(empresaId: number, telefono: string, lineas: LineaGuardada[], historial: MensajeChat[], estado: string): Promise<void> {
-  const borrador: BorradorGuardado = { lineas, historial };
+export async function guardarConversacion(empresaId: number, telefono: string, lineas: LineaGuardada[], historial: MensajeChat[], estado: string, cotizacionId?: number): Promise<void> {
+  const borrador: BorradorGuardado = { lineas, historial, cotizacionId };
   const [existente] = await db
     .select({ id: conversacionesBot.id })
     .from(conversacionesBot)

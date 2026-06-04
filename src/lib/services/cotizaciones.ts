@@ -90,6 +90,36 @@ export async function crearCotizacion(data: NuevaCotizacion, ctx: Contexto): Pro
   });
 }
 
+/**
+ * Reemplaza las líneas de una cotización PENDIENTE (para "añadir al pedido del
+ * día" desde el bot). Devuelve false si la cotización ya no es editable
+ * (facturada/anulada) → el llamador debe crear una nueva. Recalcula el total.
+ */
+export async function reemplazarLineasCotizacion(empresaId: number, id: number, lineas: LineaNuevaCotizacion[], ctx: Contexto): Promise<boolean> {
+  if (lineas.length === 0) throw new CotizacionInvalida("Agrega al menos un producto.");
+  const [c] = await db.select().from(cotizaciones).where(and(eq(cotizaciones.empresaId, empresaId), eq(cotizaciones.id, id))).limit(1);
+  if (!c || c.estado !== "pendiente") return false;
+  const total = totalCotizacion(lineas);
+  await db.transaction(async (tx) => {
+    await tx.delete(cotizacionDetalles).where(eq(cotizacionDetalles.cotizacionId, id));
+    for (const l of lineas) {
+      await tx.insert(cotizacionDetalles).values({
+        cotizacionId: id,
+        productoId: l.productoId,
+        cantidad: String(l.cantidad),
+        precioUnitario: String(l.precioUnitario),
+        subtotal: String(l.cantidad * l.precioUnitario),
+      });
+    }
+    await tx.update(cotizaciones).set({ total: String(total), requiereRevision: true, updatedAt: new Date() }).where(eq(cotizaciones.id, id));
+    await registrarAuditoria(
+      { empresaId, usuarioId: ctx.usuarioId, tablaAfectada: "vx39", modelId: id, accion: "ACTUALIZAR", registroAnterior: c, registroNuevo: { ...c, total: String(total) }, ipOrigen: ctx.ip },
+      tx,
+    );
+  });
+  return true;
+}
+
 /** Anula una cotización pendiente (no afecta nada más). */
 export async function anularCotizacion(empresaId: number, id: number, motivo: string, ctx: Contexto): Promise<void> {
   const [c] = await db.select().from(cotizaciones).where(and(eq(cotizaciones.empresaId, empresaId), eq(cotizaciones.id, id))).limit(1);
